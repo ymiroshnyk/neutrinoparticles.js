@@ -2,26 +2,19 @@
 
 var canvas = document.getElementById('myCanvas');
 
- var gl;
-function initGL(canvas) {
+var gl;
+{
 	try {
 		gl = canvas.getContext("webgl", { premultipliedAlpha: false, alpha: false });
 		gl.viewportWidth = canvas.width;
 		gl.viewportHeight = canvas.height;
 	} catch (e) {
 	}
+
 	if (!gl) {
 		alert("Could not initialise WebGL, sorry :-(");
 	}
 }
-
-var mvMatrix = mat4.create();
-var pMatrix = mat4.create();
-
-initGL(canvas);
-
-gl.clearColor(0.5, 0.5, 0.5, 1.0);
-gl.enable(gl.DEPTH_TEST);
 	
 var neutrino = new NeutrinoParticles();
 var neutrinoWGL = new NeutrinoParticlesWGL(gl);
@@ -55,7 +48,12 @@ var loadImages = function () {
         var image = new Image();
 
 		//test texture remapping (for textures atlases)
-        //effect.texturesRemap[imageIndex] = new neutrino.SubRect(0, 0, 0.5, 0.5);
+        //effect.texturesRemap[imageIndex] = new neutrino.SubRect(
+		//	0, // x of subrect
+		//	0, // y of subrect
+		//	0.5, // width of subrect
+		//	0.5 // height of subrect
+		//);
 
         image.onload = (function () {
             var savedImageIndex = imageIndex;
@@ -78,11 +76,19 @@ var loadImages = function () {
 
 onImagesLoaded = function() {
 	
+	// setup clear viewport color to grey
+	gl.clearColor(0.5, 0.5, 0.5, 1.0);
+	
+	// create matrices
+	var mvMatrix = mat4.create();
+	var pMatrix = mat4.create();
+	
   	var lastCalledTime = null;
 	
 	var updateFrame = function () {
 		requestAnimationFrame(updateFrame);
 
+		// time from previous frame calculations
 		if (lastCalledTime == null) {
 		  lastCalledTime = Date.now();
 		}
@@ -97,8 +103,14 @@ onImagesLoaded = function() {
 			[0, 0, 0] // new position of the effect
 			);
 
-		effectWGL.prepareGeometry([1, 0, 0]/*cameraRight*/, [0, -1, 0]/*cameraUp*/, [0, 0, -1]/*cameraDir*/);
+		// this will create geometry inside effect object regarding to current camera setup
+		effectWGL.prepareGeometry(
+			[1, 0, 0], //cameraRight
+			[0, -1, 0], //cameraUp
+			[0, 0, -1] //cameraDir
+			);
 		
+		// clear viewport with background color (grey)
 		gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -110,12 +122,13 @@ onImagesLoaded = function() {
 		var projX = Math.tan(angleX * 0.5) * near;
 		var projY = Math.tan(angleY * 0.5) * near;
 		var cameraZ = near * gl.viewportWidth * 0.5 / projX;
-		
 		mat4.frustum(pMatrix, -projX, projX, projY, -projY, near, far);
 		
+		// modelview matrix will shift camera to the center of the screen
 		mat4.identity(mvMatrix);
 		mat4.translate(mvMatrix, mvMatrix, [-gl.viewportWidth / 2, -gl.viewportHeight / 2, -cameraZ]);
 
+		// fill geometry buffers with geometry of the effect and render it
 		effectWGL.render(pMatrix, mvMatrix);
 	};
 	
