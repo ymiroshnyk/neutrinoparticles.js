@@ -1,9 +1,9 @@
-// 6b8730dc-7592-4970-bebe-f5c18bd6e028
+// 6fc9dab4-f11f-49ef-ab0f-a25d810ee262
 
-function NeutrinoPart_3boom_stars(ctx) {
+function NeutrinoEffect(ctx) {
 
 	var Db = this;
-	
+
 	var ne = function (Ld, Bd) {
 		this.Ld = Ld;
 		this.Bd = Bd;
@@ -19,22 +19,22 @@ function NeutrinoPart_3boom_stars(ctx) {
 	}
 
 	ne.prototype = {
-		Ec: function (fe, Ab, Jc) {
-			var Gc = ctx.ib(Jc.Md);
+		Ec: function (fe, Ab, Xb) {
+			var Gc = ctx.ib(Xb.Md);
 			var Hc = Math.cos(Gc);
 			var Ic = Math.sin(Gc);
-			var ye = ctx.Ae(Jc.Nd[0]);
-			var ze = ctx.Ae(Jc.Nd[1]);
+			var ye = ctx.Ae(Xb.Nd[0]);
+			var ze = ctx.Ae(Xb.Nd[1]);
 			fe./**/transform(ye * Hc, ye * Ic, ze * -Ic, ze * Hc, Ab[0], Ab[1]);
 		},
 
-		Fc: function (fe, Ab, Jc) {
-			var q = Jc.Mc;
+		Fc: function (fe, Ab, Xb) {
+			var q = Xb.Mc;
 			var z2 = 2.0 * q[2] * q[2];
 			var xy = 2.0 * q[0] * q[1];
 			var wz = 2.0 * q[3] * q[2];
-			var ye = ctx.Ae(Jc.Nd[0]);
-			var ze = ctx.Ae(Jc.Nd[1]);
+			var ye = ctx.Ae(Xb.Nd[0]);
+			var ze = ctx.Ae(Xb.Nd[1]);
 			fe./**/transform(
 				ye * (1.0 - 2.0 * q[1] * q[1] - z2),
 				ye * (xy + wz),
@@ -49,57 +49,58 @@ function NeutrinoPart_3boom_stars(ctx) {
 			if (this.we) {
 
 				if (this.Be != null && !Xb.oc) {
-					var Jc = {};
-					this.Bd.we.Kd(this.Bd, Xb, this, Jc); //IMPL
 
-					if (Jc.Od > 0.001) {
-						var De = Math.floor(Jc.Qc % this.we.Rc);
-						var Ee = Math.floor(Jc.Qc / this.we.Rc);
-						
+					if (Xb.Od > 0.001) {
+						var De = Math.floor(Xb.Qc % this.we.Rc);
+						var Ee = Math.floor(Xb.Qc / this.we.Rc);
+
 						var Ab = Xb.Ab.slice();
-						if (!ge || ge./**/transform(Ab, Jc.Nd)) {
+						var Nd = Xb.Nd.slice();
+						if (!ge || ge./**/transform(Ab, Nd)) {
 
-							fe.save();
-							this.Lc(fe, Ab, Jc);
+							var df = Math.abs(Nd[0]);
+							var ef = Math.abs(Nd[1]);
 
-							var df = Math.abs(Jc.Nd[0]);
-							var ef = Math.abs(Jc.Nd[1]);
-							
-							fe.translate(-df * Jc.Pd[0], -ef * (1 - Jc.Pd[1]));
-							fe.globalAlpha = Jc.Od;
+							if (df > 0.001 && ef > 0.001) {						
+								fe.save();
+								this.Lc(fe, Ab, Xb);
+								
+								fe.translate(-df * Xb.Pd[0], -ef * (1 - Xb.Pd[1]));
+								fe.globalAlpha = Xb.Od;
 
-							if (Jc.gf[0] < 0.999 || Jc.gf[1] < 0.999 || Jc.gf[2] < 0.999) {
+								if (Xb.gf[0] < 0.999 || Xb.gf[1] < 0.999 || Xb.gf[2] < 0.999) {
 
-								var Ye = df < this.Tc ? df : this.Tc;
-								var Ze = ef < this.Uc ? ef : this.Uc;
+									var Ye = df < this.Tc ? df : this.Tc;
+									var Ze = ef < this.Uc ? ef : this.Uc;
 
-								ctx.af(Ye, Ze);
+									ctx.af(Ye, Ze);
 
-								ctx.bf.globalCompositeOperation = "copy";
-								ctx.bf.drawImage(this.Be.image,
-									this.Be.x + this.Tc * De, this.Be.y + this.Uc * Ee,
-									this.Tc, this.Uc,
-									0, 0, Ye, Ze);
+									ctx.bf.globalCompositeOperation = "copy";
+									ctx.bf.drawImage(this.Be.image,
+										this.Be.x + this.Tc * De, this.Be.y + this.Uc * Ee,
+										this.Tc, this.Uc,
+										0, 0, Ye, Ze);
 
-								ctx.bf.globalCompositeOperation = "multiply";
-								ctx.bf.fillStyle = ctx.ff(Jc.gf);
-								ctx.bf.fillRect(0, 0, Ye, Ze);
+									ctx.bf.globalCompositeOperation = "multiply";
+									ctx.bf.fillStyle = ctx.ff(Xb.gf);
+									ctx.bf.fillRect(0, 0, Ye, Ze);
 
-								ctx.bf.globalCompositeOperation = "destination-atop";
-								ctx.bf.drawImage(this.Be.image,
-									this.Be.x + this.Tc * De, this.Be.y + this.Uc * Ee,
-									this.Tc, this.Uc,
-									0, 0, Ye, Ze);
+									ctx.bf.globalCompositeOperation = "destination-atop";
+									ctx.bf.drawImage(this.Be.image,
+										this.Be.x + this.Tc * De, this.Be.y + this.Uc * Ee,
+										this.Tc, this.Uc,
+										0, 0, Ye, Ze);
 
-								fe.drawImage(ctx.cf, 0, 0, Ye, Ze, 0, 0, df, ef);
+									fe.drawImage(ctx.cf, 0, 0, Ye, Ze, 0, 0, df, ef);
+								}
+								else {
+									fe.drawImage(this.Be.image,
+										this.Be.x + this.Tc * De, this.Be.y + this.Uc * Ee,
+										this.Tc, this.Uc, 0, 0, df, ef);
+								}
+
+								fe.restore();
 							}
-							else {
-								fe.drawImage(this.Be.image,
-									this.Be.x + this.Tc * De, this.Be.y + this.Uc * Ee,
-									this.Tc, this.Uc, 0, 0, df, ef);
-							}
-
-							fe.restore();
 						}
 					}
 				}
@@ -166,7 +167,7 @@ function NeutrinoPart_3boom_stars(ctx) {
 		else
 			this.we = null;
 	}
-	
+
 	oe.prototype = {
 		qe: function (Xb, se, re, te) {
 			Xb.Ce(-1, se, re, te);
@@ -175,16 +176,10 @@ function NeutrinoPart_3boom_stars(ctx) {
 
 				if (!Xb.oc) {
 
-					var Jc = {};
-					this.Bd.we.Kd(this.Bd, Xb, this, Jc); //IMPL
-
-					var De = Math.floor(Jc.Qc % this.we.Rc);
-					var Ee = Math.floor(Jc.Qc / this.we.Rc);
-
 					var Fe = [], Ge = [];
 
 					if (this.we.xe == 0) {
-						var a = ctx.ib(Jc.Md);
+						var a = ctx.ib(Xb.Md);
 						var s = Math.sin(a);
 						var c = Math.cos(a);
 
@@ -197,7 +192,7 @@ function NeutrinoPart_3boom_stars(ctx) {
 						Ge[2] = -se[2] * s + re[2] * c;
 					}
 					else {
-						var q = Jc.Mc;
+						var q = Xb.Mc;
 						var z2 = 2.0 * q[2] * q[2];
 						var xy = 2.0 * q[0] * q[1];
 						var wz = 2.0 * q[3] * q[2];
@@ -212,10 +207,10 @@ function NeutrinoPart_3boom_stars(ctx) {
 					}
 
 					var He = [], Ie = [], Je = [], Ke = [];
-					ctx.u(He, Fe, -Jc.Nd[0] * Jc.Pd[0]);
-					ctx.u(Ie, Fe, Jc.Nd[0] * (1.0 - Jc.Pd[0]));
-					ctx.u(Je, Ge, -Jc.Nd[1] * Jc.Pd[1]);
-					ctx.u(Ke, Ge, Jc.Nd[1] * (1.0 - Jc.Pd[1]));
+					ctx.u(He, Fe, -Xb.Nd[0] * Xb.Pd[0]);
+					ctx.u(Ie, Fe, Xb.Nd[0] * (1.0 - Xb.Pd[0]));
+					ctx.u(Je, Ge, -Xb.Nd[1] * Xb.Pd[1]);
+					ctx.u(Ke, Ge, Xb.Nd[1] * (1.0 - Xb.Pd[1]));
 
 					var v0 = [], v1 = [], v2 = [], v3 = [];
 					ctx.c(v0, He, Je);
@@ -241,8 +236,8 @@ function NeutrinoPart_3boom_stars(ctx) {
 						var Ne = new Uint8Array(this.Ld.geometryBuffers./**/colors);
 						var Le = this.Ld.geometryBuffers.numVertices * 4;
 
-						var rgb = ctx.v(Jc.gf, 255);
-						var rgba = [rgb[0], rgb[1], rgb[2], Jc.Od * 255];
+						var rgb = ctx.v(Xb.gf, 255);
+						var rgba = [rgb[0], rgb[1], rgb[2], Xb.Od * 255];
 
 						Ne.set(rgba, Le);
 						Ne.set(rgba, Le + 4);
@@ -254,8 +249,8 @@ function NeutrinoPart_3boom_stars(ctx) {
 						var Oe = new Float32Array(this.Ld.geometryBuffers./**/texCoords[0]);
 						var Le = this.Ld.geometryBuffers.numVertices * 2;
 
-						var De = Math.floor(Jc.Qc % this.we.Rc);
-						var Ee = Math.floor(Jc.Qc / this.we.Rc);
+						var De = Math.floor(Xb.Qc % this.we.Rc);
+						var Ee = Math.floor(Xb.Qc / this.we.Rc);
 
 						var Pe, Qe, Re, Se;
 
@@ -321,10 +316,10 @@ function NeutrinoPart_3boom_stars(ctx) {
 					break;
 
 				case 2:
-					this.Bd.tc.forEach(function(Xb) {
+					this.Bd.tc.forEach(function (Xb) {
 						Xb.depth = ctx.H(te, Xb.Ab);
 					});
-					
+
 					this.Bd.tc.sort(function (a, b) {
 						if (a.depth < b.depth)
 							return 1;
@@ -333,7 +328,7 @@ function NeutrinoPart_3boom_stars(ctx) {
 						return 0;
 					});
 
-					this.Bd.tc.forEach(function(Xb) {
+					this.Bd.tc.forEach(function (Xb) {
 						this.qe(Xb, se, re, te);
 					}, this);
 					break;
@@ -379,58 +374,58 @@ function NeutrinoPart_3boom_stars(ctx) {
 				var ic = 0;
 
 				if (this.zb > 0.000001) {
-				    				    
-				    var Tb = this.Ob + Qb * this.zb;
 
-				    while (Tb > 1.0) {
-				        var Ub = this.zb < 0.001 ? 0.0 : (1.0 - this.Ob) / this.zb;
-				        Sb -= Ub;
-				        Rb += Ub;
-				        systemTime += Ub;
+					var Tb = this.Ob + Qb * this.zb;
 
-				        if (this.Hb != null && Rb > this.Hb) {
-				            Vb.stop();
-				            break;
-				        }
+					while (Tb > 1.0) {
+						var Ub = this.zb < 0.001 ? 0.0 : (1.0 - this.Ob) / this.zb;
+						Sb -= Ub;
+						Rb += Ub;
+						systemTime += Ub;
 
-				        Vb.Rb = Rb;
-				        Ld.Rb = systemTime;
-				        ctx.ab(Vb.Ab, Ab, Vb.Bb, Sb / Qb);
+						if (this.Hb != null && Rb > this.Hb) {
+							Vb.stop();
+							break;
+						}
 
-				        // for the future when Jb would be external
-				        this.Lb = this.Jb;
+						Vb.Rb = Rb;
+						Ld.Rb = systemTime;
+						ctx.ab(Vb.Ab, Ab, Vb.Bb, Sb / Qb);
 
-				        for (var Wb = 0; Wb < this.Jb; ++Wb) {
-				            if (Vb.sc.length == 0)
-				                break;
+						// for the future when Jb would be external
+						this.Lb = this.Jb;
 
-				            if (this.Jb == 1)
-				                this.Kb = 0;
-				            else
-				                this.Kb = Wb / (this.Jb - 1);
+						for (var Wb = 0; Wb < this.Jb; ++Wb) {
+							if (Vb.sc.length == 0)
+								break;
 
-				            var Xb = Vb.sc.pop();
-				            Vb.tc.unshift(Xb);
+							if (this.Jb == 1)
+								this.Kb = 0;
+							else
+								this.Kb = Wb / (this.Jb - 1);
 
-				            if (Wb == 0)
-				                Xb.Yb();
-				            else
-				                Xb.Zb();
+							var Xb = Vb.sc.pop();
+							Vb.tc.unshift(Xb);
 
-				            Xb.Id(Sb);
-				            ++ic;
-				        }
+							if (Wb == 0)
+								Xb.Yb();
+							else
+								Xb.Zb();
 
-				        this.Ob = 0.0;
-				        Tb -= 1.0;
+							Xb.Id(Sb);
+							++ic;
+						}
 
-				        if (this.Ib != null && ++this.Fb >= this.Ib) {
-				            Vb.stop();
-				            break;
-				        }
-				    }
+						this.Ob = 0.0;
+						Tb -= 1.0;
 
-				    this.Ob = Tb;
+						if (this.Ib != null && ++this.Fb >= this.Ib) {
+							Vb.stop();
+							break;
+						}
+					}
+
+					this.Ob = Tb;
 				}
 				Rb += Sb;
 				Vb.Rb = Rb;
@@ -472,52 +467,52 @@ function NeutrinoPart_3boom_stars(ctx) {
 				var ic = 0;
 
 				if (ec > 0.000001) {
-				    var fc = ec / this.rd;
-				    var Tb = this.bc + fc;
+					var fc = ec / this.rd;
+					var Tb = this.bc + fc;
 
-				    var hc = fc < 0.001 ?
-                        1.0 - this.bc : (1.0 - this.bc) / fc;
-                    
-				    var jc = [];
+					var hc = fc < 0.001 ?
+						1.0 - this.bc : (1.0 - this.bc) / fc;
 
-				    while (Tb > 1.0) {
-				        var kc = cc + hc * Qb;
+					var jc = [];
 
-				        ctx.ab(jc, Vb.Bb, Ab, hc);
+					while (Tb > 1.0) {
+						var kc = cc + hc * Qb;
 
-				        Vb.Rb = kc;
-				        ctx.T(Vb.Ab, jc);
-				        Ld.Rb = ctx.X(systemTimeBeforeFrame, systemTimeAfterFrame, hc);
+						ctx.ab(jc, Vb.Bb, Ab, hc);
 
-				        // for the future when Jb would be external
-				        this.Lb = this.Jb;
+						Vb.Rb = kc;
+						ctx.T(Vb.Ab, jc);
+						Ld.Rb = ctx.X(systemTimeBeforeFrame, systemTimeAfterFrame, hc);
 
-				        for (var Wb = 0; Wb < this.Jb; ++Wb) {
-				            if (Vb.sc.length == 0)
-				                break;
+						// for the future when Jb would be external
+						this.Lb = this.Jb;
 
-				            if (this.Jb == 1)
-				                this.Kb = 0;
-				            else
-				                this.Kb = Wb / (this.Jb - 1);
+						for (var Wb = 0; Wb < this.Jb; ++Wb) {
+							if (Vb.sc.length == 0)
+								break;
 
-				            var Xb = Vb.sc.pop();
-				            Vb.tc.unshift(Xb);
+							if (this.Jb == 1)
+								this.Kb = 0;
+							else
+								this.Kb = Wb / (this.Jb - 1);
 
-				            if (Wb == 0)
-				                Xb.Yb();
-				            else
-				                Xb.Zb();
+							var Xb = Vb.sc.pop();
+							Vb.tc.unshift(Xb);
 
-				            Xb.Id(Qb * (1.0 - hc));
-				            ++ic;
-				        }
+							if (Wb == 0)
+								Xb.Yb();
+							else
+								Xb.Zb();
 
-				        hc += 1.0 / fc;
-				        Tb -= 1.0;
-				    }
+							Xb.Id(Qb * (1.0 - hc));
+							++ic;
+						}
 
-				    this.bc = Tb;
+						hc += 1.0 / fc;
+						Tb -= 1.0;
+					}
+
+					this.bc = Tb;
 				}
 
 				Vb.Rb = dc;
@@ -531,6 +526,9 @@ function NeutrinoPart_3boom_stars(ctx) {
 
 		function mc() {
 			this.Ab = [];
+			this.Pd = [];
+			this.Nd = [];
+			this.gf = [];
 			this.Kc = [];
 		}
 
@@ -781,68 +779,68 @@ function NeutrinoPart_3boom_stars(ctx) {
 		return this.Zc;
 	}
 
-	var ke = function() {
+	var ke = function () {
 		var Cb = this;
-		
-		this._init = function(we, Ab, ve) {
+
+		this._init = function (we, Ab, ve) {
 			this./**/model = we;
 
 			this.Ab = [];
-			ctx.T(this.Ab, Ab);
 
-			this.Rb = 0.0;
-		
 			// ke Ad
-		
+
 			this.od = [];
-		
-			this.pd = function(md) {
+
+			this.pd = function (md) {
 				var Bd = new ld(this, md, ve);
 				Bd.Nb(this.Ab);
+				this["_".concat(md.name)] = Bd;
 				this.od.push(Bd);
 			}
-		
-			this./**/model.qd(this); // IMPL
-		
-			this.Nb = function(Ab) {
+
+			this.Nb = function (Ab) {
 				this.Cd = 0.0;
+				this.Rb = 0.0;
+				ctx.T(this.Ab, Ab);
 			}
-		
+
 			this.Nb(Ab);
+			this./**/model.qd(this); // IMPL
 			this./**/update(this.Ud, Ab);
 		}
 	}
-	 
-	ke.prototype./**/restart = function(/**/position) {
-		
+
+	ke.prototype./**/restart = function (/**/position) {
+
 		this.Nb(/**/position);
-		
+
 		for (var i = 0; i < this.od.length; ++i) {
 			this.od[i].Jd(/**/position);
 		}
+
+		this./**/update(this.Ud, /**/position);
 	}
 
 	ke.prototype./**/update = function (/**/dt, /**/position) {
 		var updatedTime = 0.0;
 		var hc = [];
 
-		while ((/**/dt - updatedTime) + this.Cd > this.Dd)
-		{
-		    var cc = this.Rb;
+		while ((/**/dt - updatedTime) + this.Cd > this.Dd) {
+			var cc = this.Rb;
 
 			ctx.ab(hc, this.Ab, /**/position, updatedTime / /**/dt);
-			
-			for (var i = 0; i < this.od.length; ++i) {
-			    this.od[i].Id(this.Dd, hc);
 
-			    this.Rb = cc;
+			for (var i = 0; i < this.od.length; ++i) {
+				this.od[i].Id(this.Dd, hc);
+
+				this.Rb = cc;
 			}
-			
+
 			updatedTime += this.Dd - this.Cd;
 			this.Cd = 0.0;
 			this.Rb = cc + this.Dd;
 		}
-		
+
 		ctx.T(this.Ab, /**/position);
 		this.Cd += /**/dt - updatedTime;
 	}
@@ -854,8 +852,31 @@ function NeutrinoPart_3boom_stars(ctx) {
 		}
 	}
 
+	ke.prototype./**/setPropertyInAllEmitters = function (/**/name, /**/value) {
+		var propName = "_".concat(/**/name);
+
+		if (/**/value instanceof Array) {
+			if (/**/value.length == 2) {
+				for (var i = 0; i < this.od.length; ++i) {
+					ctx.S(this.od[i][propName], /**/value);
+				}
+			}
+			else {
+				for (var i = 0; i < this.od.length; ++i) {
+					ctx.T(this.od[i][propName], /**/value);
+				}
+			}
+		}
+		else {
+			for (var i = 0; i < this.od.length; ++i) {
+				this.od[i][propName] = /**/value;
+			}
+		}
+	}
+
+
 	var le = function () {
-		this._init = function(we, Ab) {
+		this._init = function (we, Ab) {
 			le.prototype._init.call(this, we, Ab, oe);
 
 			this.geometryBuffers = new ctx.GeometryBuffers(this./**/model.Xe * 4, [2], this./**/model.Xe * 6);
@@ -878,7 +899,7 @@ function NeutrinoPart_3boom_stars(ctx) {
 		this.geometryBuffers.numIndices = 0;
 		this.geometryBuffers./**/renderCalls = [];
 
-		this.od.forEach(function(Bd) {
+		this.od.forEach(function (Bd) {
 			Bd.ue(/**/cameraRight, /**/cameraUp, /**/cameraDir);
 		}, this);
 	}
@@ -888,7 +909,7 @@ function NeutrinoPart_3boom_stars(ctx) {
 			me.prototype._init.call(this, we, Ab, ne);
 
 			this.materials = [];
-			this./**/model.materials.forEach(function(value) {
+			this./**/model.materials.forEach(function (value) {
 				this.materials.push(['source-over', 'lighter', 'multiply'][value]);
 			}, this);
 
@@ -904,7 +925,7 @@ function NeutrinoPart_3boom_stars(ctx) {
 		}
 	}
 
-	this.createWGLInstance = function(/**/position) {
+	this.createWGLInstance = function (/**/position) {
 		var Ld = new le();
 		Ld._init(this, /**/position);
 		return Ld;
@@ -915,16 +936,16 @@ function NeutrinoPart_3boom_stars(ctx) {
 		Ld._init(this, /**/position);
 		return Ld;
 	}
-	
-		this.textures = ['stars4x4.png'];
+	this.textures = ['stars4x4.png'];
 	this.materials = [0];
 	this.renderStyles = [{materialIndex:0,textureIndices:[0]}];
 	this.Xe = 8420;
 
 	function Emitter_child2() {
 
-		var _4, _8 = [], _9, _11 = [], _13, _15, _17=[], _17iv=[], _17fs=[], _17vs=[], _17rw=[], _17rwn=[], _17rwl, _17p=[], _17df, _18, _19, _20=[], _20i=[];
+		var _4, _8 = [], _9, _11 = [], _13, _15, _17=[], _17iv=[], _17fs=[], _17vs=[], _17rw=[], _17rwn=[], _17rwl, _17p=[], _17df, _18, _20=[], _20i=[], _19;
 		this.pe = [{xe:1,Rc:2,Sc:2,renderStyleIndex:0}];
+		this.name = "child2";
 
 		this.ud = function(Bd) {
 			Bd._ = [0,0,0];
@@ -947,6 +968,7 @@ function NeutrinoPart_3boom_stars(ctx) {
 		}
 
 		this.fd = function(Bd, Xb) {
+			Xb.Mc=[];
 			Xb._3 = 0.0;
 			_4 = 1 + Math.random() * (2 - 1);
 			Xb._5 = _4;
@@ -968,6 +990,7 @@ function NeutrinoPart_3boom_stars(ctx) {
 		}
 
 		this.gd = function(Bd, Xb) {
+			Xb.Mc=[];
 			Xb._3 = 0.0;
 			_4 = 1 + Math.random() * (2 - 1);
 			Xb._5 = _4;
@@ -1015,6 +1038,14 @@ function NeutrinoPart_3boom_stars(ctx) {
 			_18 = Xb._16 + Qb * Xb._14;
 			Xb._16 = _18;
 			ctx.T(Xb.Ab, Xb._7);
+			ctx.Q(_20i, Xb._12);
+			ctx.qb(_20, _20i, Xb._16);
+			ctx.S(Xb.Pd,[0.5,0.5]);
+			ctx.U(Xb.Mc, _20);
+			ctx.V(Xb.Nd,10,10);
+			ctx.T(Xb.gf,[1,1,1]);
+			Xb.Od = 1;
+			Xb.Qc = Xb._6;
 		}
 
 		this.Cc = function(Bd, Xb, Wc) {
@@ -1022,24 +1053,14 @@ function NeutrinoPart_3boom_stars(ctx) {
 			return Xb._3 > _19;
 		}
 
-		this.Kd = function(Bd, Xb, Xc, Jc) {
-			ctx.Q(_20i, Xb._12);
-			ctx.qb(_20, _20i, Xb._16);
-			Jc.Pd = [0.5,0.5];
-			Jc.Mc = _20;
-			Jc.Nd = [10,10];
-			Jc.gf = [1,1,1];
-			Jc.Od = 1;
-			Jc.Qc = Xb._6;
-		}
-
 
 	}
 
 	function Emitter_child() {
 
-		var _4, _8 = [], _9, _11 = [], _13, _15, _17=[], _17iv=[], _17fs=[], _17vs=[], _17rw=[], _17rwn=[], _17rwl, _17p=[], _17df, _18, _19, _20=[], _20i=[];
+		var _4, _8 = [], _9, _11 = [], _13, _15, _17=[], _17iv=[], _17fs=[], _17vs=[], _17rw=[], _17rwn=[], _17rwl, _17p=[], _17df, _18, _20=[], _20i=[], _19;
 		this.pe = [{xe:1,Rc:2,Sc:2,renderStyleIndex:0}];
+		this.name = "child";
 
 		this.ud = function(Bd) {
 			Bd._ = [0,0,0];
@@ -1063,6 +1084,7 @@ function NeutrinoPart_3boom_stars(ctx) {
 		}
 
 		this.fd = function(Bd, Xb) {
+			Xb.Mc=[];
 			Xb._3 = 0.0;
 			_4 = 1 + Math.random() * (2 - 1);
 			Xb._5 = _4;
@@ -1087,6 +1109,7 @@ function NeutrinoPart_3boom_stars(ctx) {
 		}
 
 		this.gd = function(Bd, Xb) {
+			Xb.Mc=[];
 			Xb._3 = 0.0;
 			_4 = 1 + Math.random() * (2 - 1);
 			Xb._5 = _4;
@@ -1140,6 +1163,14 @@ function NeutrinoPart_3boom_stars(ctx) {
 			Xb.pc(0)._ = Xb._10;
 			Xb.pc(0)._1 = Xb._6;
 			Xb.pc(0)._2 = Xb._7;
+			ctx.Q(_20i, Xb._12);
+			ctx.qb(_20, _20i, Xb._16);
+			ctx.S(Xb.Pd,[0.5,0.5]);
+			ctx.U(Xb.Mc, _20);
+			ctx.V(Xb.Nd,20,20);
+			ctx.T(Xb.gf,[1,1,1]);
+			Xb.Od = 1;
+			Xb.Qc = Xb._6;
 		}
 
 		this.Cc = function(Bd, Xb, Wc) {
@@ -1147,24 +1178,14 @@ function NeutrinoPart_3boom_stars(ctx) {
 			return Xb._3 > _19;
 		}
 
-		this.Kd = function(Bd, Xb, Xc, Jc) {
-			ctx.Q(_20i, Xb._12);
-			ctx.qb(_20, _20i, Xb._16);
-			Jc.Pd = [0.5,0.5];
-			Jc.Mc = _20;
-			Jc.Nd = [20,20];
-			Jc.gf = [1,1,1];
-			Jc.Od = 1;
-			Jc.Qc = Xb._6;
-		}
-
 
 	}
 
 	function Emitter_parent() {
 
-		var _3, _5, _8 = [], _9, _11 = [], _13, _15, _17=[], _17iv=[], _17fs=[], _17vs=[], _17rw=[], _17rwn=[], _17rwl, _17p=[], _17df, _18, _19, _20=[], _20i=[];
+		var _3, _5, _8 = [], _9, _11 = [], _13, _15, _17=[], _17iv=[], _17fs=[], _17vs=[], _17rw=[], _17rwn=[], _17rwl, _17p=[], _17df, _18, _20=[], _20i=[], _19;
 		this.pe = [{xe:1,Rc:2,Sc:2,renderStyleIndex:0}];
+		this.name = "parent";
 
 		this.ud = function(Bd) {
 			Bd._ = [0,0,0];
@@ -1186,6 +1207,7 @@ function NeutrinoPart_3boom_stars(ctx) {
 		}
 
 		this.fd = function(Bd, Xb) {
+			Xb.Mc=[];
 			Xb._2 = 0.0;
 			_3 = 1 + Math.random() * (2 - 1);
 			Xb._4 = _3;
@@ -1211,6 +1233,7 @@ function NeutrinoPart_3boom_stars(ctx) {
 		}
 
 		this.gd = function(Bd, Xb) {
+			Xb.Mc=[];
 			Xb._2 = 0.0;
 			_3 = 1 + Math.random() * (2 - 1);
 			Xb._4 = _3;
@@ -1265,22 +1288,19 @@ function NeutrinoPart_3boom_stars(ctx) {
 			Xb.pc(0)._ = Xb._10;
 			Xb.pc(0)._1 = Xb._6;
 			Xb.pc(0)._2 = Xb._7;
+			ctx.Q(_20i, Xb._12);
+			ctx.qb(_20, _20i, Xb._16);
+			ctx.S(Xb.Pd,[0.5,0.5]);
+			ctx.U(Xb.Mc, _20);
+			ctx.V(Xb.Nd,30,30);
+			ctx.T(Xb.gf,[1,1,1]);
+			Xb.Od = 1;
+			Xb.Qc = Xb._6;
 		}
 
 		this.Cc = function(Bd, Xb, Wc) {
 			_19 = Xb._4;
 			return Xb._2 > _19;
-		}
-
-		this.Kd = function(Bd, Xb, Xc, Jc) {
-			ctx.Q(_20i, Xb._12);
-			ctx.qb(_20, _20i, Xb._16);
-			Jc.Pd = [0.5,0.5];
-			Jc.Mc = _20;
-			Jc.Nd = [30,30];
-			Jc.gf = [1,1,1];
-			Jc.Od = 1;
-			Jc.Qc = Xb._6;
 		}
 
 
