@@ -7,7 +7,7 @@ var neutrino = new NeutrinoParticles();
 
 /*
 neutrino.initializeNoise(
-	"/neutrino/" // path to directory where "neutrinoparticles.noise.bin" is
+	"/neutrinoparticles.js/dist/" // path to directory where "neutrinoparticles.noise.bin" is
 	, callback // function to call when noise binary is loaded and ready to use in effects
 	);
 */
