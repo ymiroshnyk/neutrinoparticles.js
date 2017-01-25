@@ -4,7 +4,6 @@
 ```javascript
 <script src="/neutrinoparticles.js/dist/neutrinoparticles.js"></script>
 <script src="/neutrinoparticles.js/dist/neutrinoparticles.webgl.js"></script>
-<script src="gl-matrix/gl-matrix-min.js"></script>
 <script src="/neutrinoparticles.js/dist-PIXI/neutrinoparticles.pixi.js"></script>
 ```
 
