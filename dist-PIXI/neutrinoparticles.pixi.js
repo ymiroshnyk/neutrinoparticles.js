@@ -72,32 +72,29 @@ class PIXINeutrinoMaterials {
 	setup(pMatrix) {
 		var gl = this.gl;
 
-		gl.enable(gl.BLEND);
-		gl.disable(gl.DEPTH_TEST);
-
 		this.pMatrix = pMatrix;
 		this.currentProgram = null;
 	}
 
-	switchToNormal() {
+	switchToNormal(renderer) {
 		var gl = this.gl;
 
 		this._setProgram(this.shaderProgram);
-		gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+		renderer.state.setBlendMode(0);
 	}
 
-	switchToAdd() {
+	switchToAdd(renderer) {
 		var gl = this.gl;
 
 		this._setProgram(this.shaderProgram);
-		gl.blendFunc(gl.ONE, gl.ONE);
+		renderer.state.setBlendMode(1);
 	}
 
-	switchToMultiply() {
+	switchToMultiply(renderer) {
 		var gl = this.gl;
 
 		this._setProgram(this.shaderProgramMultiply);
-		gl.blendFunc(gl.ZERO, gl.SRC_COLOR);
+		renderer.state.setBlendMode(2);
 	}
 
 	_setProgram(program) {
@@ -289,6 +286,9 @@ class PIXINeutrinoEffect extends PIXI.Container {
 		renderer.bindVao(null);
 		renderer.state.resetAttributes();
 
+		renderer.state.push();
+		renderer.state.setState(renderer.state.defaultState);
+		
 		// hack! the only way to discard current shader for future engine rendering
 		renderer._activeShader = null;
 
@@ -308,13 +308,15 @@ class PIXINeutrinoEffect extends PIXI.Container {
 
 			var materialIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].materialIndex;
 			switch (this.effect.model.materials[materialIndex]) {
-				default: this.ctx.materials.switchToNormal(); break;
-				case 1: this.ctx.materials.switchToAdd(); break;
-				case 2: this.ctx.materials.switchToMultiply(); break;
+				default: this.ctx.materials.switchToNormal(renderer); break;
+				case 1: this.ctx.materials.switchToAdd(renderer); break;
+				case 2: this.ctx.materials.switchToMultiply(renderer); break;
 			}
 
 			gl.drawElements(gl.TRIANGLES, renderCall.numIndices, gl.UNSIGNED_SHORT, renderCall.startIndex * 2);
 		}, this);
+
+		renderer.state.pop();
 	}
 
 	_onEffectReady() {
