@@ -8,15 +8,14 @@ class PIXINeutrinoMaterials {
 			attribute vec4 aColor; \
 			attribute vec2 aTextureCoord; \
 			\
-			uniform mat4 uMVMatrix; \
-			uniform mat4 uPMatrix; \
+			uniform mat3 projectionMatrix; \
 			\
 			varying vec4 vColor; \
 			varying vec2 vTextureCoord; \
 			\
 			void main(void) { \
-				gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0); \
-				vColor = aColor; \
+				gl_Position = vec4((projectionMatrix * vec3(aVertexPosition.xy, 1.0)).xy, 0, 1); \
+				vColor = vec4(aColor.rgb * aColor.a, aColor.a); \
 				vTextureCoord = vec2(aTextureCoord.x, 1.0 - aTextureCoord.y); \
 			}";
 
@@ -29,7 +28,7 @@ class PIXINeutrinoMaterials {
 			uniform sampler2D uSampler; \
 			\
 			void main(void) { \
-				gl_FragColor = vec4(vColor.rgb * vColor.a, vColor.a) * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t)); \
+				gl_FragColor = vColor * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t)); \
 			}";
 
 		var fragmentShaderMultiplySource = "\
@@ -52,7 +51,6 @@ class PIXINeutrinoMaterials {
 		this.shaderProgramMultiply = this._makeShaderProgram(vertexShaderSource, fragmentShaderMultiplySource);
 
 		this.pMatrix = null;
-		this.mvMatrix = null;
 		this.currentProgram = null;
 	}
 
@@ -71,14 +69,13 @@ class PIXINeutrinoMaterials {
 		return this.shaderProgram.textureCoordAttribute[index];
 	}
 
-	setup(pMatrix, mvMatrix) {
+	setup(pMatrix) {
 		var gl = this.gl;
 
 		gl.enable(gl.BLEND);
 		gl.disable(gl.DEPTH_TEST);
 
 		this.pMatrix = pMatrix;
-		this.mvMatrix = mvMatrix;
 		this.currentProgram = null;
 	}
 
@@ -108,8 +105,7 @@ class PIXINeutrinoMaterials {
 
 		if (program != this.currentProgram) {
 			gl.useProgram(program);
-			gl.uniformMatrix4fv(program.pMatrixUniform, false, this.pMatrix);
-			gl.uniformMatrix4fv(program.mvMatrixUniform, false, this.mvMatrix);
+			gl.uniformMatrix3fv(program.pMatrixUniform, false, this.pMatrix);
 			gl.uniform1i(program.samplerUniform, 0);
 
 			this.currentProgram = program;
@@ -157,8 +153,7 @@ class PIXINeutrinoMaterials {
 		shaderProgram.textureCoordAttribute = [gl.getAttribLocation(shaderProgram, "aTextureCoord")];
 		gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute[0]);
 
-		shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-		shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+		shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "projectionMatrix");
 		shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
 
 		return shaderProgram;
@@ -298,28 +293,10 @@ class PIXINeutrinoEffect extends PIXI.Container {
 		renderer._activeShader = null;
 
 		var target = renderer._activeRenderTarget;
-		var viewSizeX = target.size.width;
-		var viewSizeY = target.size.height;
-
-		var pMatrix = mat4.create();
-		var mvMatrix = mat4.create();
-
-		var angleX = 60.0 * Math.PI / 180.0;
-		var angleY = angleX * viewSizeY / viewSizeX;
-		var near = 1.0;
-		var far = 10000.0;
-		var projX = Math.tan(angleX * 0.5) * near;
-		var projY = Math.tan(angleY * 0.5) * near;
-		var cameraZ = near * viewSizeX * 0.5 / projX;
-		mat4.frustum(pMatrix, -projX, projX, projY, -projY, near, far);
-
-		// modelview matrix will shift camera to the center of the screen
-		mat4.identity(mvMatrix);
-		mat4.translate(mvMatrix, mvMatrix, [-viewSizeX / 2, -viewSizeY / 2, -cameraZ]);
 
 		this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
 		
-		this.ctx.materials.setup(pMatrix, mvMatrix);
+		this.ctx.materials.setup(target.projectionMatrix.array);
 
 		// shader programs have the same attributes configuration, so we can set them once and then just change programs
 		this.buffers.setup(this.effect.geometryBuffers);
