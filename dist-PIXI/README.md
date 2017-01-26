@@ -11,6 +11,8 @@ neutrinoparticles.pixi.js is a plugin library for [PIXI](http://www.pixijs.com/)
 
 ## How to use
 
+_You can find source codes in /samples/PIXI/ directory of the repository._
+
 ### Add neccessary includes
 ```javascript
 <script src="/neutrinoparticles.js/dist/neutrinoparticles.js"></script>
