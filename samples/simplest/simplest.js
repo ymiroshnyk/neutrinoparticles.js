@@ -99,7 +99,9 @@ animate = function () {
 	context.fillRect(0, 0, canvas.width, canvas.height);
 	
 	// draw the effect
-	effect.draw(context);
+	effect.draw(
+		context
+		/*, camera*/);
 		
 	requestAnimationFrame(animate);
 };

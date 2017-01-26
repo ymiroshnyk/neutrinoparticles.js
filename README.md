@@ -145,3 +145,9 @@ animate = function () {
 loadEffect();
 ```
 
+## Steps to use on generic HTML5 with WebGL
+
+TO BE DONE.
+
+You can check /samples/simplest/ for WebGL sample code.
+
