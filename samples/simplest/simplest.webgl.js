@@ -6,14 +6,19 @@ var gl;
 {
 	try {
 		gl = canvas.getContext("webgl", { premultipliedAlpha: false, alpha: false });
-		gl.viewportWidth = canvas.width;
-		gl.viewportHeight = canvas.height;
 	} catch (e) {
+	}
+	
+	if (!gl) {
+		gl = canvas.getContext("experimental-webgl", { premultipliedAlpha: false, alpha: false });
 	}
 
 	if (!gl) {
 		alert("Could not initialise WebGL, sorry :-(");
 	}
+	
+	gl.viewportWidth = canvas.width;
+	gl.viewportHeight = canvas.height;
 }
 	
 var neutrino = new NeutrinoParticles();
