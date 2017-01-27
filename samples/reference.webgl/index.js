@@ -25,9 +25,12 @@ var wglNeutrino = new WebGLNeutrinoContext(gl);
 var neutrino = wglNeutrino.neutrino;
 
 /*
-neutrino.initializeNoise(
-	"/neutrinoparticles.js/dist/" // path to directory where "neutrinoparticles.noise.bin" is
-	, callback // function to call when noise binary is loaded and ready to use in effects
+wglNeutrino.initializeNoise(
+	"/neutrinoparticles.js/dist/",	// path to directory where "neutrinoparticles.noise.bin" is
+	function() {},					// noise successfully loaded and ready to use callback
+	function() {					// load fail callback
+		alert("Can't load noise file"); 
+	} 
 	);
 */
 

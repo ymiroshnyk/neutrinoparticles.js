@@ -147,7 +147,7 @@ loadEffect();
 
 ### Using 3D camera emulation
 
-On Canvas renderer you also can use 3D camera's perspective effect emulation. It will change position and size of particles dependently on their Z coordinate to make effect very similar to WebGL perspective projection.
+On Canvas renderer you also can use 3D camera's perspective effect emulation. It will change position and size of particles dependently on their Z coordinate to make effect very similar to WebGL perspective projection. This emulation works really fast and looks pretty good.
 
 To use it, create 3D camera.
 ```javascript
@@ -163,18 +163,18 @@ And pass it to the draw call.
 effect.draw(context, camera);
 ```
 
-You can write your own camera and pass it to the draw call. All you need is to create class with transform(...) method with this signature:
+You can write your own camera with desired functionality. All you need is to create class with transform(...) method with such signature:
 ```javascript
-transform(position, size) { 
+transform(worldPosition, size) { 
 	// ...
-	pos[0] = transformedX;
-	pos[1] = transformedY;
+	pos[0] = transformedScreenX;
+	pos[1] = transformedScreenY;
 	size[0] = transformedWidth;
 	size[1] = transformedHeight;
 }
 ```
 Where
-* position - array with particle's position [x, y, z]
+* worldPosition - array with particle's position [x, y, z]
 * size - array with particle's size [width, height]
 
 This method should modify position and size passed in, and write back tranformed values like shown above.
@@ -353,5 +353,22 @@ Before you start integration to your application, I would advice you to think ab
 
 So, cosider as deep integration as you can, but don't forget about performance. Provided WebGLNeutrinoRenderBuffers is pretty good optimized and doesn't have exceeding copying of data.
 
+## Using turbulence in the effects
+
+The turbulence inside effects (block Noise) requires additional load of pretty heavy file with precomputed turbulence 3D texture. The size of this file is 768Kb - consider that if your project has strict download requirements.
+
+To load that file and initialize turbulence, you need to make following call at the start of application.
+
+```javascript
+neutrino.initializeNoise(
+	"/neutrinoparticles.js/dist/",	// path to directory where "neutrinoparticles.noise.bin" is
+	function() {},					// noise successfully loaded and ready to use callback
+	function() {					// load fail callback
+		alert("Can't load noise file"); 
+	} 
+);
+```
+
+Until the turbulance initialized all effects will be simulated without it. So you might want to wait for success callback.
 
 
