@@ -7,7 +7,7 @@ You can render effects using either Canvas or WebGL.
 The library is designed to be integrated in any engine/framework, and there are samples showing how to use it in clean HTML5 environment. 
 
 Currently available integrations:
-* [PIXI official plugin](https://github.com/ymiroshnyk/neutrinoparticles.js/tree/PIXI/dist-PIXI) ([http://www.pixijs.com/](http://www.pixijs.com/))
+* [PIXI official plugin](dist-PIXI) ([http://www.pixijs.com/](http://www.pixijs.com/))
 
 Below you can find information on how to use neutrinoparticles.js in clean environment, so all effects and textures will be loaded using standard features of HTML5.
 
