@@ -382,5 +382,19 @@ effect.resetPosition(
     );
 ```
 
+## Changing emitter's properties
+
+Particle emitters in the NeutrinoParticles Editor have "Emitter's property" blocks (on top of emitter scene). These blocks allow to pass parameters from parent to attached emitters (like particle color, size etc.). Also these blocks are exposed by the neutrinoparticles.js in the effect instances and you can programmatically change these properties in standalone emitters (not attached to particles). So, you can easily change effect's color or anything you planned while creating the effect.
+
+If you want to change property of a single emitter, you can access it directly from effect.
+```javascript
+effect._EmitterName._PropertyName = 10; //[10, 20] or [10, 20, 30] for vectors
+```
+
+If you want to change property with given name for all stanalone emitters, you can use next call.
+```javascript
+effect.setPropertyInAllEmitters("PropertyName", 10); //[10, 20] or [10, 20, 30] for vectors
+```
+
 
 

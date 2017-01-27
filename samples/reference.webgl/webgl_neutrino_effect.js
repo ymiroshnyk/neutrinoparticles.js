@@ -47,4 +47,8 @@ class WebGLNeutrinoEffect {
 		this.position = position.slice();
 		this.effect.resetPosition(this.position);
 	}
+
+	setPropertyInAllEmitters(name, value) {
+		this.effect.setPropertyInAllEmitters(name, value);
+	}
 }
