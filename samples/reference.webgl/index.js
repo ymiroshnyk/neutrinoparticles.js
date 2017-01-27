@@ -31,7 +31,7 @@ wglNeutrino.initializeNoise(
 	function() {					// load fail callback
 		alert("Can't load noise file"); 
 	} 
-	);
+);
 */
 
 var onEffectLoaded = null;

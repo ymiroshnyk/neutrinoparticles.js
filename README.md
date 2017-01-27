@@ -355,7 +355,7 @@ So, cosider as deep integration as you can, but don't forget about performance. 
 
 ## Using turbulence in the effects
 
-The turbulence inside effects (block Noise) requires additional load of pretty heavy file with precomputed turbulence 3D texture. The size of this file is 768Kb - consider that if your project has strict download requirements.
+The turbulence inside effects (block Noise) requires additional load of pretty heavy file with precomputed turbulence 3D texture. The size of this file is 768Kb - consider this if your project has strict download requirements.
 
 To load that file and initialize turbulence, you need to make following call at the start of application.
 
@@ -370,5 +370,17 @@ neutrino.initializeNoise(
 ```
 
 Until the turbulance initialized all effects will be simulated without it. So you might want to wait for success callback.
+
+## Instant effect position change (jump)
+
+When you moving your effect by changing it's position, the library thinks that effect is moved to new position linearly. In this case effects which generate particles dependenly on went distance will form trail of particles to the new position.
+
+If you want to jump to the new position and avoid such trails, you need to reset effect's position.
+```javascript
+effect.resetPosition(
+    [x, y, z] // new effect's position
+    );
+```
+
 
 

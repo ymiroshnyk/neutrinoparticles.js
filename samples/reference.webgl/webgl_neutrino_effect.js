@@ -3,7 +3,7 @@ class WebGLNeutrinoEffect {
 		this.ctx = model.ctx;
 		this.model = model;
 		this.gl = model.gl;
-		this.position = position;
+		this.position = position.slice();
 
 		var gl = this.gl;
 
@@ -41,5 +41,10 @@ class WebGLNeutrinoEffect {
 
 			gl.drawElements(gl.TRIANGLES, renderCall.numIndices, gl.UNSIGNED_SHORT, renderCall.startIndex * 2);
 		}, this);
+	}
+
+	resetPosition(position) {
+		this.position = position.slice();
+		this.effect.resetPosition(this.position);
 	}
 }
