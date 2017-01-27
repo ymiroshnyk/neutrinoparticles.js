@@ -8,6 +8,7 @@ class WebGLNeutrinoEffect {
 		var gl = this.gl;
 
 		this.effect = this.model.effectModel.createWGLInstance(position);
+		this.effect.texturesRemap = this.model.texturesRemap;
 		this.renderBuffers = new WebGLNeutrinoRenderBuffers(this.ctx, this.effect.geometryBuffers);
 	}
 

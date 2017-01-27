@@ -5,8 +5,37 @@ class WebGLNeutrinoEffectModel {
 		this.effectModel = effectModel;
 		this.textureDescs = textureDescs;
 		this.textures = [];
+		this.texturesRemap = null;
 
+		this._initTexturesRemapIfNeeded();
 		this._createGLTexturesFromTextureDescs();
+	}
+
+	_initTexturesRemapIfNeeded() {
+		var remapNeeded = false;
+
+		for (var texIdx = 0; texIdx < this.textureDescs.length; ++texIdx) {
+			var desc = this.textureDescs[texIdx];
+
+			if (desc.x != 0 || desc.y != 0 || desc.width != desc.image.width || desc.height != desc.image.height) {
+				remapNeeded = true;
+				break;
+			}
+		}
+
+		this.texturesRemap = [];
+		if (remapNeeded) {
+			for (var texIdx = 0; texIdx < this.textureDescs.length; ++texIdx) {
+				var desc = this.textureDescs[texIdx];
+
+				this.texturesRemap[texIdx] = new this.ctx.neutrino.SubRect(
+					desc.x / desc.image.width,
+					desc.y / desc.image.height,
+					desc.width / desc.image.width,
+					desc.height / desc.image.height
+					);
+			}
+		}
 	}
 
 	_createGLTexturesFromTextureDescs() {
