@@ -82,27 +82,33 @@ var animate = null;
 
 onTexturesLoaded = function(textureDescs) {
 	wglEffectModel = new WebGLNeutrinoEffectModel(wglNeutrino, effectModel, textureDescs);
-	wglEffect = new WebGLNeutrinoEffect(wglEffectModel, [0, 0, 0]);
+	wglEffect = new WebGLNeutrinoEffect(
+		wglEffectModel,
+		[0, 0, 0]		// starting position of the effect
+		);
 
 	animate();
 }
 
 gl.clearColor(0.5, 0.5, 0.5, 1.0);
 
-var mvMatrix = mat4.create();
-var pMatrix = mat4.create();
-		
-var lastCalledTime = null;		
+var modelViewMatrix = mat4.create();
+var projectionMatrix = mat4.create();
+
+mat4.ortho(projectionMatrix, 0, gl.viewportWidth, gl.viewportHeight, 0, -1000, 1000);
+mat4.identity(modelViewMatrix);
+
+var lastFrameTime = null;		
 
 animate = function () {
 	// time from previous frame calculations
-	if (lastCalledTime == null) {
-		lastCalledTime = Date.now();
+	if (lastFrameTime == null) {
+		lastFrameTime = Date.now();
 	}
 
 	var currentTime = Date.now();
-	var elapsedTime = (currentTime - lastCalledTime) / 1000;
-	lastCalledTime = currentTime;
+	var elapsedTime = (currentTime - lastFrameTime) / 1000;
+	lastFrameTime = currentTime;
 
 	wglEffect.update(elapsedTime > 1.0 ? 1.0 : elapsedTime);
 
@@ -110,26 +116,13 @@ animate = function () {
 	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-	// prepare projection matrix with horizontal fov 60 degrees and Y axis looking down (as Canvas2D has)
-	var angleX = 60.0 * Math.PI / 180.0;
-	var angleY = angleX * gl.viewportHeight / gl.viewportWidth;
-	var near = 1.0;
-	var far = 10000.0;
-	var projX = Math.tan(angleX * 0.5) * near;
-	var projY = Math.tan(angleY * 0.5) * near;
-	var cameraZ = near * gl.viewportWidth * 0.5 / projX;
-	mat4.frustum(pMatrix, -projX, projX, projY, -projY, near, far);
-
-	// modelview matrix will shift camera to the center of the screen
-	mat4.identity(mvMatrix);
-	mat4.translate(mvMatrix, mvMatrix, [-gl.viewportWidth / 2, -gl.viewportHeight / 2, -cameraZ]);
-
 	// fill geometry buffers with geometry of the effect and render it
 	wglEffect.render(
-		[1, 0, 0], //cameraRight
-		[0, -1, 0], //cameraUp
-		[0, 0, -1], //cameraDir
-		pMatrix, mvMatrix);
+		[1, 0, 0],		//cameraRight
+		[0, -1, 0],		//cameraUp
+		[0, 0, -1],		//cameraDir
+		projectionMatrix,
+		modelViewMatrix);
 
 	requestAnimationFrame(animate);
 }

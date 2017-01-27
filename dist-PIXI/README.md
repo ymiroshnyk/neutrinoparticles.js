@@ -16,7 +16,6 @@ _You can find source codes in /samples/PIXI/ directory of the repository._
 ### Add neccessary includes
 ```javascript
 <script src="/neutrinoparticles.js/dist/neutrinoparticles.js"></script>
-<script src="/neutrinoparticles.js/dist/neutrinoparticles.webgl.js"></script>
 <script src="/neutrinoparticles.js/dist-PIXI/neutrinoparticles.pixi.js"></script>
 ```
 To work correctly you need to include all scripts above. You can do that in HTML as shown here, or by any other way, like load .js file as text string and call eval().
