@@ -7,9 +7,11 @@ class WebGLNeutrinoEffect {
 
 		var gl = this.gl;
 
-		this.effect = this.model.effectModel.createWGLInstance(position);
+		this.renderBuffers = new WebGLNeutrinoRenderBuffers(this.ctx);
+
+		this.effect = this.model.effectModel.createWGLInstance(position, this.renderBuffers);
 		this.effect.texturesRemap = this.model.texturesRemap;
-		this.renderBuffers = new WebGLNeutrinoRenderBuffers(this.ctx, this.effect.geometryBuffers);
+		
 	}
 
 	update(dt) {
@@ -21,12 +23,13 @@ class WebGLNeutrinoEffect {
 		var effectModel = this.model.effectModel;
 
 		this.effect.fillGeometryBuffers(cameraRight, cameraUp, cameraDir);
-		
-		this.renderBuffers.setup(this.effect.geometryBuffers);
+		this.renderBuffers.updateGlBuffers();
+		this.renderBuffers.bind();
 
 		materials.setup(pMatrix, mvMatrix);
 
-		this.effect.geometryBuffers.renderCalls.forEach(function (renderCall) {
+		for (var renderCallIdx = 0; renderCallIdx < this.renderBuffers.numRenderCalls; ++renderCallIdx) {
+			var renderCall = this.renderBuffers.renderCalls[renderCallIdx];
 			var texIndex = effectModel.renderStyles[renderCall.renderStyleIndex].textureIndices[0];
 
 			gl.activeTexture(gl.TEXTURE0);
@@ -40,7 +43,7 @@ class WebGLNeutrinoEffect {
 			}
 
 			gl.drawElements(gl.TRIANGLES, renderCall.numIndices, gl.UNSIGNED_SHORT, renderCall.startIndex * 2);
-		}, this);
+		}
 	}
 
 	resetPosition(position) {
