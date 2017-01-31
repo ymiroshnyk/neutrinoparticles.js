@@ -460,6 +460,17 @@ class PIXINeutrinoEffect extends PIXI.Container {
 		renderer.state.pop();
 	}
 
+	resetPosition(position) {
+		this.position.x = position[0];
+		this.position.y = position[1];
+		this.positionZ = poxition[2];
+		this.effect.resetPosition(position);
+	}
+
+	setPropertyInAllEmitters(name, value) {
+		this.effect.setPropertyInAllEmitters(name, value);
+	}
+
 	_onEffectReady() {
 		var position = [this.position.x, this.position.y, this.positionZ];
 
