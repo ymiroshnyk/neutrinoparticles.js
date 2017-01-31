@@ -171,6 +171,14 @@ class PIXINeutrinoContext {
 			this.materials = new PIXINeutrinoMaterials(gl);
 		}
 	}
+
+	initializeNoise(path, success, fail) {
+		this.neutrino.initializeNoise(path, success, fail);
+	}
+
+	loadEffect(path, success, fail) {
+		this.neutrino.loadEffect(path, success, fail);
+	}
 }
 
 class PIXINeutrinoRenderBuffers {
