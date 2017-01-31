@@ -166,15 +166,26 @@ function NeutrinoEffect(ctx) {
 			this.we = this.Bd.we.pe[0];
 		else
 			this.we = null;
+
+		this.vertex = [
+			{ /**/position: [0.0, 0.0, 0.0], /**/color: [0, 0, 0, 0], /**/texCoords: [[0.0, 0.0]] },
+			{ /**/position: [0.0, 0.0, 0.0], /**/color: [0, 0, 0, 0], /**/texCoords: [[0.0, 0.0]] },
+			{ /**/position: [0.0, 0.0, 0.0], /**/color: [0, 0, 0, 0], /**/texCoords: [[0.0, 0.0]] },
+			{ /**/position: [0.0, 0.0, 0.0], /**/color: [0, 0, 0, 0], /**/texCoords: [[0.0, 0.0]] }];
 	}
 
 	oe.prototype = {
-		qe: function (Xb, se, re, te) {
-			Xb.Ce(-1, se, re, te);
+		qe: function (Xb, se, re, te, renderBuffer) {
+			Xb.Ce(-1, se, re, te, renderBuffer);
 
 			if (this.we) {
 
 				if (!Xb.oc) {
+
+					var v0 = this.vertex[0];
+					var v1 = this.vertex[1];
+					var v2 = this.vertex[2];
+					var v3 = this.vertex[3];
 
 					var Fe = [], Ge = [];
 
@@ -212,43 +223,21 @@ function NeutrinoEffect(ctx) {
 					ctx.u(Je, Ge, -Xb.Nd[1] * Xb.Pd[1]);
 					ctx.u(Ke, Ge, Xb.Nd[1] * (1.0 - Xb.Pd[1]));
 
-					var v0 = [], v1 = [], v2 = [], v3 = [];
-					ctx.c(v0, He, Je);
-					ctx.c(v0, v0, Xb.Ab);
-					ctx.c(v1, He, Ke);
-					ctx.c(v1, v1, Xb.Ab);
-					ctx.c(v2, Ie, Ke);
-					ctx.c(v2, v2, Xb.Ab);
-					ctx.c(v3, Ie, Je);
-					ctx.c(v3, v3, Xb.Ab);
+					ctx.c(v0./**/position, He, Je);
+					ctx.c(v0./**/position, v0./**/position, Xb.Ab);
+					ctx.c(v1./**/position, He, Ke);
+					ctx.c(v1./**/position, v1./**/position, Xb.Ab);
+					ctx.c(v2./**/position, Ie, Ke);
+					ctx.c(v2./**/position, v2./**/position, Xb.Ab);
+					ctx.c(v3./**/position, Ie, Je);
+					ctx.c(v3./**/position, v3./**/position, Xb.Ab);
 
 					{
-						var Me = new Float32Array(this.Ld.geometryBuffers./**/positions);
-						var Le = this.Ld.geometryBuffers.numVertices * 3;
-
-						Me.set(v0, Le);
-						Me.set(v1, Le + 3);
-						Me.set(v2, Le + 6);
-						Me.set(v3, Le + 9);
-					}
-
-					{
-						var Ne = new Uint8Array(this.Ld.geometryBuffers./**/colors);
-						var Le = this.Ld.geometryBuffers.numVertices * 4;
-
 						var rgb = ctx.v(Xb.gf, 255);
-						var rgba = [rgb[0], rgb[1], rgb[2], Xb.Od * 255];
-
-						Ne.set(rgba, Le);
-						Ne.set(rgba, Le + 4);
-						Ne.set(rgba, Le + 8);
-						Ne.set(rgba, Le + 12);
+						v0./**/color = v1./**/color = v2./**/color = v3./**/color = [rgb[0], rgb[1], rgb[2], Xb.Od * 255];
 					}
 
 					{
-						var Oe = new Float32Array(this.Ld.geometryBuffers./**/texCoords[0]);
-						var Le = this.Ld.geometryBuffers.numVertices * 2;
-
 						var De = Math.floor(Xb.Qc % this.we.Rc);
 						var Ee = Math.floor(Xb.Qc / this.we.Rc);
 
@@ -273,45 +262,48 @@ function NeutrinoEffect(ctx) {
 							var Se = Re - Ve;
 						}
 
-						Oe.set([Pe, Se], Le);
-						Oe.set([Pe, Re], Le + 2);
-						Oe.set([Qe, Re], Le + 4);
-						Oe.set([Qe, Se], Le + 6);
+						v0./**/texCoords[0] = [Pe, Se];
+						v1./**/texCoords[0] = [Pe, Re];
+						v2./**/texCoords[0] = [Qe, Re];
+						v3./**/texCoords[0] = [Qe, Se];
 					}
 
-					var Te = this.Ld.geometryBuffers./**/renderCalls;
-					if (!Te.length) {
-						Te.push(new ctx.RenderCall(0, 6, this.we.renderStyleIndex));
-					} else {
-						var lastCall = Te[Te.length - 1];
+					renderBuffer.pushVertex(v0);
+					renderBuffer.pushVertex(v1);
+					renderBuffer.pushVertex(v2);
+					renderBuffer.pushVertex(v3);
 
-						if (lastCall.renderStyleIndex == this.we.renderStyleIndex) {
-							lastCall.numIndices += 6;
+					if (!renderBuffer.__lastRenderCall) {
+						renderBuffer.__lastRenderCall = new ctx.RenderCall(0, 6, this.we.renderStyleIndex);
+					} else {
+						var lastRenderCall = renderBuffer.__lastRenderCall;
+
+						if (lastRenderCall.renderStyleIndex == this.we.renderStyleIndex) {
+							lastRenderCall.numIndices += 6;
 						} else {
-							Te.push(new ctx.RenderCall(this.Ld.geometryBuffers.numIndices,
-								6, this.we.renderStyleIndex));
+							renderBuffer.pushRenderCall(lastRenderCall);
+							renderBuffer.__lastRenderCall = new ctx.RenderCall(
+								lastRenderCall.startIndex + lastRenderCall.numIndices,
+								6, this.we.renderStyleIndex);
 						}
 					}
-
-					this.Ld.geometryBuffers.numVertices += 4;
-					this.Ld.geometryBuffers.numIndices += 6;
 				}
 			}
 
-			Xb.Ce(1, se, re, te);
+			Xb.Ce(1, se, re, te, renderBuffer);
 		},
 
-		ue: function (se, re, te) {
+		ue: function (se, re, te, renderBuffer) {
 			switch (this.Bd.Vc) {
 				case 0:
 					for (var Wb = 0; Wb < this.Bd.tc.length; ++Wb) {
-						this.qe(this.Bd.tc[Wb], se, re, te);
+						this.qe(this.Bd.tc[Wb], se, re, te, renderBuffer);
 					}
 					break;
 
 				case 1:
 					for (var Wb = this.Bd.tc.length; Wb-- > 0;) {
-						this.qe(this.Bd.tc[Wb], se, re, te);
+						this.qe(this.Bd.tc[Wb], se, re, te, renderBuffer);
 					}
 					break;
 
@@ -329,7 +321,7 @@ function NeutrinoEffect(ctx) {
 					});
 
 					this.Bd.tc.forEach(function (Xb) {
-						this.qe(Xb, se, re, te);
+						this.qe(Xb, se, re, te, renderBuffer);
 					}, this);
 					break;
 			}
@@ -587,12 +579,12 @@ function NeutrinoEffect(ctx) {
 				}
 			},
 
-			Ce: function (xc, se, re, te) {
+			Ce: function (xc, se, re, te, renderBuffer) {
 				for (var i = 0; i < this.Kc.length; ++i) {
 					var pc = this.Kc[i];
 
 					if (xc == pc.Ad.xc)
-						pc.Bd.ue(se, re, te);
+						pc.Bd.ue(se, re, te, renderBuffer);
 				}
 			},
 
@@ -753,8 +745,8 @@ function NeutrinoEffect(ctx) {
 		this.construct.Hd(fe, ge);
 	}
 
-	ld.prototype.ue = function (se, re, te) {
-		this.construct.ue(se, re, te);
+	ld.prototype.ue = function (se, re, te, renderBuffer) {
+		this.construct.ue(se, re, te, renderBuffer);
 	}
 
 	ld.prototype.Td = function (Ab) {
@@ -876,32 +868,39 @@ function NeutrinoEffect(ctx) {
 
 
 	var le = function () {
-		this._init = function (we, Ab) {
+		this._init = function (we, Ab, renderBuffer) {
 			le.prototype._init.call(this, we, Ab, oe);
 
-			this.geometryBuffers = new ctx.GeometryBuffers(this./**/model.Xe * 4, [2], this./**/model.Xe * 6);
 			this.texturesRemap = [];
 
-			var indices = new Uint16Array(this.geometryBuffers.indices);
+			var indices = [];
 
-			for (var Wb = 0; Wb < this./**/model.Xe; ++Wb) {
-				var verDisp = Wb * 4;
-				var partIndices = [verDisp + 0, verDisp + 3, verDisp + 1, verDisp + 1, verDisp + 3, verDisp + 2];
-				indices.set(partIndices, Wb * 6);
+			{
+				var verDisp;
+				for (var Wb = 0; Wb < this./**/model.Xe; ++Wb) {
+					verDisp = Wb * 4;
+					indices.push(verDisp + 0, verDisp + 3, verDisp + 1, verDisp + 1, verDisp + 3, verDisp + 2);
+				}
 			}
+
+			this.renderBuffer = renderBuffer;
+			this.renderBuffer.initialize(this./**/model.Xe * 4, [2], indices, this./**/model.Xe);
+			this.renderBuffer.__numIndices = 0;
 		}
 	}
 
 	le.prototype = new ke();
 
 	le.prototype./**/fillGeometryBuffers = function (/**/cameraRight, /**/cameraUp, /**/cameraDir) {
-		this.geometryBuffers.numVertices = 0;
-		this.geometryBuffers.numIndices = 0;
-		this.geometryBuffers./**/renderCalls = [];
+		this.renderBuffer.cleanup();
+		this.renderBuffer.__lastRenderCall = null;
 
 		this.od.forEach(function (Bd) {
-			Bd.ue(/**/cameraRight, /**/cameraUp, /**/cameraDir);
+			Bd.ue(/**/cameraRight, /**/cameraUp, /**/cameraDir, this.renderBuffer);
 		}, this);
+
+		if (this.renderBuffer.__lastRenderCall)
+			this.renderBuffer.pushRenderCall(this.renderBuffer.__lastRenderCall);
 	}
 
 	var me = function () {
@@ -925,9 +924,9 @@ function NeutrinoEffect(ctx) {
 		}
 	}
 
-	this.createWGLInstance = function (/**/position) {
+	this.createWGLInstance = function (/**/position, /**/renderBuffer) {
 		var Ld = new le();
-		Ld._init(this, /**/position);
+		Ld._init(this, /**/position, /**/renderBuffer);
 		return Ld;
 	}
 
@@ -936,6 +935,7 @@ function NeutrinoEffect(ctx) {
 		Ld._init(this, /**/position);
 		return Ld;
 	}
+	
 	this.textures = ['stars4x1_gold.png','glow_point_04_gold.png'];
 	this.materials = [1];
 	this.renderStyles = [{materialIndex:0,textureIndices:[0]},{materialIndex:0,textureIndices:[1]}];

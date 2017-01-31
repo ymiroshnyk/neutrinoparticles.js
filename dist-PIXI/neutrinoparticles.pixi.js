@@ -176,39 +176,107 @@ class PIXINeutrinoContext {
 class PIXINeutrinoRenderBuffers {
 	constructor(context, geometryBuffers) {
 		this.ctx = context;
+		this.gl = this.ctx.renderer.gl;
 
-		var gl = this.ctx.renderer.gl;
+		this.positions = null;
+		this.colors = null;
+		this.texCoords = [];
+		this.maxNumVertices = 0;
+		this.numVertices = 0;
+		this.indices = null;
+
+		this.renderCalls = [];
+		this.maxNumRenderCalls = 0;
+		this.numRenderCalls = 0;
+	}
+
+	initialize(maxNumVertices, texChannels, indices, maxNumRenderCalls) {
+		var gl = this.gl;
+
+		this.positions = new Float32Array(new ArrayBuffer(4 * maxNumVertices * 3));
+		this.colors = new Uint8Array(new ArrayBuffer(4 * maxNumVertices));
+		this.texCoords = [];
+		for (var texChannel = 0; texChannel < texChannels.length; ++texChannel) {
+			this.texCoords[texChannel] = new Float32Array(new ArrayBuffer(4 * maxNumVertices * texChannels[texChannel]));
+			this.texCoords[texChannel].numComponents = texChannels[texChannel];
+		}
+		this.maxNumVertices = maxNumVertices;
+
+		this.indices = new Uint16Array(new ArrayBuffer(2 * indices.length));
+		this.indices.set(indices, 0);
+
+		this.maxNumRenderCalls = maxNumRenderCalls;
 
 		this.positionBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometryBuffers.positions), gl.DYNAMIC_DRAW);
+		gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.DYNAMIC_DRAW);
 
 		this.colorBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, new Uint32Array(geometryBuffers.colors), gl.DYNAMIC_DRAW);
+		gl.bufferData(gl.ARRAY_BUFFER, this.colors, gl.DYNAMIC_DRAW);
 
 		this.texBuffers = [];
-		for (var texIndex = 0; texIndex < geometryBuffers.texCoords.length; ++texIndex) {
+		for (var texIndex = 0; texIndex < this.texCoords.length; ++texIndex) {
 			var buffer = gl.createBuffer();
 			gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometryBuffers.texCoords[texIndex]), gl.DYNAMIC_DRAW);
+			gl.bufferData(gl.ARRAY_BUFFER, this.texCoords[texIndex], gl.DYNAMIC_DRAW);
 			this.texBuffers.push(buffer);
 		}
 
 		this.indicesBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(geometryBuffers.indices), gl.STATIC_DRAW);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
 	}
 
-	setup(geometryBuffers) {
-		var gl = this.ctx.renderer.gl;
+	pushVertex(vertex) {
+		this.positions.set(vertex.position, this.numVertices * 3);
+		this.colors.set(vertex.color, this.numVertices * 4);
+
+		for (var texIndex = 0; texIndex < vertex.texCoords.length; ++texIndex) {
+			this.texCoords[texIndex].set(vertex.texCoords[texIndex],
+				this.numVertices * this.texCoords[texIndex].numComponents);
+		}
+
+		++this.numVertices;
+	}
+
+	pushRenderCall(rc) {
+
+		if (this.numRenderCalls >= this.renderCalls.length)
+			this.renderCalls.push(Object.assign({}, rc));
+		else
+			Object.assign(this.renderCalls[this.numRenderCalls], rc);
+
+		++this.numRenderCalls;
+	}
+
+	cleanup() {
+		this.numVertices = 0;
+		this.numRenderCalls = 0;
+	}
+
+	updateGlBuffers() {
+		var gl = this.gl;
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+		gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.positions, 0, this.numVertices * 3);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
+		gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.colors, 0, this.numVertices * 4);
+
+		this.texBuffers.forEach(function (buffer, index) {
+			gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+			gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.texCoords[index], 0, this.numVertices *
+				this.texCoords[index].numComponents);
+		}, this);
+	}
+
+	bind() {
+		var gl = this.gl;
 		var materials = this.ctx.materials;
 
 		{
 			gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-
-			gl.bufferSubData(gl.ARRAY_BUFFER, 0,
-				new Float32Array(geometryBuffers.positions, 0, geometryBuffers.numVertices * 3));
 
 			gl.enableVertexAttribArray(materials.positionAttribLocation());
 			gl.vertexAttribPointer(materials.positionAttribLocation(), 3, gl.FLOAT, false, 0, 0);
@@ -216,9 +284,6 @@ class PIXINeutrinoRenderBuffers {
 
 		{
 			gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
-
-			gl.bufferSubData(gl.ARRAY_BUFFER, 0,
-				new Uint32Array(geometryBuffers.colors, 0, geometryBuffers.numVertices));
 
 			gl.enableVertexAttribArray(materials.colorAttribLocation());
 			gl.vertexAttribPointer(materials.colorAttribLocation(), 4, gl.UNSIGNED_BYTE, true, 0, 0);
@@ -228,17 +293,24 @@ class PIXINeutrinoRenderBuffers {
 
 			gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 
-			gl.bufferSubData(gl.ARRAY_BUFFER, 0,
-				new Float32Array(geometryBuffers.texCoords[index], 0, geometryBuffers.numVertices *
-				geometryBuffers.texCoords[index].numComponents));
-
 			gl.enableVertexAttribArray(materials.texAttribLocation(index));
 			gl.vertexAttribPointer(materials.texAttribLocation(index),
-				geometryBuffers.texCoords[index].numComponents, gl.FLOAT, false, 0, 0);
+				this.texCoords[index].numComponents, gl.FLOAT, false, 0, 0);
 
 		}, this);
 
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
+	}
+
+	shutdown() {
+		var gl = this.gl;
+
+		gl.deleteBuffer(this.positionBuffer);
+		gl.deleteBuffer(this.colorBuffer);
+
+		this.texBuffers.forEach(function (buffer) {
+			gl.deleteBuffer(buffer);
+		}, this);
 	}
 }
 
@@ -362,14 +434,15 @@ class PIXINeutrinoEffect extends PIXI.Container {
 
 		var target = renderer._activeRenderTarget;
 
-		this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
-		
 		this.ctx.materials.setup(target.projectionMatrix.array);
 
-		// shader programs have the same attributes configuration, so we can set them once and then just change programs
-		this.buffers.setup(this.effect.geometryBuffers);
+		this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
 
-		this.effect.geometryBuffers.renderCalls.forEach(function (renderCall) {
+		this.renderBuffers.updateGlBuffers();
+		this.renderBuffers.bind();
+
+		for (var renderCallIdx = 0; renderCallIdx < this.renderBuffers.numRenderCalls; ++renderCallIdx) {
+			var renderCall = this.renderBuffers.renderCalls[renderCallIdx];
 			var texIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].textureIndices[0];
 
 			renderer.bindTexture(this.effectModel.textures[texIndex], 0, true);
@@ -382,7 +455,7 @@ class PIXINeutrinoEffect extends PIXI.Container {
 			}
 
 			gl.drawElements(gl.TRIANGLES, renderCall.numIndices, gl.UNSIGNED_SHORT, renderCall.startIndex * 2);
-		}, this);
+		}
 
 		renderer.state.pop();
 	}
@@ -394,11 +467,8 @@ class PIXINeutrinoEffect extends PIXI.Container {
 			this.effect = this.effectModel.effectModel.createCanvas2DInstance(position);
 			this.effect.textureDescs = this.effectModel.textureImageDescs;
 		} else {
-			this.effect = this.effectModel.effectModel.createWGLInstance(position);
-
-			var geometryBuffers = this.effect.geometryBuffers;
-
-			this.buffers = new PIXINeutrinoRenderBuffers(this.ctx, this.effect.geometryBuffers);
+			this.renderBuffers = new PIXINeutrinoRenderBuffers(this.ctx);
+			this.effect = this.effectModel.effectModel.createWGLInstance(position, this.renderBuffers);
 		}
 
 		this.emit('ready', this);

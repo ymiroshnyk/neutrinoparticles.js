@@ -98,6 +98,7 @@ class WebGLNeutrinoRenderBuffers {
 	}
 
 	bind() {
+		var gl = this.gl;
 		var materials = this.ctx.materials;
 
 		{
