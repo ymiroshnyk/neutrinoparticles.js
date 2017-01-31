@@ -22,12 +22,12 @@ neutrinoContext.texturesBasePath = "textures/";
 var stage = new PIXI.Container();
 
 var texture = PIXI.Texture.fromImage('Frame_stars.png');
-var bunny = new PIXI.Sprite(texture);
-bunny.anchor.x = 0.5;
-bunny.anchor.y = 0.5;
-bunny.position.x = 410;
-bunny.position.y = 279;
-stage.addChild(bunny);
+var back = new PIXI.Sprite(texture);
+back.anchor.x = 0.5;
+back.anchor.y = 0.5;
+back.position.x = 410;
+back.position.y = 279;
+stage.addChild(back);
 
 
 var testModel = new PIXINeutrinoEffectModel(neutrinoContext, "Frame_stars.js");
@@ -52,8 +52,6 @@ function animate() {
 	lastUpdateTime = currentTime;
 
 	testEffect.update(elapsedTime > 1.0 ? 1.0 : elapsedTime);
-
-	//bunny.rotation += elapsedTime * 0.5;
 
     // render the root container
     renderer.render(stage);
