@@ -373,7 +373,7 @@ Until the turbulance initialized all effects will be simulated without it. So yo
 
 ## Instant effect position change (jump)
 
-When you moving your effect by changing it's position, the library thinks that effect is moved to new position linearly. In this case effects which generate particles dependenly on went distance will form trail of particles to the new position.
+When you moving your effect by changing it's position, the library thinks that effect is moved to new position linearly. In this case effects which generate particles dependenly on passed distance will form trail of particles to the new position.
 
 If you want to jump to the new position and avoid such trails, you need to reset effect's position.
 ```javascript
@@ -384,7 +384,7 @@ effect.resetPosition(
 
 ## Changing emitter's properties
 
-Particle emitters in the NeutrinoParticles Editor have "Emitter's property" blocks (on top of emitter scene). These blocks allow to pass parameters from parent to attached emitters (like particle color, size etc.). Also these blocks are exposed by the neutrinoparticles.js in the effect instances and you can programmatically change these properties in standalone emitters (not attached to particles). So, you can easily change effect's color or anything you planned while creating the effect.
+Particle emitters in the NeutrinoParticles Editor have "Emitter's property" blocks (on top of emitter scheme). These blocks allow to pass parameters from parent to attached emitters (like particle color, size etc.). Also these blocks are exposed by the neutrinoparticles.js in the effect instances and you can programmatically change these properties in standalone emitters (not attached to particles). So, you can easily change effect's color or anything you planned while creating the effect.
 
 If you want to change property of a single emitter, you can access it directly from effect.
 ```javascript
