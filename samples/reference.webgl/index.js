@@ -88,7 +88,7 @@ onTexturesLoaded = function(textureDescs) {
 	wglEffect = new WebGLNeutrinoEffect(
 		wglEffectModel,
 		[400, 300, 0],		// starting position of the effect
-		0					// starting rotation of the effect
+		0					// starting rotation angle of the effect in degrees
 		);
 
 	animate();

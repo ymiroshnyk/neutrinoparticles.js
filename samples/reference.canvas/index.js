@@ -66,12 +66,12 @@ var effect = null;
 var animate = null;
 
 var position = [400, 300, 0];
-var rotation = 0;
+var rotationAngle = 0;
 
 onTexturesLoaded = function(textureDescs) {
 	effect = effectModel.createCanvas2DInstance(
-		position, 										// position of the effect
-		neutrino.axisangle2quat_([0, 0, 1], rotation)	// rotation from angle
+		position, 											// position of the effect
+		neutrino.axisangle2quat_([0, 0, 1], rotationAngle)	// rotation from angle (pass null if identity rotation)
 		);
 		
 	// send image descriptions to the effect
@@ -93,13 +93,13 @@ animate = function () {
 	lastFrameTime = currentTime;
 
 	// changing rotation angle
-	rotation += elapsedTime * 45.0;
+	rotationAngle += elapsedTime * 45.0;
 
 	// update the effect
 	effect.update(
 		elapsedTime > 1.0 ? 1.0 : elapsedTime, 			// time from previous frame in seconds
-		position, 										// new position of the effect
-		neutrino.axisangle2quat_([0, 0, 1], rotation)	// new rotation of the effect
+		position, 										// new position of the effect (pass null if position is not changed)
+		neutrino.axisangle2quat_([0, 0, 1], rotationAngle)	// new rotation of the effect (pass null if rotation is not changed)
 		);
 	
 	// clear background

@@ -100,9 +100,13 @@ Now we are ready to create effect instance and pass textures' descriptions to it
 var effect = null;
 var animate = null;
 
+var position = [400, 300, 0];
+var rotationAngle = 0;
+
 onTexturesLoaded = function(textureDescs) {
 	effect = effectModel.createCanvas2DInstance(
-		[0, 0, 0] 	// position of the effect
+		position, 											// position of the effect
+		neutrino.axisangle2quat_([0, 0, 1], rotationAngle)	// rotation from angle (pass null if identity rotation)
 		);
 		
 	// send image descriptions to the effect
@@ -126,10 +130,14 @@ animate = function () {
 	var elapsedTime = (currentTime - lastFrameTime) / 1000;
 	lastFrameTime = currentTime;
 
+	// changing rotation angle
+	rotationAngle += elapsedTime * 45.0;
+
 	// update the effect
 	effect.update(
-		elapsedTime > 1.0 ? 1.0 : elapsedTime, 	// time from previous frame in seconds
-		[0, 0, 0] 								// new position of the effect
+		elapsedTime > 1.0 ? 1.0 : elapsedTime, 			// time from previous frame in seconds
+		position, 										// new position of the effect (pass null if position is not changed)
+		neutrino.axisangle2quat_([0, 0, 1], rotationAngle)	// new rotation of the effect (pass null if rotation is not changed)
 		);
 	
 	// clear background
@@ -144,6 +152,20 @@ animate = function () {
 
 loadEffect();
 ```
+
+### Rotation
+
+As you can see from the code above, effect accepts position and rotation on it's creation and update. Position vector is represented by array [x, y, z] and rotation quaternion by array [x, y, z, w].
+
+You can form rotation quaternion by yourself, or you can use neutrino function which makes quaternion from axis and rotation angle around this axis:
+```javascript
+	neutrino.axisangle2quat_(
+		[x, y, z],		// rotation axis
+		angle			// rotation angle in degrees
+		);
+```
+
+This rotation might be used by the effect if this effect was made with rotation applying turned on (it on by default in the Editor).
 
 ### Using 3D camera emulation
 
@@ -293,7 +315,8 @@ onTexturesLoaded = function(textureDescs) {
 	wglEffectModel = new WebGLNeutrinoEffectModel(wglNeutrino, effectModel, textureDescs);
 	wglEffect = new WebGLNeutrinoEffect(
 		wglEffectModel,
-		[0, 0, 0]		// starting position of the effect
+		[400, 300, 0],		// starting position of the effect
+		0					// starting rotation angle of the effect in degrees
 		);
 
 	animate();
@@ -378,7 +401,8 @@ When you moving your effect by changing it's position, the library thinks that e
 If you want to jump to the new position and avoid such trails, you need to reset effect's position.
 ```javascript
 effect.resetPosition(
-    [x, y, z] // new effect's position
+    [x, y, z], // new effect's position (pass null if you don't want to reset position)
+	[x, y, z, w], // new effect's rotation quaternion (pass null if you don't want to reset rotation)
     );
 ```
 
