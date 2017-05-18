@@ -21,17 +21,8 @@ neutrinoContext.texturesBasePath = "textures/";
 
 var stage = new PIXI.Container();
 
-var texture = PIXI.Texture.fromImage('Frame_stars.png');
-var back = new PIXI.Sprite(texture);
-back.anchor.x = 0.5;
-back.anchor.y = 0.5;
-back.position.x = 410;
-back.position.y = 279;
-stage.addChild(back);
-
-
-var testModel = new PIXINeutrinoEffectModel(neutrinoContext, "Frame_stars.js");
-var testEffect = new PIXINeutrinoEffect(testModel, [0, 0, 0]);
+var testModel = new PIXINeutrinoEffectModel(neutrinoContext, "water_stream.js");
+var testEffect = new PIXINeutrinoEffect(testModel, [400, 300, 0], 45);
 stage.addChild(testEffect);
 
 if (testEffect.ready()) {
@@ -50,6 +41,8 @@ function animate() {
 	var currentTime = Date.now();
 	var elapsedTime = (currentTime - lastUpdateTime) / 1000;
 	lastUpdateTime = currentTime;
+
+	testEffect.rotation += elapsedTime * 45.0;
 
 	testEffect.update(elapsedTime > 1.0 ? 1.0 : elapsedTime);
 

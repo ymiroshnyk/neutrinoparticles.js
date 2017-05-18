@@ -386,7 +386,7 @@ class PIXINeutrinoEffectModel extends PIXI.DisplayObject {
 
 class PIXINeutrinoEffect extends PIXI.Container {
 
-	constructor(effectModel, position) {
+	constructor(effectModel, position, rotation) {
 		super();
 
 		this.ctx = effectModel.ctx;
@@ -394,6 +394,9 @@ class PIXINeutrinoEffect extends PIXI.Container {
 		this.effect = null;
 		this.position.set(position[0], position[1]);
 		this.positionZ = position[2];
+
+		if (rotation)
+			this.rotation = rotation;
 
 		if (effectModel.ready()) {
 			_onEffectReady();
@@ -410,7 +413,8 @@ class PIXINeutrinoEffect extends PIXI.Container {
 
 	update(dt) {
 		if (this.effect != null) {
-			this.effect.update(dt, [this.position.x, this.position.y, this.positionZ]);
+			this.effect.update(dt, [this.position.x, this.position.y, this.positionZ],
+				this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.rotation));
 		}
 	}
 
@@ -419,8 +423,6 @@ class PIXINeutrinoEffect extends PIXI.Container {
 			return;
 
 		renderer.context.setTransform(1, 0, 0, 1, 0, 0);
-
-		// другие объекты смещают контекст. нужно ставить соответственно позиции контейнера
 		this.effect.draw(renderer.context);
 	};
 
@@ -437,12 +439,12 @@ class PIXINeutrinoEffect extends PIXI.Container {
 		renderer.state.push();
 		renderer.state.setState(renderer.state.defaultState);
 		
-		// hack! the only way to discard current shader for future engine rendering
+		// hack! the only way to discard current shader for futher engine rendering
 		renderer._activeShader = null;
 
 		var target = renderer._activeRenderTarget;
 
-		this.ctx.materials.setup(target.projectionMatrix.array);
+		this.ctx.materials.setup(target.projectionMatrix.toArray(true));
 
 		this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
 
@@ -468,11 +470,19 @@ class PIXINeutrinoEffect extends PIXI.Container {
 		renderer.state.pop();
 	}
 
-	resetPosition(position) {
-		this.position.x = position[0];
-		this.position.y = position[1];
-		this.positionZ = poxition[2];
-		this.effect.resetPosition(position);
+	resetPosition(position, rotation) {
+		if (position) {
+			this.position.x = position[0];
+			this.position.y = position[1];
+			this.positionZ = poxition[2];
+		}
+
+		if (rotation) {
+			this.rotation = rotation;
+		}
+
+		this.effect.resetPosition(position, 
+			rotation ? this.ctx.neutrino.axisangle2quat_([0, 0, 1], rotation) : null);
 	}
 
 	setPropertyInAllEmitters(name, value) {
@@ -481,13 +491,14 @@ class PIXINeutrinoEffect extends PIXI.Container {
 
 	_onEffectReady() {
 		var position = [this.position.x, this.position.y, this.positionZ];
+		var rotation = this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.rotation);
 
 		if (this.effectModel.ctx.renderer instanceof PIXI.CanvasRenderer) {
-			this.effect = this.effectModel.effectModel.createCanvas2DInstance(position);
+			this.effect = this.effectModel.effectModel.createCanvas2DInstance(position, rotation);
 			this.effect.textureDescs = this.effectModel.textureImageDescs;
 		} else {
 			this.renderBuffers = new PIXINeutrinoRenderBuffers(this.ctx);
-			this.effect = this.effectModel.effectModel.createWGLInstance(position, this.renderBuffers);
+			this.effect = this.effectModel.effectModel.createWGLInstance(position, rotation, this.renderBuffers);
 		}
 
 		this.emit('ready', this);
