@@ -1,21 +1,25 @@
 class WebGLNeutrinoEffect {
-	constructor(model, position) {
+	constructor(model, position, rotationAngle) {
 		this.ctx = model.ctx;
 		this.model = model;
 		this.gl = model.gl;
 		this.position = position.slice();
+		this.rotationAngle = rotationAngle;
 
 		var gl = this.gl;
 
 		this.renderBuffers = new WebGLNeutrinoRenderBuffers(this.ctx);
 
-		this.effect = this.model.effectModel.createWGLInstance(position, this.renderBuffers);
+		this.effect = this.model.effectModel.createWGLInstance(position,
+			this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.rotationAngle),
+			this.renderBuffers);
 		this.effect.texturesRemap = this.model.texturesRemap;
 		
 	}
 
 	update(dt) {
-		this.effect.update(dt, this.position);
+		this.effect.update(dt, this.position,
+			this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.rotationAngle));
 	}
 
 	render(cameraRight, cameraUp, cameraDir, pMatrix, mvMatrix) {
@@ -46,9 +50,15 @@ class WebGLNeutrinoEffect {
 		}
 	}
 
-	resetPosition(position) {
-		this.position = position.slice();
-		this.effect.resetPosition(this.position);
+	resetPosition(position, rotationAngle) {
+		if (position)
+			this.position = position.slice();
+
+		if (rotationAngle)
+			this.rotationAngle = rotationAngle;
+
+		this.effect.resetPosition(position, rotationAngle ? 
+			this.ctx.neutrino.axisangle2quat_([0, 0, 1], rotationAngle) : null);
 	}
 
 	setPropertyInAllEmitters(name, value) {

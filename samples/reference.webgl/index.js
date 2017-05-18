@@ -39,7 +39,7 @@ var effectModel = null;
 
 var loadEffect = function() {
 	neutrino.loadEffect(
-		"export/3boom_stars.js", 		// path to effect file
+		"export_js/water_stream.js", 	// path to effect file
 		function(_effectModel) { 		// on effect loaded successfully callback
 			effectModel = _effectModel;
 			onEffectLoaded();
@@ -87,7 +87,8 @@ onTexturesLoaded = function(textureDescs) {
 	wglEffectModel = new WebGLNeutrinoEffectModel(wglNeutrino, effectModel, textureDescs);
 	wglEffect = new WebGLNeutrinoEffect(
 		wglEffectModel,
-		[0, 0, 0]		// starting position of the effect
+		[400, 300, 0],		// starting position of the effect
+		0					// starting rotation of the effect
 		);
 
 	animate();
@@ -112,6 +113,8 @@ animate = function () {
 	var currentTime = Date.now();
 	var elapsedTime = (currentTime - lastFrameTime) / 1000;
 	lastFrameTime = currentTime;
+
+	wglEffect.rotationAngle += elapsedTime * 45.0;
 
 	wglEffect.update(elapsedTime > 1.0 ? 1.0 : elapsedTime);
 

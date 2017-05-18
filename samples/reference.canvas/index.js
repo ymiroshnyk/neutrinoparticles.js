@@ -22,7 +22,7 @@ var effectModel = null;
 
 var loadEffect = function() {
 	neutrino.loadEffect(
-		"export/3boom_stars.js", 		// path to effect file
+		"export_js/water_stream.js", 	// path to effect file
 		function(_effectModel) { 		// on effect loaded successfully callback
 			effectModel = _effectModel;
 			onEffectLoaded();
@@ -65,9 +65,13 @@ onEffectLoaded = function() {
 var effect = null;
 var animate = null;
 
+var position = [400, 300, 0];
+var rotation = 0;
+
 onTexturesLoaded = function(textureDescs) {
 	effect = effectModel.createCanvas2DInstance(
-		[0, 0, 0] 	// position of the effect
+		position, 										// position of the effect
+		neutrino.axisangle2quat_([0, 0, 1], rotation)	// rotation from angle
 		);
 		
 	// send image descriptions to the effect
@@ -88,10 +92,14 @@ animate = function () {
 	var elapsedTime = (currentTime - lastFrameTime) / 1000;
 	lastFrameTime = currentTime;
 
+	// changing rotation angle
+	rotation += elapsedTime * 45.0;
+
 	// update the effect
 	effect.update(
-		elapsedTime > 1.0 ? 1.0 : elapsedTime, 	// time from previous frame in seconds
-		[0, 0, 0] 								// new position of the effect
+		elapsedTime > 1.0 ? 1.0 : elapsedTime, 			// time from previous frame in seconds
+		position, 										// new position of the effect
+		neutrino.axisangle2quat_([0, 0, 1], rotation)	// new rotation of the effect
 		);
 	
 	// clear background

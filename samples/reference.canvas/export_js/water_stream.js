@@ -1,4 +1,4 @@
-// 6fc9dab4-f11f-49ef-ab0f-a25d810ee262
+// e8193236-0e45-4c11-be8a-5e11c85cc7a7
 
 function NeutrinoEffect(ctx) {
 
@@ -357,7 +357,7 @@ function NeutrinoEffect(ctx) {
 				this.Nb();
 			},
 
-			Id: function (Qb, Ab) {
+			Id: function (Qb, Ab, Mc) {
 				Vb.we.Pb(Qb, Vb, this); // IMPL
 
 				var Rb = Vb.Rb;
@@ -382,7 +382,12 @@ function NeutrinoEffect(ctx) {
 
 						Vb.Rb = Rb;
 						Ld.Rb = systemTime;
-						ctx.ab(Vb.Ab, Ab, Vb.Bb, Sb / Qb);
+
+						if (Ab)
+							ctx.ab(Vb.Ab, Ab, Vb.Bb, Sb / Qb);
+
+						if (Mc)
+							ctx.slerpq(Vb.Mc, Mc, Vb.prevRotation, Sb / Qb);
 
 						// for the future when Jb would be external
 						this.Lb = this.Jb;
@@ -421,7 +426,12 @@ function NeutrinoEffect(ctx) {
 				}
 				Rb += Sb;
 				Vb.Rb = Rb;
-				ctx.T(Vb.Ab, Ab);
+
+				if (Ab)
+					ctx.T(Vb.Ab, Ab);
+
+				if (Mc)
+					ctx.T(Vb.Mc, Mc);
 
 				return ic;
 			}
@@ -448,14 +458,14 @@ function NeutrinoEffect(ctx) {
 				this.Nb();
 			},
 
-			Id: function (Qb, Ab) {
+			Id: function (Qb, Ab, Mc) {
 				Vb.we.Pb(Qb, Vb, this); // IMPL
 
 				var cc = Vb.Rb;
 				var dc = cc + Qb;
 				var systemTimeBeforeFrame = Ld.Rb;
 				var systemTimeAfterFrame = systemTimeBeforeFrame + Qb;
-				var ec = ctx.O(ctx.h(Ab, Vb.Bb));
+				var ec = Ab ? ctx.O(ctx.h(Ab, Vb.Bb)) : 0;
 				var ic = 0;
 
 				if (ec > 0.000001) {
@@ -470,7 +480,11 @@ function NeutrinoEffect(ctx) {
 					while (Tb > 1.0) {
 						var kc = cc + hc * Qb;
 
-						ctx.ab(jc, Vb.Bb, Ab, hc);
+						if (Ab)
+							ctx.ab(jc, Vb.Bb, Ab, hc);
+
+						if (Mc)
+							ctx.slerpq(currentEmitterRot, Vb.prevRotation, Mc, hc);
 
 						Vb.Rb = kc;
 						ctx.T(Vb.Ab, jc);
@@ -508,7 +522,12 @@ function NeutrinoEffect(ctx) {
 				}
 
 				Vb.Rb = dc;
-				ctx.T(Vb.Ab, Ab);
+
+				if (Ab)
+					ctx.T(Vb.Ab, Ab);
+
+				if (Mc)
+					ctx.U(Vb.Mc, Mc);
 
 				return ic;
 			}
@@ -530,7 +549,7 @@ function NeutrinoEffect(ctx) {
 
 				for (var i = 0; i < this.Kc.length; ++i) {
 					var pc = this.Kc[i];
-					pc.Bd.Jd(this.Ab);
+					pc.Bd.Jd(this.Ab, null);
 
 					if (pc.Ad.sd)
 						pc.Bd.stop();
@@ -559,7 +578,7 @@ function NeutrinoEffect(ctx) {
 
 			rc: function (Qb) {
 				for (var i = 0; i < this.Kc.length; i++) {
-					this.Kc[i].Bd.Id(Qb, this.Ab);
+					this.Kc[i].Bd.Id(Qb, this.Ab, null);
 				}
 			},
 
@@ -620,6 +639,8 @@ function NeutrinoEffect(ctx) {
 
 		this.Ab = [];
 		this.Bb = [];
+		this.Mc = [];
+		this.prevRotation = [];
 		this.tc = [];
 		this.sc = [];
 		this.Wc = new zc();
@@ -651,9 +672,13 @@ function NeutrinoEffect(ctx) {
 			this.sc.push(Xb);
 		}
 
-		this.Nb = function (Ab) {
-			ctx.T(this.Ab, Ab);
+		this.Nb = function (Ab, Mc) {
+
+			ctx.T(this.Ab, Ab ? Ab : [0, 0, 0]);
 			ctx.T(this.Bb, this.Ab);
+			ctx.U(this.Mc, Mc ? Mc : [0, 0, 0, 1]);
+			ctx.U(this.prevRotation, this.Mc);
+
 			this.Rb = 0.0;
 			this.wd = 0.0;
 			this.Zc = true;
@@ -662,8 +687,8 @@ function NeutrinoEffect(ctx) {
 
 
 
-	ld.prototype.Jd = function (Ab) {
-		this.Nb(Ab);
+	ld.prototype.Jd = function (Ab, Mc) {
+		this.Nb(Ab, Mc);
 
 		this.sc.push.apply(this.sc, this.tc);
 		this.tc.length = 0;
@@ -671,25 +696,40 @@ function NeutrinoEffect(ctx) {
 		this.vd.Jd();
 	}
 
-	ld.prototype.Id = function (Qb, Ab) {
-		ctx.T(this.Bb, this.Ab);
+	ld.prototype.Id = function (Qb, Ab, Mc) {
 		this.wd = this.Rb;
 
-		var shift = [];
-		ctx.g(shift, Ab, this.Bb);
-		ctx.T(this.ad, shift);
-		ctx.w(this.ad, this.ad, Qb);
+		if (Ab) {
+			ctx.T(this.Bb, this.Ab);
+			var shift = [];
+			ctx.g(shift, Ab, this.Bb);
+			ctx.T(this.ad, shift);
+			ctx.w(this.ad, this.ad, Qb);
 
-		this.cd = this.bd;
-		this.bd = ctx.O(shift);
+			this.cd = this.bd;
+			this.bd = ctx.O(shift);
+		}
+		else {
+			ctx.W(this.ad, 0, 0, 0);
+		}
+
+		if (Mc)
+		{
+			ctx.T(this.prevRotation, this.Mc);
+		}
 
 		var ic;
 
 		if (this.Zc) {
-			ic = this.vd.Id(Qb, Ab);
+			ic = this.vd.Id(Qb, Ab, Mc);
 		}
 		else {
-			ctx.T(this.Ab, Ab);
+			if (Ab)
+				ctx.T(this.Ab, Ab);
+
+			if (Mc)
+				ctx.U(this.Mc, Mc);
+
 			ic = 0;
 			this.Rb += Qb;
 		}
@@ -749,10 +789,18 @@ function NeutrinoEffect(ctx) {
 		this.construct.ue(se, re, te, renderBuffer);
 	}
 
-	ld.prototype.Td = function (Ab) {
-		ctx.T(this.Bb, Ab);
-		ctx.T(this.wd, this.Rb);
-		ctx.T(this.Ab, Ab);
+	ld.prototype.Td = function (Ab, Mc) {
+		this.wd = this.Rb;
+
+		if (Ab) {
+			ctx.T(this.Bb, this.Ab);
+			ctx.T(this.Ab, Ab);
+		}
+
+		if (Mc) {
+			ctx.U(this.prevRotation, this.Mc);
+			ctx.U(this.Mc, Mc);
+		}
 	}
 
 	ld.prototype.uc = function (md, nd) {
@@ -774,10 +822,11 @@ function NeutrinoEffect(ctx) {
 	var ke = function () {
 		var Cb = this;
 
-		this._init = function (we, Ab, ve) {
+		this._init = function (we, Ab, Mc, ve) {
 			this./**/model = we;
 
 			this.Ab = [];
+			this.Mc = [];
 
 			// ke Ad
 
@@ -785,45 +834,59 @@ function NeutrinoEffect(ctx) {
 
 			this.pd = function (md) {
 				var Bd = new ld(this, md, ve);
-				Bd.Nb(this.Ab);
+				Bd.Nb(this.Ab, this.Mc);
 				this["_".concat(md.name)] = Bd;
 				this.od.push(Bd);
 			}
 
-			this.Nb = function (Ab) {
+			this.Nb = function (Ab, Mc) {
 				this.Cd = 0.0;
 				this.Rb = 0.0;
-				ctx.T(this.Ab, Ab);
+				ctx.T(this.Ab, Ab ? Ab : [0, 0, 0]);
+				ctx.U(this.Mc, Mc ? Mc : [0, 0, 0, 1]);
 			}
 
-			this.Nb(Ab);
+			this.Nb(Ab, Mc);
 			this./**/model.qd(this); // IMPL
-			this./**/update(this.Ud, Ab);
+			this./**/update(this.Ud, Ab, Mc);
 		}
 	}
 
-	ke.prototype./**/restart = function (/**/position) {
+	ke.prototype./**/restart = function (/**/position, /**/rotation) {
 
-		this.Nb(/**/position);
+		this.Nb(/**/position, /**/rotation);
 
 		for (var i = 0; i < this.od.length; ++i) {
-			this.od[i].Jd(/**/position);
+			this.od[i].Jd(/**/position, /**/rotation);
 		}
 
-		this./**/update(this.Ud, /**/position);
+		this./**/update(this.Ud, /**/position, /**/rotation);
 	}
 
-	ke.prototype./**/update = function (/**/dt, /**/position) {
+	ke.prototype./**/update = function (/**/dt, /**/position, /**/rotation) {
 		var updatedTime = 0.0;
 		var hc = [];
+		ctx.T(hc, this.Ab);
+		var frameRotation = [];
+		ctx.U(frameRotation, this.Mc);
+
+		if (/**/position && ctx.equalv3_(/**/position, this.Ab))
+			/**/position = null;
+
+		if (/**/rotation && ctx.equalq_(/**/rotation, this.Mc))
+			/**/rotation = null;
 
 		while ((/**/dt - updatedTime) + this.Cd > this.Dd) {
 			var cc = this.Rb;
 
-			ctx.ab(hc, this.Ab, /**/position, updatedTime / /**/dt);
+			if (/**/position)
+				ctx.ab(hc, this.Ab, /**/position, updatedTime / /**/dt);
+
+			if (/**/rotation)
+				ctx.slerpq(frameRotation, this.Mc, /**/rotation, updatedTime / /**/dt);
 
 			for (var i = 0; i < this.od.length; ++i) {
-				this.od[i].Id(this.Dd, hc);
+				this.od[i].Id(this.Dd, hc, frameRotation);
 
 				this.Rb = cc;
 			}
@@ -833,14 +896,25 @@ function NeutrinoEffect(ctx) {
 			this.Rb = cc + this.Dd;
 		}
 
-		ctx.T(this.Ab, /**/position);
+		if (/**/position)
+			ctx.T(this.Ab, /**/position);
+
+		if (/**/rotation)
+			ctx.U(this.Mc, /**/rotation);
+
 		this.Cd += /**/dt - updatedTime;
 	}
 
-	ke.prototype./**/resetPosition = function (/**/position) {
-		ctx.T(this.Ab, /**/position);
+	ke.prototype./**/resetPosition = function (/**/position, /**/rotation) {
+
+		if (Ab)
+			ctx.T(this.Ab, /**/position);
+
+		if (Mc)
+			ctx.U(this.Mc, /**/rotation);
+
 		for (var i = 0; i < this.od.length; ++i) {
-			this.od[i].Td(/**/position);
+			this.od[i].Td(/**/position, /**/rotation);
 		}
 	}
 
@@ -868,8 +942,8 @@ function NeutrinoEffect(ctx) {
 
 
 	var le = function () {
-		this._init = function (we, Ab, renderBuffer) {
-			le.prototype._init.call(this, we, Ab, oe);
+		this._init = function (we, Ab, Mc, renderBuffer) {
+			le.prototype._init.call(this, we, Ab, Mc, oe);
 
 			this.texturesRemap = [];
 
@@ -904,8 +978,8 @@ function NeutrinoEffect(ctx) {
 	}
 
 	var me = function () {
-		this._init = function (we, Ab) {
-			me.prototype._init.call(this, we, Ab, ne);
+		this._init = function (we, Ab, Mc) {
+			me.prototype._init.call(this, we, Ab, Mc, ne);
 
 			this.materials = [];
 			this./**/model.materials.forEach(function (value) {
@@ -924,391 +998,187 @@ function NeutrinoEffect(ctx) {
 		}
 	}
 
-	this.createWGLInstance = function (/**/position, /**/renderBuffer) {
+	this.createWGLInstance = function (/**/position, /**/rotation, /**/renderBuffer) {
 		var Ld = new le();
-		Ld._init(this, /**/position, /**/renderBuffer);
+		Ld._init(this, /**/position, /**/rotation, /**/renderBuffer);
 		return Ld;
 	}
 
-	this.createCanvas2DInstance = function (/**/position) {
+	this.createCanvas2DInstance = function (/**/position, /**/rotation) {
 		var Ld = new me();
-		Ld._init(this, /**/position);
+		Ld._init(this, /**/position, /**/rotation);
 		return Ld;
 	}
-	
-	this.textures = ['stars4x4.png'];
+	this.textures = ['fluid2.png'];
 	this.materials = [0];
 	this.renderStyles = [{materialIndex:0,textureIndices:[0]}];
-	this.Xe = 8420;
+	this.Xe = 100;
 
-	function Emitter_child2() {
+	function Emitter_DefaultEmitter() {
 
-		var _4, _8 = [], _9, _11 = [], _13, _15, _17=[], _17iv=[], _17fs=[], _17vs=[], _17rw=[], _17rwn=[], _17rwl, _17p=[], _17df, _18, _20=[], _20i=[], _19;
-		this.pe = [{xe:1,Rc:2,Sc:2,renderStyleIndex:0}];
-		this.name = "child2";
+		var _1 = [], _3, _4, _4i0, _4s0 = [], _5 = [], _5i, _5s = [], _6 = [], _8, _10 = [], _11=[], _11iv=[], _11fs=[], _11vs=[], _11rw=[], _11rwn=[], _11rwl, _11p=[], _11df, _12=[], _12x=[], _12y=[], _12z=[], _13 = [], _14, _15 = [], _15i0, _15s0 = [], _15i1, _15s1 = [], _16, _17, _17i0, _17s0 = [], _18, _18i0, _18s0 = [];
+		this.pe = [{xe:1,Rc:15,Sc:5,renderStyleIndex:0}];
+		this.name = "DefaultEmitter";
 
 		this.ud = function(Bd) {
-			Bd._ = [0,0,0];
-			Bd._1 = 0;
-			Bd._2 = [0,0,0];
 			Bd.dd();
-			Bd.jd = 20;
+			Bd._4 = [
+				[
+					[0,0.144023,0.235505,0.303634,0.358529,0.405274,0.446989,0.485896,0.523806,0.562407,0.6035,0.649281,0.702829,0.769165,0.858354,1,1]
+				]
+			];
+			Bd._5 = [
+				[[1559.72,-127.076],[1768.88,136.509],[1768.88,136.509]]
+			];
+			Bd._15 = [
+				[
+					[2,2.6331,2.6331]
+				],
+				[
+					[0.620143,2.62043,2.62043]
+				]
+			];
+			Bd._17 = [
+				[
+					[0,0.5,0.5],
+					[0.5,0.5,0.5],
+					[0.5,0,0]
+				]
+			];
+			Bd._18 = [
+				[
+					[5.32258,75,75]
+				]
+			];
+			Bd.jd = 100;
 			Bd.Vc = 0;
 		}
 
 		this.Mb = function(vd) {
-			vd.zb = 0.3;
+			vd.zb = 60;
 			vd.Gb = 1;
-			vd.Jb = 5;
-			vd.Ib = 1;
+			vd.Jb = 1;
 		}
 
 		this.Pb = function(Qb, Bd, vd) {
-			vd.zb = 0.3;
+			vd.zb = 60;
 		}
 
 		this.fd = function(Bd, Xb) {
 			Xb.Mc=[];
-			Xb._3 = 0.0;
-			_4 = 1 + Math.random() * (2 - 1);
-			Xb._5 = _4;
-			Xb._6 = Bd._1;
+			Xb._ = 0.0;
+			ctx.W(_1, 0, 7, 0);
+			Xb._2 = [];
+			ctx.rb(Xb._2, _1, Bd.Mc);
+			ctx.c(Xb._2, Bd.Ab, Xb._2);
+			_3 = 0 + Math.random() * (1 - 0);
+			_4i0=(_3<0?0:(_3>1?1:_3));
+			ctx.V(_4s0,0,(_4i0-0)*15);
+			_4 = Db.nb(Bd._4[0][_4s0[0]],_4s0[1]);
+			_5i = Db.kb(_4);
+			ctx.V(_5s,0,(_5i-0)*1);
+			Db.lb(_5, Bd._5[_5s[0]], _5s[1]);
+			ctx.W(_6, _5[0], _5[1], 0);
 			Xb._7 = [];
-			ctx.T(Xb._7, Bd._2);
-			ctx.db(_8, 100);
-			_9 = ctx.d(_8, Bd._);
-			Xb._10 = [];
-			ctx.T(Xb._10, _9);
-			ctx.db(_11, 1);
-			Xb._12 = [];
-			ctx.T(Xb._12, _11);
-			_13 = -360 + Math.random() * (360 - -360);
-			Xb._14 = _13;
-			_15 = 0 + Math.random() * (360 - 0);
-			Xb._16 = _15;
-			ctx.T(Xb.Ab, Xb._7);
+			ctx.rb(Xb._7, _6, Bd.Mc);
+			ctx.c(Xb._7, Bd.ad, Xb._7);
+			_8 = 0.5 + Math.random() * (1.5 - 0.5);
+			Xb._9 = _8;
+			ctx.T(Xb.Ab, Xb._2);
 		}
 
 		this.gd = function(Bd, Xb) {
 			Xb.Mc=[];
-			Xb._3 = 0.0;
-			_4 = 1 + Math.random() * (2 - 1);
-			Xb._5 = _4;
-			Xb._6 = Bd._1;
+			Xb._ = 0.0;
+			ctx.W(_1, 0, 7, 0);
+			Xb._2 = [];
+			ctx.rb(Xb._2, _1, Bd.Mc);
+			ctx.c(Xb._2, Bd.Ab, Xb._2);
+			_3 = 0 + Math.random() * (1 - 0);
+			_4i0=(_3<0?0:(_3>1?1:_3));
+			ctx.V(_4s0,0,(_4i0-0)*15);
+			_4 = Db.nb(Bd._4[0][_4s0[0]],_4s0[1]);
+			_5i = Db.kb(_4);
+			ctx.V(_5s,0,(_5i-0)*1);
+			Db.lb(_5, Bd._5[_5s[0]], _5s[1]);
+			ctx.W(_6, _5[0], _5[1], 0);
 			Xb._7 = [];
-			ctx.T(Xb._7, Bd._2);
-			ctx.db(_8, 100);
-			_9 = ctx.d(_8, Bd._);
-			Xb._10 = [];
-			ctx.T(Xb._10, _9);
-			ctx.db(_11, 1);
-			Xb._12 = [];
-			ctx.T(Xb._12, _11);
-			_13 = -360 + Math.random() * (360 - -360);
-			Xb._14 = _13;
-			_15 = 0 + Math.random() * (360 - 0);
-			Xb._16 = _15;
-			ctx.T(Xb.Ab, Xb._7);
+			ctx.rb(Xb._7, _6, Bd.Mc);
+			ctx.c(Xb._7, Bd.ad, Xb._7);
+			_8 = 0.5 + Math.random() * (1.5 - 0.5);
+			Xb._9 = _8;
+			ctx.T(Xb.Ab, Xb._2);
 		}
 
 		this.qc = function(Qb, Bd, Xb) {
-			Xb._3 += Qb;
-			ctx.T(_17fs, [0,200,0]);
-			ctx.T(_17iv, Xb._10);
-			ctx.T(_17vs, [0,0,0]);
-			ctx.g(_17rw, _17vs, _17iv);
-			_17rwl = ctx.P(_17rw);
-			if (_17rwl > 0.0001) {
-				_17rwl = Math.sqrt(_17rwl);
-				ctx.w(_17rwn, _17rw, _17rwl);
-				_17df = 0.01 * 0.5 * _17rwl;
-				if (_17df * Qb < 1) {
-					ctx.u(_17rwn, _17rwn, _17rwl * _17df);
-					ctx.c(_17fs, _17fs, _17rwn);
+			Xb._ += Qb;
+			ctx.W(_10, 0, 2500, 0);
+			ctx.T(_11fs, _10);
+			ctx.T(_11iv, Xb._7);
+			ctx.T(_11vs, [0,0,0]);
+			ctx.g(_11rw, _11vs, _11iv);
+			_11rwl = ctx.P(_11rw);
+			if (_11rwl > 0.0001) {
+				_11rwl = Math.sqrt(_11rwl);
+				ctx.w(_11rwn, _11rw, _11rwl);
+				_11df = 0.01 * 0.7 * _11rwl;
+				if (_11df * Qb < 1) {
+					ctx.u(_11rwn, _11rwn, _11rwl * _11df);
+					ctx.c(_11fs, _11fs, _11rwn);
 				} else {
-					ctx.c(_17iv, _17iv, _17rw);
+					ctx.c(_11iv, _11iv, _11rw);
 				}
 			}
-			ctx.u(_17fs, _17fs, Qb);
-			ctx.c(_17fs, _17fs, _17iv);
-			ctx.u(_17p, _17fs, Qb);
-			ctx.c(_17p, _17p, Xb._7);
-			ctx.T(Xb._7, _17p);
-			ctx.T(Xb._10, _17fs);
-			_18 = Xb._16 + Qb * Xb._14;
-			Xb._16 = _18;
-			ctx.T(Xb.Ab, Xb._7);
-			ctx.Q(_20i, Xb._12);
-			ctx.qb(_20, _20i, Xb._16);
+			ctx.u(_11fs, _11fs, Qb);
+			ctx.c(_11fs, _11fs, _11iv);
+			ctx.u(_11p, _11fs, Qb);
+			ctx.c(_11p, _11p, Xb._2);
+			ctx.T(Xb._2, _11p);
+			ctx.T(Xb._7, _11fs);
+			ctx.T(Xb.Ab, Xb._2);
+			ctx.Q(_12z, [0,0,1]);
+			ctx.I(_12y, _12z, Xb._7);
+			ctx.Q(_12y, _12y);
+			ctx.I(_12x, _12y, _12z);
+			ctx.pb(_12, _12x, _12y, _12z);
+			ctx.V(_13, 30, 30);
+			_14 = (Xb._ / Xb._9);
+			_15i0=(_14<0?0:(_14>1?1:_14));
+			ctx.V(_15s0,0,(_15i0-0)*1);
+			_15i1=(_14<0?0:(_14>1?1:_14));
+			ctx.V(_15s1,0,(_15i1-0)*1);
+			ctx.V(_15, Db.nb(Bd._15[0][_15s0[0]],_15s0[1]),Db.nb(Bd._15[1][_15s1[0]],_15s1[1]));
+			_16 = ctx.j(_13, _15);
+			_17i0=(_14<0?0:(_14>1?1:_14));
+			_17i0<0.7?_17i0<0.0373666?ctx.V(_17s0,0,(_17i0-0)*26.7619):ctx.V(_17s0,1,(_17i0-0.0373666)*1.50913):ctx.V(_17s0,2,(_17i0-0.7)*3.33333);
+			_17 = Db.nb(Bd._17[0][_17s0[0]],_17s0[1]);
+			_18i0=(_14<0?0:(_14>1?(0+((_14-0)%1)):_14));
+			ctx.V(_18s0,0,(_18i0-0)*1);
+			_18 = Db.nb(Bd._18[0][_18s0[0]],_18s0[1]);
 			ctx.S(Xb.Pd,[0.5,0.5]);
-			ctx.U(Xb.Mc, _20);
-			ctx.V(Xb.Nd,10,10);
+			ctx.U(Xb.Mc, _12);
+			ctx.S(Xb.Nd,_16);
 			ctx.T(Xb.gf,[1,1,1]);
-			Xb.Od = 1;
-			Xb.Qc = Xb._6;
+			Xb.Od = _17;
+			Xb.Qc = _18;
 		}
 
 		this.Cc = function(Bd, Xb, Wc) {
-			_19 = Xb._5;
-			return Xb._3 > _19;
-		}
-
-
-	}
-
-	function Emitter_child() {
-
-		var _4, _8 = [], _9, _11 = [], _13, _15, _17=[], _17iv=[], _17fs=[], _17vs=[], _17rw=[], _17rwn=[], _17rwl, _17p=[], _17df, _18, _20=[], _20i=[], _19;
-		this.pe = [{xe:1,Rc:2,Sc:2,renderStyleIndex:0}];
-		this.name = "child";
-
-		this.ud = function(Bd) {
-			Bd._ = [0,0,0];
-			Bd._1 = 0;
-			Bd._2 = [0,0,0];
-			Bd.dd();
-			Bd.uc(new Emitter_child2(), { xc: 1, sd: true });
-			Bd.jd = 20;
-			Bd.Vc = 0;
-		}
-
-		this.Mb = function(vd) {
-			vd.zb = 0.3;
-			vd.Gb = 1;
-			vd.Jb = 5;
-			vd.Ib = 1;
-		}
-
-		this.Pb = function(Qb, Bd, vd) {
-			vd.zb = 0.3;
-		}
-
-		this.fd = function(Bd, Xb) {
-			Xb.Mc=[];
-			Xb._3 = 0.0;
-			_4 = 1 + Math.random() * (2 - 1);
-			Xb._5 = _4;
-			Xb._6 = Bd._1;
-			Xb._7 = [];
-			ctx.T(Xb._7, Bd._2);
-			ctx.db(_8, 150);
-			_9 = ctx.d(_8, Bd._);
-			Xb._10 = [];
-			ctx.T(Xb._10, _9);
-			ctx.db(_11, 1);
-			Xb._12 = [];
-			ctx.T(Xb._12, _11);
-			_13 = -360 + Math.random() * (360 - -360);
-			Xb._14 = _13;
-			_15 = 0 + Math.random() * (360 - 0);
-			Xb._16 = _15;
-			ctx.T(Xb.Ab, Xb._7);
-			Xb.pc(0)._ = Xb._10;
-			Xb.pc(0)._1 = Xb._6;
-			Xb.pc(0)._2 = Xb._7;
-		}
-
-		this.gd = function(Bd, Xb) {
-			Xb.Mc=[];
-			Xb._3 = 0.0;
-			_4 = 1 + Math.random() * (2 - 1);
-			Xb._5 = _4;
-			Xb._6 = Bd._1;
-			Xb._7 = [];
-			ctx.T(Xb._7, Bd._2);
-			ctx.db(_8, 150);
-			_9 = ctx.d(_8, Bd._);
-			Xb._10 = [];
-			ctx.T(Xb._10, _9);
-			ctx.db(_11, 1);
-			Xb._12 = [];
-			ctx.T(Xb._12, _11);
-			_13 = -360 + Math.random() * (360 - -360);
-			Xb._14 = _13;
-			_15 = 0 + Math.random() * (360 - 0);
-			Xb._16 = _15;
-			ctx.T(Xb.Ab, Xb._7);
-			Xb.pc(0)._ = Xb._10;
-			Xb.pc(0)._1 = Xb._6;
-			Xb.pc(0)._2 = Xb._7;
-		}
-
-		this.qc = function(Qb, Bd, Xb) {
-			Xb._3 += Qb;
-			ctx.T(_17fs, [0,200,0]);
-			ctx.T(_17iv, Xb._10);
-			ctx.T(_17vs, [0,0,0]);
-			ctx.g(_17rw, _17vs, _17iv);
-			_17rwl = ctx.P(_17rw);
-			if (_17rwl > 0.0001) {
-				_17rwl = Math.sqrt(_17rwl);
-				ctx.w(_17rwn, _17rw, _17rwl);
-				_17df = 0.01 * 1 * _17rwl;
-				if (_17df * Qb < 1) {
-					ctx.u(_17rwn, _17rwn, _17rwl * _17df);
-					ctx.c(_17fs, _17fs, _17rwn);
-				} else {
-					ctx.c(_17iv, _17iv, _17rw);
-				}
-			}
-			ctx.u(_17fs, _17fs, Qb);
-			ctx.c(_17fs, _17fs, _17iv);
-			ctx.u(_17p, _17fs, Qb);
-			ctx.c(_17p, _17p, Xb._7);
-			ctx.T(Xb._7, _17p);
-			ctx.T(Xb._10, _17fs);
-			_18 = Xb._16 + Qb * Xb._14;
-			Xb._16 = _18;
-			ctx.T(Xb.Ab, Xb._7);
-			Xb.pc(0)._ = Xb._10;
-			Xb.pc(0)._1 = Xb._6;
-			Xb.pc(0)._2 = Xb._7;
-			ctx.Q(_20i, Xb._12);
-			ctx.qb(_20, _20i, Xb._16);
-			ctx.S(Xb.Pd,[0.5,0.5]);
-			ctx.U(Xb.Mc, _20);
-			ctx.V(Xb.Nd,20,20);
-			ctx.T(Xb.gf,[1,1,1]);
-			Xb.Od = 1;
-			Xb.Qc = Xb._6;
-		}
-
-		this.Cc = function(Bd, Xb, Wc) {
-			_19 = Xb._5;
-			return Xb._3 > _19;
-		}
-
-
-	}
-
-	function Emitter_parent() {
-
-		var _3, _5, _8 = [], _9, _11 = [], _13, _15, _17=[], _17iv=[], _17fs=[], _17vs=[], _17rw=[], _17rwn=[], _17rwl, _17p=[], _17df, _18, _20=[], _20i=[], _19;
-		this.pe = [{xe:1,Rc:2,Sc:2,renderStyleIndex:0}];
-		this.name = "parent";
-
-		this.ud = function(Bd) {
-			Bd._ = [0,0,0];
-			Bd._1 = [400,100,0];
-			Bd.dd();
-			Bd.uc(new Emitter_child(), { xc: 1, sd: true });
-			Bd.jd = 20;
-			Bd.Vc = 0;
-		}
-
-		this.Mb = function(vd) {
-			vd.zb = 0.3;
-			vd.Gb = 1;
-			vd.Jb = 10;
-		}
-
-		this.Pb = function(Qb, Bd, vd) {
-			vd.zb = 0.3;
-		}
-
-		this.fd = function(Bd, Xb) {
-			Xb.Mc=[];
-			Xb._2 = 0.0;
-			_3 = 1 + Math.random() * (2 - 1);
-			Xb._4 = _3;
-			_5 = 0 + Math.random() * (4 - 0);
-			Xb._6 = _5;
-			Xb._7 = [];
-			ctx.T(Xb._7, Bd._1);
-			ctx.db(_8, 400);
-			_9 = ctx.d(_8, Bd._);
-			Xb._10 = [];
-			ctx.T(Xb._10, _9);
-			ctx.db(_11, 1);
-			Xb._12 = [];
-			ctx.T(Xb._12, _11);
-			_13 = -360 + Math.random() * (360 - -360);
-			Xb._14 = _13;
-			_15 = 0 + Math.random() * (360 - 0);
-			Xb._16 = _15;
-			ctx.T(Xb.Ab, Xb._7);
-			Xb.pc(0)._ = Xb._10;
-			Xb.pc(0)._1 = Xb._6;
-			Xb.pc(0)._2 = Xb._7;
-		}
-
-		this.gd = function(Bd, Xb) {
-			Xb.Mc=[];
-			Xb._2 = 0.0;
-			_3 = 1 + Math.random() * (2 - 1);
-			Xb._4 = _3;
-			_5 = 0 + Math.random() * (4 - 0);
-			Xb._6 = _5;
-			Xb._7 = [];
-			ctx.T(Xb._7, Bd._1);
-			ctx.db(_8, 400);
-			_9 = ctx.d(_8, Bd._);
-			Xb._10 = [];
-			ctx.T(Xb._10, _9);
-			ctx.db(_11, 1);
-			Xb._12 = [];
-			ctx.T(Xb._12, _11);
-			_13 = -360 + Math.random() * (360 - -360);
-			Xb._14 = _13;
-			_15 = 0 + Math.random() * (360 - 0);
-			Xb._16 = _15;
-			ctx.T(Xb.Ab, Xb._7);
-			Xb.pc(0)._ = Xb._10;
-			Xb.pc(0)._1 = Xb._6;
-			Xb.pc(0)._2 = Xb._7;
-		}
-
-		this.qc = function(Qb, Bd, Xb) {
-			Xb._2 += Qb;
-			ctx.T(_17fs, [0,200,0]);
-			ctx.T(_17iv, Xb._10);
-			ctx.T(_17vs, [0,0,0]);
-			ctx.g(_17rw, _17vs, _17iv);
-			_17rwl = ctx.P(_17rw);
-			if (_17rwl > 0.0001) {
-				_17rwl = Math.sqrt(_17rwl);
-				ctx.w(_17rwn, _17rw, _17rwl);
-				_17df = 0.01 * 1.5 * _17rwl;
-				if (_17df * Qb < 1) {
-					ctx.u(_17rwn, _17rwn, _17rwl * _17df);
-					ctx.c(_17fs, _17fs, _17rwn);
-				} else {
-					ctx.c(_17iv, _17iv, _17rw);
-				}
-			}
-			ctx.u(_17fs, _17fs, Qb);
-			ctx.c(_17fs, _17fs, _17iv);
-			ctx.u(_17p, _17fs, Qb);
-			ctx.c(_17p, _17p, Xb._7);
-			ctx.T(Xb._7, _17p);
-			ctx.T(Xb._10, _17fs);
-			_18 = Xb._16 + Qb * Xb._14;
-			Xb._16 = _18;
-			ctx.T(Xb.Ab, Xb._7);
-			Xb.pc(0)._ = Xb._10;
-			Xb.pc(0)._1 = Xb._6;
-			Xb.pc(0)._2 = Xb._7;
-			ctx.Q(_20i, Xb._12);
-			ctx.qb(_20, _20i, Xb._16);
-			ctx.S(Xb.Pd,[0.5,0.5]);
-			ctx.U(Xb.Mc, _20);
-			ctx.V(Xb.Nd,30,30);
-			ctx.T(Xb.gf,[1,1,1]);
-			Xb.Od = 1;
-			Xb.Qc = Xb._6;
-		}
-
-		this.Cc = function(Bd, Xb, Wc) {
-			_19 = Xb._4;
-			return Xb._2 > _19;
+			return Xb._ > Xb._9;
 		}
 
 
 	}
 
 	this.qd = function(Ld) {
-		Ld.Dd = 0.0333333;
+		Ld.Dd = 0.0166667;
 		Ld.Ud = 0;
-		Ld.pd(new Emitter_parent());
+		Ld.pd(new Emitter_DefaultEmitter());
 	}
+			this.kb = function (v) { 				return (v < 0) ? 0 : ((v > 1) ? 1 : v); 			}
+
+			this.lb = function (r, path, je) { 				var indexInt = Math.floor(je); 				var lerp = je - indexInt; 				ctx.Y(r, path[indexInt], path[indexInt + 1], lerp); 			}
+
+			this.nb = function(funcValues, je) { 				var indexInt = Math.floor(je); 				var nextInt = indexInt + 1; 				return ctx.X(funcValues[indexInt], funcValues[nextInt], je - indexInt); 			}
+
 }
