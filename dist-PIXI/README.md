@@ -2,8 +2,6 @@
 
 neutrinoparticles.pixi.js is a plugin library for [PIXI](http://www.pixijs.com/) framework.
 
-**Please, note, that pixi.js has a bug which breaks functionality of this library. You can fix it by your own, like shown in [this diff](https://github.com/ymiroshnyk/neutrinoparticles.js/commit/b38b4213136ec2ff721f31390eefb6383e59b48f#diff-aad682da289e3a4ea9955e101bcea5d5be3d804d).**
-
 ### TO DO
 * Multiply material for particles doesn't look same as in editor.
 * Move from custom shaders and VAOs to PIXI ones.
@@ -50,7 +48,8 @@ Next, you can create as many instances of the effect as you want to:
 ```javascript
 var effect = new PIXINeutrinoEffect(
 	effectModel, 
-	[0, 0, 0] // Starting position of effect
+	[0, 0, 0], // Starting position of effect
+	0 // (optional) Starting rotation in degrees
 	);
 ```
 
