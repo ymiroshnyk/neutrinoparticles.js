@@ -155,7 +155,7 @@ loadEffect();
 
 ### Rotation
 
-As you can see from the code above, effect accepts position and rotation on it's creation and update. Position vector is represented by array [x, y, z] and rotation quaternion by array [x, y, z, w].
+As you can see from the code above, effect accepts position and rotation on it's creation and update. Position vector is represented by an array [x, y, z] and rotation quaternion by an array [x, y, z, w].
 
 You can form rotation quaternion by yourself, or you can use neutrino function which makes quaternion from axis and rotation angle around this axis:
 ```javascript
@@ -165,7 +165,7 @@ You can form rotation quaternion by yourself, or you can use neutrino function w
 		);
 ```
 
-This rotation might be used by the effect if this effect was made with rotation applying turned on (it on by default in the Editor).
+This rotation might be used by the effect if this effect was made with rotation applying turned on (it is on by default in the Editor).
 
 ### Using 3D camera emulation
 
