@@ -11,6 +11,9 @@ Currently available integrations:
 
 Below you can find information on how to use neutrinoparticles.js in clean environment, so all effects and textures will be loaded using standard features of HTML5.
 
+## TO DO:
+* Make random number generator the same as the Editor has. Custom seed for the random generator doesn't work yet. The library uses simple Math.random().
+
 ## Introduction
 
 NeutrinoParticles Editor exports effects to generic .js file, which contains effect's properties and algorithms of particles' behavior.
