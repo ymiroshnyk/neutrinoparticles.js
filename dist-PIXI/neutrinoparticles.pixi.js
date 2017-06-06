@@ -9,12 +9,13 @@ class PIXINeutrinoMaterials {
 			attribute vec2 aTextureCoord; \
 			\
 			uniform mat3 projectionMatrix; \
+			uniform vec2 scale; \
 			\
 			varying vec4 vColor; \
 			varying vec2 vTextureCoord; \
 			\
 			void main(void) { \
-				gl_Position = vec4((projectionMatrix * vec3(aVertexPosition.xy, 1.0)).xy, 0, 1); \
+				gl_Position = vec4((projectionMatrix * vec3(aVertexPosition.xy * scale, 1.0)).xy, 0, 1); \
 				vColor = vec4(aColor.rgb * aColor.a, aColor.a); \
 				vTextureCoord = vec2(aTextureCoord.x, 1.0 - aTextureCoord.y); \
 			}";
@@ -69,10 +70,11 @@ class PIXINeutrinoMaterials {
 		return this.shaderProgram.textureCoordAttribute[index];
 	}
 
-	setup(pMatrix) {
+	setup(pMatrix, scale) {
 		var gl = this.gl;
 
 		this.pMatrix = pMatrix;
+		this.scale = scale.slice();
 		this.currentProgram = null;
 	}
 
@@ -104,6 +106,7 @@ class PIXINeutrinoMaterials {
 			gl.useProgram(program);
 			gl.uniformMatrix3fv(program.pMatrixUniform, false, this.pMatrix);
 			gl.uniform1i(program.samplerUniform, 0);
+			gl.uniform2f(program.scaleUniform, this.scale[0], this.scale[1]);
 
 			this.currentProgram = program;
 		}
@@ -152,6 +155,7 @@ class PIXINeutrinoMaterials {
 
 		shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "projectionMatrix");
 		shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
+		shaderProgram.scaleUniform = gl.getUniformLocation(shaderProgram, "scale");
 
 		return shaderProgram;
 	}
@@ -426,7 +430,7 @@ class PIXINeutrinoEffectModel extends PIXI.DisplayObject {
 
 class PIXINeutrinoEffect extends PIXI.Container {
 
-	constructor(effectModel, position, rotation) {
+	constructor(effectModel, position, rotation, scale) {
 		super();
 
 		this.ctx = effectModel.ctx;
@@ -437,6 +441,14 @@ class PIXINeutrinoEffect extends PIXI.Container {
 
 		if (rotation)
 			this.rotation = rotation;
+
+		if (scale) {
+			this.scale.x = scale[0];
+			this.scale.y = scale[1];
+			this.scaleZ = scale[2];
+		}
+		else
+			this.scaleZ = 1;
 
 		if (effectModel.ready()) {
 			_onEffectReady();
@@ -453,7 +465,7 @@ class PIXINeutrinoEffect extends PIXI.Container {
 
 	update(dt) {
 		if (this.effect != null) {
-			this.effect.update(dt, [this.position.x, this.position.y, this.positionZ],
+			this.effect.update(dt, [this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ],
 				this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.rotation));
 		}
 	}
@@ -462,7 +474,7 @@ class PIXINeutrinoEffect extends PIXI.Container {
 		if (!this.ready())
 			return;
 
-		renderer.context.setTransform(1, 0, 0, 1, 0, 0);
+		renderer.context.setTransform(this.scale.x, 0, 0, this.scale.y, 0, 0);
 		this.effect.draw(renderer.context);
 	};
 
@@ -484,7 +496,7 @@ class PIXINeutrinoEffect extends PIXI.Container {
 
 		var target = renderer._activeRenderTarget;
 
-		this.ctx.materials.setup(target.projectionMatrix.toArray(true));
+		this.ctx.materials.setup(target.projectionMatrix.toArray(true), [this.scale.x, this.scale.y]);
 
 		this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
 

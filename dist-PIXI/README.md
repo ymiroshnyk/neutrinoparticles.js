@@ -48,8 +48,9 @@ Next, you can create as many instances of the effect as you want to:
 ```javascript
 var effect = new PIXINeutrinoEffect(
 	effectModel, 
-	[0, 0, 0], // Starting position of effect
-	0 // (optional) Starting rotation in degrees
+	[0, 0, 0],	// Starting position of effect
+	0,			// (optional) Starting rotation in degrees
+	[1, 1, 1],	// (optional) Starting scale for X, Y and Z axes
 	);
 ```
 
@@ -119,6 +120,14 @@ function animate() {
 ```
 
 But usually, application already has animation loop, and you will need to integrate updating of loaded effects to it.
+
+## Rotation and scale
+
+Since NeutrinoParticles effect is much more complex than PIXI's sprite, it can't inherit any kind of world transformation from parent container. It ignores any of them and uses only local rotation and scale.
+
+When you setup rotation for effect (by passing it in constructor or by changing effect.rotation property), it doesn't rotate geometry according the angle you provided. That rotation is passed inside the effect's logic and if it is made in the Editor in a way when it applies outside rotation, it will start behave as rotated (usualy it changes direction of starting particles velocity or rotates starting position shape). Gravitation or other forces are left unchanged.
+
+Scaling also applied only from local effect.scale property (which is inherited from Container.scale). It is very bad practice to change scale on-the-fly in the update loop. Try to set it up only once on the effect construction.
 
 ## Texture atlases (like exported from TexturePacker)
 
