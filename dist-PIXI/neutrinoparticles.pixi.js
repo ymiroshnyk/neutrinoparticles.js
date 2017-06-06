@@ -533,7 +533,7 @@ class PIXINeutrinoEffect extends PIXI.Container {
 			this.rotation = rotation;
 		}
 
-		this.effect.resetPosition(position, 
+		this.effect.resetPosition([position.x / this.scale.x, position.y / this.scale.y, positionZ / this.scaleZ], 
 			rotation ? this.ctx.neutrino.axisangle2quat_([0, 0, 1], rotation % 360) : null);
 	}
 
@@ -542,7 +542,7 @@ class PIXINeutrinoEffect extends PIXI.Container {
 	}
 
 	_onEffectReady() {
-		var position = [this.position.x, this.position.y, this.positionZ];
+		var position = [this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ];
 		var rotation = this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.rotation % 360);
 
 		if (this.effectModel.ctx.renderer instanceof PIXI.CanvasRenderer) {
