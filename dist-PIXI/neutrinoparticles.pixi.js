@@ -419,7 +419,7 @@ class PIXINeutrinoEffectModel extends PIXI.DisplayObject {
 
 				this.texturesRemap[texIdx] = new this.ctx.neutrino.SubRect(
 					texture.orig.x / texture.baseTexture.realWidth,
-					texture.orig.y / texture.baseTexture.realHeight,
+					1.0 - (texture.orig.y + texture.orig.height) / texture.baseTexture.realHeight,
 					texture.orig.width / texture.baseTexture.realWidth,
 					texture.orig.height / texture.baseTexture.realHeight
 					);
