@@ -120,5 +120,11 @@ function animate() {
 
 But usually, application already has animation loop, and you will need to integrate updating of loaded effects to it.
 
+## Texture atlases (like exported from TexturePacker)
+
+If texture atlas is loaded before Neutrino effect, then textures lookup will go though the already loaded and cached textures from that atlas. No duplicated textures will be loaded.
+
+Please, note, that texture path in the NeutrinoParticles Editor (relatively to textures' root) has to be the same as Sprite ID inside loaded atlas. Usually Sprite ID is formed from texture path placed on the atlas, so you just need to keep the same directories structure for both Texture Packer and Neutrino Editor.
+
 
 

@@ -331,14 +331,13 @@ class PIXINeutrinoEffectModel extends PIXI.DisplayObject {
 		this.effectPath = effectPath;
 		this.effectModel = null;
 		this.numTexturesToLoadLeft = -1;
+		this.texturesRemap = null;
 
 		var pixiNeutrinoEffect = this;
 		this.ctx.neutrino.loadEffect(this.ctx.effectsBasePath + effectPath, function (effectModel) {
 			pixiNeutrinoEffect._onEffectLoaded(effectModel);
 		});
 	}
-
-
 
 	ready() {
 		return this.numTexturesToLoadLeft === 0;
@@ -348,10 +347,15 @@ class PIXINeutrinoEffectModel extends PIXI.DisplayObject {
 		this.effectModel = effectModel;
 		this.textures = [];
 		this.textureImageDescs = [];
-		this.numTexturesToLoadLeft = effectModel.textures.length;
+		var numTextures = effectModel.textures.length;
+		this.numTexturesToLoadLeft = numTextures;
 
-		for (var imageIndex = 0; imageIndex < this.numTexturesToLoadLeft; ++imageIndex) {
-			var texture = PIXI.Texture.fromImage(this.ctx.texturesBasePath + effectModel.textures[imageIndex]);
+		for (var imageIndex = 0; imageIndex < numTextures; ++imageIndex) {
+			var texturePath = effectModel.textures[imageIndex];
+			var texture = PIXI.utils.TextureCache[texturePath];
+
+			if (!texture)
+				texture = PIXI.Texture.fromImage(this.ctx.texturesBasePath + texturePath);
 
 			if (texture.baseTexture.hasLoaded) {
 				this._onTextureLoaded(imageIndex, texture);
@@ -369,17 +373,53 @@ class PIXINeutrinoEffectModel extends PIXI.DisplayObject {
 	_onTextureLoaded(index, texture) {
 		this.textures[index] = texture;
 
-		var image = texture.baseTexture.source;
 		this.numTexturesToLoadLeft--;
 
 		if (this.ctx.renderer instanceof PIXI.CanvasRenderer) {
-			this.textureImageDescs[index] = new this.ctx.neutrino.ImageDesc(image, 0, 0, image.width, image.height);
+			var image = texture.baseTexture.source;
+			this.textureImageDescs[index] = new this.ctx.neutrino.ImageDesc(image, texture.orig.x, texture.orig.y,
+				texture.orig.width, texture.orig.height);
 		} else {
-			this.textureImageDescs[index] = image;
 		}
 
 		if (this.numTexturesToLoadLeft === 0) {
+
+			if (this.ctx.renderer instanceof PIXI.CanvasRenderer) {
+
+			} else {
+				this._initTexturesRemapIfNeeded();
+			}
+
 			this.emit('ready', this);
+		}
+	}
+
+	_initTexturesRemapIfNeeded() {
+		var remapNeeded = false;
+
+		for (var texIdx = 0; texIdx < this.textures.length; ++texIdx) {
+			var texture = this.textures[texIdx];
+
+			if (texture.orig.x != 0 || texture.orig.y != 0
+				|| texture.orig.width != texture.baseTexture.realWidth
+				|| texture.orig.height != texture.baseTexture.realHeight) {
+				remapNeeded = true;
+				break;
+			}
+		}
+
+		this.texturesRemap = [];
+		if (remapNeeded) {
+			for (var texIdx = 0; texIdx < this.textures.length; ++texIdx) {
+				var texture = this.textures[texIdx];
+
+				this.texturesRemap[texIdx] = new this.ctx.neutrino.SubRect(
+					texture.orig.x / texture.baseTexture.realWidth,
+					texture.orig.y / texture.baseTexture.realHeight,
+					texture.orig.width / texture.baseTexture.realWidth,
+					texture.orig.height / texture.baseTexture.realHeight
+					);
+			}
 		}
 	}
 }
@@ -499,6 +539,7 @@ class PIXINeutrinoEffect extends PIXI.Container {
 		} else {
 			this.renderBuffers = new PIXINeutrinoRenderBuffers(this.ctx);
 			this.effect = this.effectModel.effectModel.createWGLInstance(position, rotation, this.renderBuffers);
+			this.effect.texturesRemap = this.effectModel.texturesRemap;
 		}
 
 		this.emit('ready', this);
