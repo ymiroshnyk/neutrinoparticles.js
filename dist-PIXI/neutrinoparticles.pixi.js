@@ -170,6 +170,7 @@ class PIXINeutrinoContext {
 		this.neutrino = new NeutrinoParticles();
 		this.effectsBasePath = "";
 		this.texturesBasePath = "";
+		this.trimmedExtensionLookupFirst = true;
 
 		if (!(renderer instanceof PIXI.CanvasRenderer)) {
 			this.materials = new PIXINeutrinoMaterials(gl);
@@ -356,7 +357,15 @@ class PIXINeutrinoEffectModel extends PIXI.DisplayObject {
 
 		for (var imageIndex = 0; imageIndex < numTextures; ++imageIndex) {
 			var texturePath = effectModel.textures[imageIndex];
-			var texture = PIXI.utils.TextureCache[texturePath];
+			var texture = null;
+			
+			if (this.ctx.trimmedExtensionLookupFirst) {
+				var trimmedTexturePath = texturePath.replace(/\.[^/.]+$/, ""); // https://stackoverflow.com/a/4250408
+				texture = PIXI.utils.TextureCache[trimmedTexturePath];
+			}
+
+			if (!texture)
+				texture = PIXI.utils.TextureCache[texturePath];
 
 			if (!texture)
 				texture = PIXI.Texture.fromImage(this.ctx.texturesBasePath + texturePath);
