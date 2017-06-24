@@ -121,6 +121,14 @@ function animate() {
 
 But usually, application already has animation loop, and you will need to integrate updating of loaded effects to it.
 
+## Adapters for Neutrino Effect functions
+
+PIXINeutrinoEffect object has adapters for next original Neutrino Effect functions:
+* restart()
+* resetPosition()
+* setPropertyInAllEmitters()
+* getNumParticles()
+
 ## Rotation and scale
 
 Since NeutrinoParticles effect is much more complex than PIXI's sprite, it can't inherit any kind of world transformation from parent container. It ignores any of them and uses only local rotation and scale.

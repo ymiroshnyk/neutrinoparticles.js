@@ -156,20 +156,6 @@ animate = function () {
 loadEffect();
 ```
 
-### Rotation
-
-As you can see from the code above, effect accepts position and rotation on it's creation and update. Position vector is represented by an array [x, y, z] and rotation quaternion by an array [x, y, z, w].
-
-You can form rotation quaternion by yourself, or you can use neutrino function which makes quaternion from axis and rotation angle around this axis:
-```javascript
-	neutrino.axisangle2quat_(
-		[x, y, z],		// rotation axis
-		angle			// rotation angle in degrees
-		);
-```
-
-This rotation might be used by the effect if this effect was made with rotation applying turned on (it is on by default in the Editor).
-
 ### Using 3D camera emulation
 
 On Canvas renderer you also can use 3D camera's perspective effect emulation. It will change position and size of particles dependently on their Z coordinate to make effect very similar to WebGL perspective projection. This emulation works really fast and looks pretty good.
@@ -379,6 +365,20 @@ Before you start integration to your application, I would advice you to think ab
 
 So, cosider as deep integration as you can, but don't forget about performance. Provided WebGLNeutrinoRenderBuffers is pretty good optimized and doesn't have exceeding copying of data.
 
+## Rotation
+
+As you can see from the code above, effect accepts position and rotation on it's creation and update. Position vector is represented by an array [x, y, z] and rotation quaternion by an array [x, y, z, w].
+
+You can form rotation quaternion by yourself, or you can use neutrino function which makes quaternion from axis and rotation angle around this axis:
+```javascript
+	neutrino.axisangle2quat_(
+		[x, y, z],		// rotation axis
+		angle			// rotation angle in degrees
+		);
+```
+
+This rotation might be used by the effect if this effect was made with rotation applying turned on (it is on by default in the Editor).
+
 ## Using turbulence in the effects
 
 The turbulence inside effects (block Noise) requires additional load of pretty heavy file with precomputed turbulence 3D texture. The size of this file is 768Kb - consider this if your project has strict download requirements.
@@ -397,6 +397,16 @@ neutrino.initializeNoise(
 
 Until the turbulance initialized all effects will be simulated without it. So you might want to wait for success callback.
 
+## Restart effect
+
+You may want to completely restart your effect:
+
+```javascript
+effect.restart(
+	[x, y, z], // new position (optional)
+	[x, y, z, w] // new rotation (optional)
+```
+
 ## Instant effect position change (jump)
 
 When you moving your effect by changing it's position, the library thinks that effect is moved to new position linearly. In this case effects which generate particles dependenly on passed distance will form trail of particles to the new position.
@@ -405,8 +415,16 @@ If you want to jump to the new position and avoid such trails, you need to reset
 ```javascript
 effect.resetPosition(
     [x, y, z], // new effect's position (pass null if you don't want to reset position)
-	[x, y, z, w], // new effect's rotation quaternion (pass null if you don't want to reset rotation)
+	[x, y, z, w] // new effect's rotation quaternion (pass null if you don't want to reset rotation)
     );
+```
+
+## Number of particles
+
+You may want to request number of alive particles (for example to find out if effect was finished). Next function will return total number of particles in all standalone (topmost) emitters:
+
+```javascript
+var numParticles = effect.getNumParticles();
 ```
 
 ## Changing emitter's properties

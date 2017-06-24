@@ -531,6 +531,21 @@ class PIXINeutrinoEffect extends PIXI.Container {
 		renderer.state.pop();
 	}
 
+	restart(position, rotation) {
+		if (position) {
+			this.position.x = position[0];
+			this.position.y = position[1];
+			this.positionZ = poxition[2];
+		}
+
+		if (rotation) {
+			this.rotation = rotation;
+		}
+
+		this.effect.restart([this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ],
+			rotation ? this.ctx.neutrino.axisangle2quat_([0, 0, 1], rotation % 360) : null);
+	}
+
 	resetPosition(position, rotation) {
 		if (position) {
 			this.position.x = position[0];
@@ -542,12 +557,16 @@ class PIXINeutrinoEffect extends PIXI.Container {
 			this.rotation = rotation;
 		}
 
-		this.effect.resetPosition([position.x / this.scale.x, position.y / this.scale.y, positionZ / this.scaleZ], 
+		this.effect.resetPosition([this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ],
 			rotation ? this.ctx.neutrino.axisangle2quat_([0, 0, 1], rotation % 360) : null);
 	}
 
 	setPropertyInAllEmitters(name, value) {
 		this.effect.setPropertyInAllEmitters(name, value);
+	}
+
+	getNumParticles() {
+		return this.effect.getNumParticles();
 	}
 
 	_onEffectReady() {
