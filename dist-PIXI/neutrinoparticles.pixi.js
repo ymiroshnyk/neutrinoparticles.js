@@ -535,7 +535,7 @@ class PIXINeutrinoEffect extends PIXI.Container {
 		if (position) {
 			this.position.x = position[0];
 			this.position.y = position[1];
-			this.positionZ = poxition[2];
+			this.positionZ = position[2];
 		}
 
 		if (rotation) {
@@ -550,7 +550,7 @@ class PIXINeutrinoEffect extends PIXI.Container {
 		if (position) {
 			this.position.x = position[0];
 			this.position.y = position[1];
-			this.positionZ = poxition[2];
+			this.positionZ = position[2];
 		}
 
 		if (rotation) {

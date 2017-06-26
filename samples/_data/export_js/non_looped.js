@@ -1,4 +1,4 @@
-// ce72ef2d-5414-42ec-a88c-b15c51f79873
+// 49cd3a68-86c5-4314-b1ba-6e5a68b75dbb
 
 function NeutrinoEffect(ctx) {
 
@@ -921,10 +921,10 @@ function NeutrinoEffect(ctx) {
 
 	ke.prototype./**/resetPosition = function (/**/position, /**/rotation) {
 
-		if (Ab)
+		if (/**/position)
 			ctx.T(this.Ab, /**/position);
 
-		if (Mc)
+		if (/**/rotation)
 			ctx.U(this.Mc, /**/rotation);
 
 		for (var i = 0; i < this.od.length; ++i) {
