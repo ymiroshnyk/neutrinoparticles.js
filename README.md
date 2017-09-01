@@ -381,10 +381,34 @@ This rotation might be used by the effect if this effect was made with rotation 
 
 ## Using turbulence in the effects
 
-The turbulence inside effects (block Noise) requires additional load of pretty heavy file with precomputed turbulence 3D texture. The size of this file is 768Kb - consider this if your project has strict download requirements.
+To use turbulence inside effects (block Noise) you have two options: to generate turbulence texture or to download it. You will need to initialize it before any update calls of the effects.
 
-To load that file and initialize turbulence, you need to make following call at the start of application.
+Noise generating is iterative process and you can divide it at many calls (probably on different update frames if you want to render some progress bar etc.):
 
+```javascript
+var noiseGenerator = new neutrino.NoiseGenerator();
+while (!noiseGenerator.step()) { // approx. 5,000 steps
+	// you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
+}
+```
+In sample above, all generating steps are done in one loop. It is a simplest way and it will lock script execution until finished.
+
+If you want to spread it to different update frames, you might want to limit maximum execution time on each frame:
+```javascript
+var startTime = Date.now();      
+var finished;
+do {
+	finished = noiseGenerator.step();
+
+	if (Date.now() - startTime > 30) // generating will take up to 30 msec
+		break;
+
+} while (!finished);
+
+// check if finished
+```
+
+If you generate noise, you don't need to distribute neutrinoparticles.noise.bin file with precomputed noise texture. But as alternative, you can distribute and download it instead of generating:
 ```javascript
 neutrino.initializeNoise(
 	"/neutrinoparticles.js/dist/",	// path to directory where "neutrinoparticles.noise.bin" is
@@ -394,8 +418,9 @@ neutrino.initializeNoise(
 	} 
 );
 ```
+The size of this file is 768Kb - consider this if your project has strict download requirements.
 
-Until the turbulance initialized all effects will be simulated without it. So you might want to wait for success callback.
+Until the turbulance initialized all effects will be simulated without it. So you might want to wait for success callback or finished generating.
 
 ## Restart effect
 
