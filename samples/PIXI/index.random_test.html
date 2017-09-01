@@ -1,0 +1,54 @@
+﻿<!doctype html>
+<meta charset="utf-8">
+<title>Hello World</title>
+<body>
+<script src="pixi/pixi.js"></script>
+<script src="/neutrinoparticles.js/dist/neutrinoparticles.js"></script>
+<script src="/neutrinoparticles.js/dist-PIXI/neutrinoparticles.pixi.js"></script>
+<script>
+
+//Test that Pixi is working
+console.log(PIXI);
+
+var renderer = PIXI.autoDetectRenderer(800, 600, { backgroundColor: 0x404040 }); // default renderer (usualy WebGL)
+//var renderer = new PIXI.CanvasRenderer(800, 600, { backgroundColor: 0x404040 });
+
+document.body.appendChild(renderer.view);
+
+var neutrinoContext = new PIXINeutrinoContext(renderer);
+neutrinoContext.effectsBasePath = "export_js/";
+neutrinoContext.texturesBasePath = "textures/";
+
+var stage = new PIXI.Container();
+
+var testModel = new PIXINeutrinoEffectModel(neutrinoContext, "random_test.js");
+var testEffect = new PIXINeutrinoEffect(testModel, [400, 300, 0]);
+stage.addChild(testEffect);
+
+if (testEffect.ready()) {
+    animate();
+} else {
+    testEffect.once('ready', animate);
+}
+
+var lastUpdateTime = null;
+
+function animate() {
+	if (lastUpdateTime == null) {
+	  lastUpdateTime = Date.now();
+	}
+
+	var currentTime = Date.now();
+	var elapsedTime = (currentTime - lastUpdateTime) / 1000;
+	lastUpdateTime = currentTime;
+
+	testEffect.update(elapsedTime > 1.0 ? 1.0 : elapsedTime);
+
+    // render the root container
+    renderer.render(stage);
+
+    requestAnimationFrame(animate);
+}
+
+</script>
+</body>
