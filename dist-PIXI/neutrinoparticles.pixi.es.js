@@ -460,7 +460,7 @@ class PIXINeutrinoEffect extends PIXI.Container {
 			this.scaleZ = 1;
 
 		if (effectModel.ready()) {
-			_onEffectReady();
+			this._onEffectReady();
 		} else {
 			effectModel.once('ready', function () {
 				this._onEffectReady();
