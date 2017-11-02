@@ -14,11 +14,50 @@ var PIXINeutrinoMaterials = function () {
 
 		this.gl = gl;
 
-		var vertexShaderSource = "\n\t\t\tattribute vec3 aVertexPosition;\n\t\t\tattribute vec4 aColor; \n\t\t\tattribute vec2 aTextureCoord;\n\t\t\t\n\t\t\tuniform mat3 projectionMatrix;\n\t\t\tuniform vec2 scale;\n\t\t\t\n\t\t\tvarying vec4 vColor;\n\t\t\tvarying vec2 vTextureCoord;\n\t\t\t\n\t\t\tvoid main(void) {\n\t\t\t\tgl_Position = vec4((projectionMatrix * vec3(aVertexPosition.xy * scale, 1.0)).xy, 0, 1);\n\t\t\t\tvColor = vec4(aColor.rgb * aColor.a, aColor.a);\n\t\t\t\tvTextureCoord = vec2(aTextureCoord.x, 1.0 - aTextureCoord.y);\n\t\t\t}";
+		var vertexShaderSource = "\
+			attribute vec3 aVertexPosition;\
+			attribute vec4 aColor; \
+			attribute vec2 aTextureCoord;\
+			\
+			uniform mat3 projectionMatrix;\
+			uniform vec2 scale;\
+			\
+			varying vec4 vColor;\
+			varying vec2 vTextureCoord;\
+			\
+			void main(void) {\
+				gl_Position = vec4((projectionMatrix * vec3(aVertexPosition.xy * scale, 1.0)).xy, 0, 1);\
+				vColor = vec4(aColor.rgb * aColor.a, aColor.a);\
+				vTextureCoord = vec2(aTextureCoord.x, 1.0 - aTextureCoord.y);\
+			}";
 
-		var fragmentShaderSource = "\n\t\t\tprecision mediump float;\n\t\t\t\n\t\t\tvarying vec4 vColor;\n\t\t\tvarying vec2 vTextureCoord;\n\t\t\n\t\t\tuniform sampler2D uSampler;\n\t\t\t\n\t\t\tvoid main(void) {\n\t\t\t\tgl_FragColor = vColor * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\n\t\t\t}";
+		var fragmentShaderSource = "\
+			precision mediump float;\
+			\
+			varying vec4 vColor;\
+			varying vec2 vTextureCoord;\
+		\
+			uniform sampler2D uSampler;\
+			\
+			void main(void) {\
+				gl_FragColor = vColor * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\
+			}";
 
-		var fragmentShaderMultiplySource = "\n\t\t\tprecision mediump float;\n\t\t\t\n\t\t\tvarying vec4 vColor;\n\t\t\tvarying vec2 vTextureCoord;\n\t\t\t\n\t\t\tuniform sampler2D uSampler;\n\t\t\t\n\t\t\tvoid main(void)\n\t\t\t{\n\t\t\t\tvec4 texel = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\n\t\t\t\tvec3 rgb = vColor.rgb * texel.rgb;\n\t\t\t\tfloat alpha = vColor.a * texel.a;\n\t\t\t\tgl_FragColor = vec4(mix(vec3(1, 1, 1), rgb, alpha), 1);\n\t\t\t}";
+		var fragmentShaderMultiplySource = "\
+			precision mediump float;\
+			\
+			varying vec4 vColor;\
+			varying vec2 vTextureCoord;\
+			\
+			uniform sampler2D uSampler;\
+			\
+			void main(void)\
+			{\
+				vec4 texel = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\
+				vec3 rgb = vColor.rgb * texel.rgb;\
+				float alpha = vColor.a * texel.a;\
+				gl_FragColor = vec4(mix(vec3(1, 1, 1), rgb, alpha), 1);\
+			}";
 
 		this.shaderProgram = this._makeShaderProgram(vertexShaderSource, fragmentShaderSource);
 		this.shaderProgramMultiply = this._makeShaderProgram(vertexShaderSource, fragmentShaderMultiplySource);
@@ -127,13 +166,8 @@ var PIXINeutrinoMaterials = function () {
 			gl.useProgram(shaderProgram);
 
 			shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-			gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
-
 			shaderProgram.colorAttribute = gl.getAttribLocation(shaderProgram, "aColor");
-			gl.enableVertexAttribArray(shaderProgram.colorAttribute);
-
 			shaderProgram.textureCoordAttribute = [gl.getAttribLocation(shaderProgram, "aTextureCoord")];
-			gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute[0]);
 
 			shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "projectionMatrix");
 			shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
@@ -456,7 +490,7 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 		} else _this2.scaleZ = 1;
 
 		if (effectModel.ready()) {
-			_onEffectReady();
+			_this2._onEffectReady();
 		} else {
 			effectModel.once('ready', function () {
 				this._onEffectReady();
