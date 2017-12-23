@@ -1,4 +1,4 @@
-// 49cd3a68-86c5-4314-b1ba-6e5a68b75dbb
+// ce72ef2d-5414-42ec-a88c-b15c51f79873
 
 function NeutrinoEffect(ctx) {
 
@@ -377,7 +377,7 @@ function NeutrinoEffect(ctx) {
 						systemTime += Ub;
 
 						if (this.Hb != null && Rb > this.Hb) {
-							Vb.stop();
+							Vb.disactivate();
 							break;
 						}
 
@@ -418,7 +418,7 @@ function NeutrinoEffect(ctx) {
 						Tb -= 1.0;
 
 						if (this.Ib != null && ++this.Fb >= this.Ib) {
-							Vb.stop();
+							Vb.disactivate();
 							break;
 						}
 					}
@@ -553,7 +553,7 @@ function NeutrinoEffect(ctx) {
 					pc.Bd.Jd(this.Ab, null);
 
 					if (pc.Ad.sd)
-						pc.Bd.stop();
+						pc.Bd.disactivate();
 				}
 			},
 
@@ -614,9 +614,9 @@ function NeutrinoEffect(ctx) {
 					var pc = this.Kc[i];
 
 					if (pc.Ad.sd)
-						pc.Bd.start();
+						pc.Bd.activate();
 					else
-						pc.Bd.stop();
+						pc.Bd.disactivate();
 				}
 			},
 
@@ -647,10 +647,7 @@ function NeutrinoEffect(ctx) {
 		this.Wc = new zc();
 		this.construct = new ve(this.Ld, this);
 		this.Yc = [];
-		this.Zc = true;
 		this.ad = [];
-		this.bd = 0;
-		this.cd = 0;
 
 		this.dd = function () {
 			this.vd = new Eb();
@@ -683,10 +680,11 @@ function NeutrinoEffect(ctx) {
 			this.Rb = 0.0;
 			this.wd = 0.0;
 			this.Zc = true;
+			this.paused_ = false;
+			this.generatorsPaused_ = false;
+			ctx.W(this.ad, 0, 0, 0);
 		}
 	}
-
-
 
 	ld.prototype.Jd = function (Ab, Mc) {
 		this.Nb(Ab, Mc);
@@ -698,17 +696,26 @@ function NeutrinoEffect(ctx) {
 	}
 
 	ld.prototype.Id = function (Qb, Ab, Mc) {
+
+		if (this.paused_)
+		{
+			this.Td(Ab, Mc);
+			return;
+		}
+
 		this.wd = this.Rb;
 
 		if (Ab) {
 			ctx.T(this.Bb, this.Ab);
-			var shift = [];
-			ctx.g(shift, Ab, this.Bb);
-			ctx.T(this.ad, shift);
-			ctx.w(this.ad, this.ad, Qb);
-
-			this.cd = this.bd;
-			this.bd = ctx.O(shift);
+			if (Qb > 0.0001) {
+				var shift = [];
+				ctx.g(shift, Ab, this.Bb);
+				ctx.T(this.ad, shift);
+				ctx.w(this.ad, this.ad, Qb);
+			}
+			else {
+				ctx.W(this.ad, 0, 0, 0);
+			}
 		}
 		else {
 			ctx.W(this.ad, 0, 0, 0);
@@ -716,12 +723,12 @@ function NeutrinoEffect(ctx) {
 
 		if (Mc)
 		{
-			ctx.T(this.prevRotation, this.Mc);
+			ctx.U(this.prevRotation, this.Mc);
 		}
 
 		var ic;
 
-		if (this.Zc) {
+		if (this.Zc && !this.generatorsPaused_) {
 			ic = this.vd.Id(Qb, Ab, Mc);
 		}
 		else {
@@ -767,7 +774,7 @@ function NeutrinoEffect(ctx) {
 		for (var id = 0; id < Xb.Kc.length; ++id) {
 			var Bd = Xb.Kc[id].Bd;
 
-			if (Bd.isActive() || Bd.tc.length > 0) {
+			if (Bd.activated() || Bd.tc.length > 0) {
 				ready = false;
 				break;
 			}
@@ -808,15 +815,39 @@ function NeutrinoEffect(ctx) {
 		this.Yc.push({ Db: md, Ad: nd });
 	}
 
-	ld.prototype.start = function () {
+	ld.prototype./**/pause = function () {
+		this.paused_ = true;
+	}
+
+	ld.prototype./**/unpause = function () {
+		this.paused_ = false;
+	}
+
+	ld.prototype./**/paused = function () {
+		return this.paused_;
+	}
+
+	ld.prototype./**/pauseGenerators = function () {
+		this.generatorsPaused_ = true;
+	}
+
+	ld.prototype./**/unpauseGenerators = function () {
+		this.generatorsPaused_ = false;
+	}
+
+	ld.prototype./**/generatorsPaused = function () {
+		return this.generatorsPaused_;
+	}
+
+	ld.prototype.activate = function () {
 		this.Zc = true;
 	}
 
-	ld.prototype.stop = function () {
+	ld.prototype.disactivate = function () {
 		this.Zc = false;
 	}
 
-	ld.prototype.isActive = function () {
+	ld.prototype.activated = function () {
 		return this.Zc;
 	}
 	
@@ -851,8 +882,8 @@ function NeutrinoEffect(ctx) {
 				ctx.U(this.Mc, Mc ? Mc : [0, 0, 0, 1]);
 			}
 
-			this./**/model.qd(this); // IMPL
 			this.Nb(Ab, Mc);
+			this./**/model.qd(this); // IMPL
 			this.zeroUpdate();
 			this./**/update(this.Ud, Ab, Mc);
 		}
@@ -860,15 +891,15 @@ function NeutrinoEffect(ctx) {
 
 	ke.prototype./**/restart = function (/**/position, /**/rotation) {
 
-		this.Nb(/**/position, /**/rotation);
+		this.Nb(/**/position ? /**/position : this.Ab, /**/rotation ? /**/rotation : this.Mc);
 
 		for (var i = 0; i < this.od.length; ++i) {
-			this.od[i].Jd(/**/position, /**/rotation);
+			this.od[i].Jd(this.Ab, this.Mc);
 		}
 
 		this.zeroUpdate();
 
-		this./**/update(this.Ud, /**/position, /**/rotation);
+		this./**/update(this.Ud, this.Ab, this.Mc);
 	}
 
 	ke.prototype.zeroUpdate = function () {
@@ -928,7 +959,7 @@ function NeutrinoEffect(ctx) {
 			ctx.U(this.Mc, /**/rotation);
 
 		for (var i = 0; i < this.od.length; ++i) {
-			this.od[i].Td(/**/position, /**/rotation);
+			this.od[i].Td(this.Ab, this.Mc);
 		}
 	}
 
@@ -952,6 +983,46 @@ function NeutrinoEffect(ctx) {
 				this.od[i][propName] = /**/value;
 			}
 		}
+	}
+
+	ke.prototype./**/pauseAllEmitters = function() {
+		for (var i = 0; i < this.od.length; ++i) {
+			this.od[i]./**/pause();
+		}
+	}
+
+	ke.prototype./**/unpauseAllEmitters = function () {
+		for (var i = 0; i < this.od.length; ++i) {
+			this.od[i]./**/unpause();
+		}
+	}
+
+	ke.prototype./**/areAllEmittersPaused = function () {
+		for (var i = 0; i < this.od.length; ++i) {
+			if (!this.od[i].paused())
+				return false;
+		}
+		return true;
+	}
+
+	ke.prototype./**/pauseGeneratorsInAllEmitters = function () {
+		for (var i = 0; i < this.od.length; ++i) {
+			this.od[i]./**/pauseGenerators();
+		}
+	}
+
+	ke.prototype./**/unpauseGeneratorsInAllEmitters = function () {
+		for (var i = 0; i < this.od.length; ++i) {
+			this.od[i]./**/unpauseGenerators();
+		}
+	}
+
+	ke.prototype./**/areGeneratorsInAllEmittersPaused = function () {
+		for (var i = 0; i < this.od.length; ++i) {
+			if (!this.od[i].generatorsPaused())
+				return false;
+		}
+		return true;
 	}
 
 	ke.prototype./**/getNumParticles = function() {
@@ -1040,7 +1111,7 @@ function NeutrinoEffect(ctx) {
 
 	function Emitter_DefaultEmitter() {
 
-		var _1 = [], _3 = [], _6, _7 = [], _7i0, _7s0 = [], _7i1, _7s1 = [], _7i2, _7s2 = [], _9 = [], _10=[], _10iv=[], _10fs=[], _10vs=[], _10rw=[], _10rwn=[], _10rwl, _10p=[], _10df, _12, _11, _13, _14, _14i0, _14s0 = [], _15;
+		var _1 = [], _3 = [], _6, _7 = [], _7i0, _7s0 = [], _7i1, _7s1 = [], _7i2, _7s2 = [], _9 = [], _10=[], _10fs=[], _10vs=[], _10rw=[], _10rwn=[], _10rwl, _10v=[], _10p=[], _10dtl, _10dtp, _10df, _10fsd=[], _12, _11, _13, _14, _14i0, _14s0 = [], _15;
 		this.pe = [{xe:0,Rc:1,Sc:1,renderStyleIndex:0}];
 		this.name = "DefaultEmitter";
 
@@ -1082,11 +1153,11 @@ function NeutrinoEffect(ctx) {
 			ctx.W(_1, 0, 0, 0);
 			Xb._2 = [];
 			ctx.c(Xb._2, Bd.Ab, _1);
-			ctx.db(_3, 500);
+			ctx.randv3gen(_3, 500, Bd.Ld.rand);
 			Xb._4 = [];
 			ctx.T(Xb._4, _3);
 			Xb._5 = 0;
-			_6 = 0 + Math.random() * (1 - 0);
+			_6 = 0 + Bd.Ld.rand() * (1 - 0);
 			_7i0=(_6<0?0:(_6>1?1:_6));
 			ctx.V(_7s0,0,(_7i0-0)*1);
 			_7i1=(_6<0?0:(_6>1?1:_6));
@@ -1104,7 +1175,7 @@ function NeutrinoEffect(ctx) {
 			ctx.W(_1, 0, 0, 0);
 			Xb._2 = [];
 			ctx.c(Xb._2, Bd.Ab, _1);
-			ctx.db(_3, 500);
+			ctx.randv3gen(_3, 500, Bd.Ld.rand);
 			Xb._4 = [];
 			ctx.T(Xb._4, _3);
 			Xb._5 = 0;
@@ -1117,27 +1188,29 @@ function NeutrinoEffect(ctx) {
 			Xb._ += Qb;
 			ctx.W(_9, 0, 100, 0);
 			ctx.T(_10fs, _9);
-			ctx.T(_10iv, Xb._4);
 			ctx.T(_10vs, [0,0,0]);
-			ctx.g(_10rw, _10vs, _10iv);
-			_10rwl = ctx.P(_10rw);
-			if (_10rwl > 0.0001) {
-				_10rwl = Math.sqrt(_10rwl);
-				ctx.w(_10rwn, _10rw, _10rwl);
-				_10df = 0.01 * 1 * _10rwl;
-				if (_10df * Qb < 1) {
-					ctx.u(_10rwn, _10rwn, _10rwl * _10df);
-					ctx.c(_10fs, _10fs, _10rwn);
-				} else {
-					ctx.c(_10iv, _10iv, _10rw);
+			_10dtl = Qb;
+			ctx.T(_10v, Xb._4);
+			ctx.T(_10p, Xb._2);
+			while (_10dtl > 0.0001) {
+				_10dtp = _10dtl;
+				ctx.T(_10fsd, _10fs);
+				ctx.g(_10rw, _10vs, _10v);
+				_10rwl = ctx.P(_10rw);
+				if (_10rwl > 0.0001) {
+					_10rwl = Math.sqrt(_10rwl);
+					ctx.w(_10rwn, _10rw, _10rwl);
+					_10df = 0.01 * 1 * _10rwl;
+					if (_10df * _10dtp > 0.2) 
+						_10dtp = 0.2 / _10df;
+					ctx.c(_10fsd, _10fsd, ctx.v(_10rwn, _10rwl * _10df));
 				}
+				ctx.c(_10v, _10v, ctx.v(_10fsd, _10dtp));
+				ctx.c(_10p, _10p, ctx.v(_10v, _10dtp));
+				_10dtl -= _10dtp;
 			}
-			ctx.u(_10fs, _10fs, Qb);
-			ctx.c(_10fs, _10fs, _10iv);
-			ctx.u(_10p, _10fs, Qb);
-			ctx.c(_10p, _10p, Xb._2);
 			ctx.T(Xb._2, _10p);
-			ctx.T(Xb._4, _10fs);
+			ctx.T(Xb._4, _10v);
 			ctx.T(Xb.Ab, Xb._2);
 			_12 = 30;
 			_11 = 1;
@@ -1165,6 +1238,7 @@ function NeutrinoEffect(ctx) {
 	this.qd = function(Ld) {
 		Ld.Dd = 0.0333333;
 		Ld.Ud = 0;
+		Ld.rand = function() { return Math.random(); };
 		Ld.pd(new Emitter_DefaultEmitter());
 	}
 			this.nb = function(funcValues, je) { 				var indexInt = Math.floor(je); 				var nextInt = indexInt + 1; 				return ctx.X(funcValues[indexInt], funcValues[nextInt], je - indexInt); 			}

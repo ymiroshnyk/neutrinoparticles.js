@@ -38,6 +38,24 @@ if (testEffect.ready()) {
 
 var lastUpdateTime = null;
 
+var onKeyPressed = function(e) {
+	if (e.keyCode == 80) { //'P'
+		if (testEffect.effect.areAllEmittersPaused())
+			testEffect.effect.unpauseAllEmitters();
+		else
+			testEffect.effect.pauseAllEmitters();
+	} else if (e.keyCode == 71) { //'G'
+		if (testEffect.effect.areGeneratorsInAllEmittersPaused())
+			testEffect.effect.unpauseGeneratorsInAllEmitters();
+		else
+			testEffect.effect.pauseGeneratorsInAllEmitters();
+	} else if (e.keyCode == 82) { //'R'
+		testEffect.effect.restart();
+	}
+}
+
+window.addEventListener("keypress", onKeyPressed);
+
 function animate() {
 	if (lastUpdateTime == null) {
 	  lastUpdateTime = Date.now();
@@ -56,6 +74,8 @@ function animate() {
 
     requestAnimationFrame(animate);
 }
+
+
 
 </script>
 </body>
