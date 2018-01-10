@@ -6,56 +6,94 @@
 <script src="/neutrinoparticles.js/dist/neutrinoparticles.js"></script>
 <script src="/neutrinoparticles.js/dist-PIXI/neutrinoparticles.pixi.js"></script>
 <script>
+var NeutrinoTest = function () {
 
-//Test that Pixi is working
-console.log(PIXI);
-
-var renderer = PIXI.autoDetectRenderer(800, 600, { backgroundColor: 0x404040 }); // default renderer (usualy WebGL)
-//var renderer = new PIXI.CanvasRenderer(800, 600, { backgroundColor: 0x404040 });
-
-document.body.appendChild(renderer.view);
-
-var neutrinoContext = new PIXINeutrinoContext(renderer);
-neutrinoContext.effectsBasePath = "/neutrinoparticles.js/tests/_data/";
-neutrinoContext.texturesBasePath = "/neutrinoparticles.js/tests/_data/";
-
-var noiseGenerator = new neutrinoContext.neutrino.NoiseGenerator();
-while (!noiseGenerator.step()) { // approx. 5,000 steps
-	// you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
-}
-
-var stage = new PIXI.Container();
-
-var testModel = new PIXINeutrinoEffectModel(neutrinoContext, "noise.js");
-var testEffect = new PIXINeutrinoEffect(testModel, [400, 300, 0], 0);
-stage.addChild(testEffect);
-
-if (testEffect.ready()) {
-    animate();
-} else {
-    testEffect.once('ready', animate);
-}
-
-var lastUpdateTime = null;
-
-function animate() {
-	if (lastUpdateTime == null) {
-	  lastUpdateTime = Date.now();
+	this.initRenderer = function(renderer) {
+		this.renderer = renderer;
+		document.body.appendChild(renderer.view);
+		
+		this.neutrinoContext = new PIXINeutrinoContext(renderer);
+		this.neutrinoContext.effectsBasePath = "/neutrinoparticles.js/tests/_data/";
+		this.neutrinoContext.texturesBasePath = "/neutrinoparticles.js/tests/_data/";
 	}
 
-	var currentTime = Date.now();
-	var elapsedTime = (currentTime - lastUpdateTime) / 1000;
-	lastUpdateTime = currentTime;
+	this.initWebGLRenderer = function(width, height) {
+		this.shutdownEffect();
+		
+		if (this.renderer) {
+			document.body.removeChild(this.renderer.view);
+		}
+		
+		var renderer = new PIXI.WebGLRenderer(width, height, { backgroundColor: 0x404040 });
+		this.initRenderer(renderer);	
+	}
+	
+	this.initCanvasRenderer = function(width, height) {
+		this.shutdownEffect();
+		
+		if (this.renderer) {
+			document.body.removeChild(this.renderer.view);
+		}
+		
+		var renderer = new PIXI.CanvasRenderer(width, height, { backgroundColor: 0x404040 });
+		this.initRenderer(renderer);	
+	}
 
-	//testEffect.rotation += elapsedTime * 45.0;
+	this.generateNoise = function () {
+		var noiseGenerator = new this.neutrinoContext.neutrino.NoiseGenerator();
+		while (!noiseGenerator.step()) { // approx. 5,000 steps
+			// you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
+		}
+	}
 
-	testEffect.update(elapsedTime > 1.0 ? 1.0 : elapsedTime);
+	this.stage = new PIXI.Container();
 
-    // render the root container
-    renderer.render(stage);
+	this.setRotation = function(angle) {
+		this.testEffect.rotation = angle;
+	}
 
-    requestAnimationFrame(animate);
+	this.setPosition = function(position) {
+		this.testEffect.position.x = position[0];
+		this.testEffect.position.y = position[1];
+		this.testEffect.positionZ = position[2];
+	}
+
+	this.update = function(dt) {
+		this.testEffect.update(dt);
+	}
+
+	this.render = function() {
+		this.renderer.render(this.stage);
+	}
+
+	this.initEffect = function(filename, position, rotation) {
+		this.shutdownEffect();
+			
+		this.testModel = new PIXINeutrinoEffectModel(this.neutrinoContext, filename);
+		this.testEffect = new PIXINeutrinoEffect(this.testModel, position, rotation);
+		this.stage.addChild(this.testEffect);
+	}
+
+	this.shutdownEffect = function() {
+		if (this.testEffect) {
+			this.stage.removeChild(this.testEffect);
+			this.testEffect = null;
+		}
+		
+		this.testModel = null;
+	}
 }
+
+window.neutrinoTest = new NeutrinoTest();
+
+//window.neutrinoTest.initWebGLRenderer(800, 600);
+//window.neutrinoTest.generateNoise();
+//window.neutrinoTest.initEffect("noise.js", [400, 300, 0], 0);
+
+//window.neutrinoTest.testEffect.once('ready', function() {
+//	window.neutrinoTest.update(5.0);
+//	window.neutrinoTest.render();
+//});
 
 </script>
 </body>
