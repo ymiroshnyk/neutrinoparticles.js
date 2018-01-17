@@ -1,0 +1,92 @@
+<html>
+ <head>
+  <title>Phaser test</title>
+ </head>
+ <body>
+  
+<script src="phaser/phaser.js"></script>
+<script src="../../dist/neutrinoparticles.js"></script>
+<script src="../../dist-PHASER/neutrinoparticles.phaser.js"></script>
+
+<script>
+
+const game = new Phaser.Game(800, 600, Phaser.WEBGL, 'phaser-example', { preload: preload, create: create, update: update });
+let testEffect;
+
+let lastUpdateTime = 0;//Date.now();
+
+function preload() {
+
+    //  You can fill the preloader with as many assets as your game requires
+
+    //  Here we are loading an image. The first parameter is the unique
+    //  string by which we'll identify the image later in our code.
+
+    //  The second parameter is the URL of the image (relative)
+    game.load.image('einstein', './assets/ra_einstein.png');
+    game.load.image('fluid2', './textures/fluid2.png');
+
+}
+
+function create() {
+
+    //  This creates a simple sprite that is using our loaded image and
+    //  displays it on-screen
+    var s = game.add.sprite(80, 0, 'einstein');
+
+    s.rotation = 0.14;
+
+    initParticles();
+}
+
+function initParticles(){
+	var neutrinoContext = new PIXINeutrinoContext(game.renderer);
+	neutrinoContext.effectsBasePath = "export_js/";
+	neutrinoContext.texturesBasePath = "textures/";
+
+	var noiseGenerator = new neutrinoContext.neutrino.NoiseGenerator();
+	while (!noiseGenerator.step()) { // approx. 5,000 steps
+		// you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
+	}
+	var testModel = new PIXINeutrinoEffectModel(neutrinoContext, "water_stream.js", game);
+    testEffect = new PIXINeutrinoEffect(testModel, [400, 300, 0], game, 45);
+
+	function startAnimate(){
+      console.log('startAnimate');
+      lastUpdateTime = Date.now();
+      //now add the PIXINeutrinoEffect (testEffect) to the game
+      //updateParticles(0);
+    }
+
+
+	if (testEffect.ready()) {
+      startAnimate();
+	} else {
+	    testEffect.onReady.addOnce(startAnimate);
+	}
+
+	//TODO - make updateParticles get executed through Phaser somehow
+//	function updateParticles(elapsedSeconds){
+//		testEffect.rotation += elapsedSeconds * 45.0;
+//
+//		testEffect.update(elapsedSeconds);
+//	}
+}
+
+function update(){
+  //console.log('foo')
+  if(lastUpdateTime > 0){
+    let currentTime = Date.now();
+    let elapsedSeconds = (currentTime - lastUpdateTime) / 1000;
+    lastUpdateTime = currentTime;
+    testEffect.rotation += elapsedSeconds * 45.0;
+
+    testEffect.update(elapsedSeconds);
+  }
+}
+
+
+</script>
+
+ </body>
+</html>
