@@ -32,7 +32,7 @@ function create() {
 
     //  This creates a simple sprite that is using our loaded image and
     //  displays it on-screen
-    var s = game.add.sprite(80, 0, 'einstein');
+    const s = game.add.sprite(80, 0, 'einstein');
 
     s.rotation = 0.14;
 
@@ -41,16 +41,16 @@ function create() {
 
 function initParticles(){
 
-    var neutrinoContext = new PIXINeutrinoContext(game.renderer);
+    const neutrinoContext = new PIXINeutrinoContext(game.renderer);
 	neutrinoContext.effectsBasePath = "export_js/";
 	neutrinoContext.texturesBasePath = "textures/";
 
-    var noiseGenerator = new neutrinoContext.neutrino.NoiseGenerator();
+    const noiseGenerator = new neutrinoContext.neutrino.NoiseGenerator();
     while (!noiseGenerator.step()) { // approx. 5,000 steps
       // you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
     }
 
-    var testModel = new PIXINeutrinoEffectModel(neutrinoContext, "water_stream.js", game);
+    const testModel = new PIXINeutrinoEffectModel(neutrinoContext, "water_stream.js", game);
     testEffect = new PIXINeutrinoEffect(testModel, [400, 300, 0], game, 45);
 
 	function startAnimate(){
@@ -67,12 +67,6 @@ function initParticles(){
 	    testEffect.onReady.addOnce(startAnimate);
 	}
 
-	//TODO - make updateParticles get executed through Phaser somehow
-//	function updateParticles(elapsedSeconds){
-//		testEffect.rotation += elapsedSeconds * 45.0;
-//
-//		testEffect.update(elapsedSeconds);
-//	}
 }
 
 function update(){
@@ -83,7 +77,7 @@ function update(){
     lastUpdateTime = currentTime;
     testEffect.rotation += elapsedSeconds * 45.0;
 
-    testEffect.update(elapsedSeconds);
+    testEffect.updateParticles(elapsedSeconds);
   }
 }
 
