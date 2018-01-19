@@ -342,6 +342,7 @@ class PIXINeutrinoEffectModel extends Phaser.Sprite {
   }
 
   _getNewTexture(id){
+    if (this.ctx.trimmedExtensionLookupFirst) id = id.replace(/\.[^/.]+$/, "");
     //TODO - see if theres a better way of accessing this...
     const imageData = game.cache._cache.image[id];
     const baseTexture = imageData.base;
@@ -352,21 +353,12 @@ class PIXINeutrinoEffectModel extends Phaser.Sprite {
     this.effectModel = effectModel;
     this.textures = [];
     this.textureImageDescs = [];
-    var numTextures = effectModel.textures.length;
+    const numTextures = effectModel.textures.length;
     this.numTexturesToLoadLeft = numTextures;
 
-    for (var imageIndex = 0; imageIndex < numTextures; ++imageIndex) {
-      var texturePath = effectModel.textures[imageIndex];
-      var texture = null;
-
-      if (this.ctx.trimmedExtensionLookupFirst) {
-        var trimmedTexturePath = texturePath.replace(/\.[^/.]+$/, ""); // https://stackoverflow.com/a/4250408
-        // texture = PIXI.utils.TextureCache[trimmedTexturePath];
-        texture = this._getNewTexture(trimmedTexturePath);
-      }
-
-      if (!texture)
-        texture = this._getNewTexture(texturePath);//PIXI.utils.TextureCache[texturePath];
+    for (let imageIndex = 0; imageIndex < numTextures; ++imageIndex) {
+      const texturePath = effectModel.textures[imageIndex];
+      let texture = this._getNewTexture(texturePath);
 
       if (!texture)
         //TODO - fix this
@@ -375,9 +367,7 @@ class PIXINeutrinoEffectModel extends Phaser.Sprite {
       if (texture.baseTexture.hasLoaded) {
         this._onTextureLoaded(imageIndex, texture);
       } else {
-
-        var callback;
-        callback = function (self, imageIndex, texture) {
+        const callback = function (self, imageIndex, texture) {
           texture.off('update', callback);
           return function () {
             self._onTextureLoaded(imageIndex, texture);
@@ -385,11 +375,6 @@ class PIXINeutrinoEffectModel extends Phaser.Sprite {
         } (this, imageIndex, texture);
 
         texture.on('update', callback);
-        // texture.once('update', function (self, imageIndex, texture) {
-        //   return function () {
-        //     self._onTextureLoaded(imageIndex, texture);
-        //   }
-        // } (this, imageIndex, texture));
       }
 
     }
@@ -422,10 +407,10 @@ class PIXINeutrinoEffectModel extends Phaser.Sprite {
 
     for (var texIdx = 0; texIdx < this.textures.length; ++texIdx) {
       const texture = this.textures[texIdx];
-
-      if (texture.orig && (texture.orig.x != 0 || texture.orig.y != 0
-        || texture.orig.width != texture.baseTexture.realWidth
-        || texture.orig.height != texture.baseTexture.realHeight)) {
+      //checks if its an atlas subtexture
+      if (texture.orig && (texture.orig.x !== 0 || texture.orig.y !== 0
+        || texture.orig.width !== texture.baseTexture.realWidth
+        || texture.orig.height !== texture.baseTexture.realHeight)) {
         remapNeeded = true;
         break;
       }
@@ -481,9 +466,6 @@ class PIXINeutrinoEffect extends Phaser.Group {
       effectModel.onReady.addOnce(function () {
         this._onEffectReady();
       }, this);
-      // effectModel.once('ready', function () {
-      //   this._onEffectReady();
-      // }, this);
     }
   }
 
@@ -512,7 +494,6 @@ class PIXINeutrinoEffect extends Phaser.Group {
 
     var gl = renderer.gl;
 
-    //TODO - need a Phaser compatible way to reset stuff as per below
     /*
     renderer.setObjectRenderer(renderer.emptyRenderer);
     renderer.bindVao(null);
@@ -557,7 +538,8 @@ class PIXINeutrinoEffect extends Phaser.Group {
     array[8] = 1;
      */
     const projectionMatrix = [1, 0, 0, 1, 0, 0, 0, 0, 1];
-    //TODO - set transform and scale values appropriately
+    // const projectionMatrix = [0.0025, 0, 0, 0, -0.0033333334140479565, 0, -1, 1, 1];
+    //TODO - set transform and scale values appropriately on projectionMatrix
 
 
     // this.ctx.materials.setup(target.projectionMatrix.toArray(true), [this.scale.x, this.scale.y]);
@@ -588,6 +570,7 @@ class PIXINeutrinoEffect extends Phaser.Group {
     }
 
     //renderer.state.pop();
+
   }
 
   restart(position, rotation) {
