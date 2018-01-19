@@ -40,24 +40,26 @@ function create() {
 }
 
 function initParticles(){
-	var neutrinoContext = new PIXINeutrinoContext(game.renderer);
+
+    var neutrinoContext = new PIXINeutrinoContext(game.renderer);
 	neutrinoContext.effectsBasePath = "export_js/";
 	neutrinoContext.texturesBasePath = "textures/";
 
-	var noiseGenerator = new neutrinoContext.neutrino.NoiseGenerator();
-	while (!noiseGenerator.step()) { // approx. 5,000 steps
-		// you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
-	}
-	var testModel = new PIXINeutrinoEffectModel(neutrinoContext, "water_stream.js", game);
+    var noiseGenerator = new neutrinoContext.neutrino.NoiseGenerator();
+    while (!noiseGenerator.step()) { // approx. 5,000 steps
+      // you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
+    }
+
+    var testModel = new PIXINeutrinoEffectModel(neutrinoContext, "water_stream.js", game);
     testEffect = new PIXINeutrinoEffect(testModel, [400, 300, 0], game, 45);
 
 	function startAnimate(){
       console.log('startAnimate');
       lastUpdateTime = Date.now();
       //now add the PIXINeutrinoEffect (testEffect) to the game
+      game.stage.addChild(testEffect);
       //updateParticles(0);
     }
-
 
 	if (testEffect.ready()) {
       startAnimate();
