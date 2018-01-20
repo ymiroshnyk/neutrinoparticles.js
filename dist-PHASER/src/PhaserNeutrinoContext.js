@@ -2,7 +2,6 @@ class PhaserNeutrinoContext {
 
   constructor(renderer) {
     var gl = renderer.gl;
-
     this.renderer = renderer;
     this.neutrino = new NeutrinoParticles();
     this.effectsBasePath = "";

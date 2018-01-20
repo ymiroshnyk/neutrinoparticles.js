@@ -1,13 +1,29 @@
-var gulp = require("gulp");
-var concat = require("gulp-concat");
-var sourcemaps = require("gulp-sourcemaps");
-var babel = require("gulp-babel");
+const gulp = require("gulp"),
+  concat = require("gulp-concat"),
+  sourcemaps = require("gulp-sourcemaps"),
+  babel = require("gulp-babel"),
+  watch = require('gulp-watch');
+
+const paths = {
+  phaser: "./dist-PHASER/",
+  outputFile: "neutrinoparticles.phaser.js"
+};
+paths.phaserSrc = paths.phaser + "src/";
+paths.phaserSrcGlob = paths.phaserSrc + "*.js";
 
 gulp.task("build-phaser", function () {
-  return gulp.src("./dist-PHASER/src/*.js")
+  return gulp.src(paths.phaserSrcGlob)
     .pipe(sourcemaps.init())
-    .pipe(concat("neutrinoparticles.phaser.js"))
+    .pipe(concat(paths.outputFile))
     .pipe(babel())
     .pipe(sourcemaps.write("."))
-    .pipe(gulp.dest("./dist-PHASER/"));
+    // .pipe(watch(paths.phaserSrcGlob))
+    .pipe(gulp.dest(paths.phaser));
+});
+
+//the watch task
+gulp.task('watch', function() {
+  return watch(paths.phaserSrc, function(data){
+    gulp.run("build-phaser");
+  })
 });

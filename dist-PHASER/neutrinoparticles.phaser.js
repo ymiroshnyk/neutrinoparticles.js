@@ -13,7 +13,6 @@ var PhaserNeutrinoContext = function () {
     _classCallCheck(this, PhaserNeutrinoContext);
 
     var gl = renderer.gl;
-
     this.renderer = renderer;
     this.neutrino = new NeutrinoParticles();
     this.effectsBasePath = "";
