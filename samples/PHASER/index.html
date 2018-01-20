@@ -42,7 +42,7 @@ function create() {
 function initParticles(){
 
     const neutrinoContext = new PhaserNeutrinoContext(game.renderer, "export_js/", "textures/");
-	
+
     const noiseGenerator = new neutrinoContext.neutrino.NoiseGenerator();
     while (!noiseGenerator.step()) { // approx. 5,000 steps
       // you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
