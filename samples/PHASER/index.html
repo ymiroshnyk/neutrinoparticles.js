@@ -41,27 +41,27 @@ function create() {
 
 function initParticles(){
 
-    const neutrinoContext = new PhaserNeutrinoContext(game.renderer);
-	neutrinoContext.effectsBasePath = "export_js/";
-	neutrinoContext.texturesBasePath = "textures/";
-
+    const neutrinoContext = new PhaserNeutrinoContext(game.renderer, "export_js/", "textures/");
+	
     const noiseGenerator = new neutrinoContext.neutrino.NoiseGenerator();
     while (!noiseGenerator.step()) { // approx. 5,000 steps
       // you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
     }
 
-    const testModel = new PhaserNeutrinoEffectModel(neutrinoContext, "water_stream.js", game);
-    testEffect = new PhaserNeutrinoEffect(testModel, [400, 300, 0], game, 45);
+    testEffect = new PhaserNeutrinoEffect(
+      new PhaserNeutrinoEffectModel(neutrinoContext, "water_stream.js"),
+      [400, 300, 0],
+      game,
+      45
+    );
 
 	function startAnimate(){
-      console.log('startAnimate');
       lastUpdateTime = Date.now();
-      //now add the PIXINeutrinoEffect (testEffect) to the game
+      //now add the PhaserNeutrinoEffect (testEffect) to the game
       game.stage.addChild(testEffect);
-      //updateParticles(0);
     }
 
-	if (testEffect.ready()) {
+	if (testEffect.isReady) {
       startAnimate();
 	} else {
 	    testEffect.onReady.addOnce(startAnimate);
@@ -70,7 +70,6 @@ function initParticles(){
 }
 
 function update(){
-  //console.log('foo')
   if(lastUpdateTime > 0){
     let currentTime = Date.now();
     let elapsedSeconds = (currentTime - lastUpdateTime) / 1000;
@@ -80,7 +79,6 @@ function update(){
     testEffect.updateParticles(elapsedSeconds);
   }
 }
-
 
 </script>
 

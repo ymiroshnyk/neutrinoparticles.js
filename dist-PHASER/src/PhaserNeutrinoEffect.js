@@ -25,7 +25,7 @@ class PhaserNeutrinoEffect extends Phaser.Group {
     else
       this.scaleZ = 1;
 
-    if (effectModel.ready()) {
+    if (effectModel.isReady) {
       this._onEffectReady();
     } else {
       effectModel.onReady.addOnce(function () {
@@ -34,7 +34,7 @@ class PhaserNeutrinoEffect extends Phaser.Group {
     }
   }
 
-  ready() {
+  get isReady(){
     return this.effect !== null;
   }
 
@@ -46,16 +46,14 @@ class PhaserNeutrinoEffect extends Phaser.Group {
   }
 
   renderCanvas(renderer) {
-    if (!this.ready())
-      return;
-
-    renderer.context.setTransform(this.scale.x, 0, 0, this.scale.y, 0, 0);
-    this.effect.draw(renderer.context);
+    if (this.isReady) {
+      renderer.context.setTransform(this.scale.x, 0, 0, this.scale.y, 0, 0);
+      this.effect.draw(renderer.context);
+    }
   };
 
   renderWebGL(renderer) {
-    if (!this.ready())
-      return;
+    if (!this.isReady) return;
 
     var gl = renderer.gl;
 

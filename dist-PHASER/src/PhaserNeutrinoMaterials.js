@@ -71,9 +71,6 @@ class PhaserNeutrinoMaterials {
   }
 
   setup(pMatrix, scale) {
-    // console.log('PIXINeutrinoMaterials setup', pMatrix)
-    // var gl = this.gl;
-
     this.pMatrix = pMatrix;
     this.scale = scale.slice();
     this.currentProgram = null;

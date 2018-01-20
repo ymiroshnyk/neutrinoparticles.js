@@ -1,15 +1,14 @@
 class PhaserNeutrinoContext {
 
-  constructor(renderer) {
-    var gl = renderer.gl;
+  constructor(renderer, effectsBasePath = "", texturesBasePath = "") {
     this.renderer = renderer;
     this.neutrino = new NeutrinoParticles();
-    this.effectsBasePath = "";
-    this.texturesBasePath = "";
+    this.effectsBasePath = effectsBasePath;
+    this.texturesBasePath = texturesBasePath;
     this.trimmedExtensionLookupFirst = true;
 
-    if (!(renderer instanceof PIXI.CanvasRenderer)) {
-      this.materials = new PhaserNeutrinoMaterials(gl);
+    if (renderer.type === Phaser.PIXI.WEBGL_RENDERER) {
+      this.materials = new PhaserNeutrinoMaterials(renderer.gl);
     }
   }
 

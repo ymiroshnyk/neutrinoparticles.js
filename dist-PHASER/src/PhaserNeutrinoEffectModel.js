@@ -1,7 +1,6 @@
-class PhaserNeutrinoEffectModel extends Phaser.Sprite {
+class PhaserNeutrinoEffectModel {
 
-  constructor(context, effectPath, game) {
-    super(game);
+  constructor(context, effectPath) {
 
     this.ctx = context;
     this.effectPath = effectPath;
@@ -17,7 +16,7 @@ class PhaserNeutrinoEffectModel extends Phaser.Sprite {
     });
   }
 
-  ready() {
+  get isReady(){
     return this.numTexturesToLoadLeft === 0;
   }
 

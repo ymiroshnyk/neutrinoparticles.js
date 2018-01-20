@@ -10,17 +10,19 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var PhaserNeutrinoContext = function () {
   function PhaserNeutrinoContext(renderer) {
+    var effectsBasePath = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
+    var texturesBasePath = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : "";
+
     _classCallCheck(this, PhaserNeutrinoContext);
 
-    var gl = renderer.gl;
     this.renderer = renderer;
     this.neutrino = new NeutrinoParticles();
-    this.effectsBasePath = "";
-    this.texturesBasePath = "";
+    this.effectsBasePath = effectsBasePath;
+    this.texturesBasePath = texturesBasePath;
     this.trimmedExtensionLookupFirst = true;
 
-    if (!(renderer instanceof PIXI.CanvasRenderer)) {
-      this.materials = new PhaserNeutrinoMaterials(gl);
+    if (renderer.type === Phaser.PIXI.WEBGL_RENDERER) {
+      this.materials = new PhaserNeutrinoMaterials(renderer.gl);
     }
   }
 
@@ -66,7 +68,7 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
       _this.scaleZ = scale[2];
     } else _this.scaleZ = 1;
 
-    if (effectModel.ready()) {
+    if (effectModel.isReady) {
       _this._onEffectReady();
     } else {
       effectModel.onReady.addOnce(function () {
@@ -77,11 +79,6 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
   }
 
   _createClass(PhaserNeutrinoEffect, [{
-    key: "ready",
-    value: function ready() {
-      return this.effect !== null;
-    }
-  }, {
     key: "updateParticles",
     value: function updateParticles(dt) {
       if (this.effect !== null) {
@@ -91,15 +88,15 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
   }, {
     key: "renderCanvas",
     value: function renderCanvas(renderer) {
-      if (!this.ready()) return;
-
-      renderer.context.setTransform(this.scale.x, 0, 0, this.scale.y, 0, 0);
-      this.effect.draw(renderer.context);
+      if (this.isReady) {
+        renderer.context.setTransform(this.scale.x, 0, 0, this.scale.y, 0, 0);
+        this.effect.draw(renderer.context);
+      }
     }
   }, {
     key: "renderWebGL",
     value: function renderWebGL(renderer) {
-      if (!this.ready()) return;
+      if (!this.isReady) return;
 
       var gl = renderer.gl;
 
@@ -241,40 +238,35 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
       //this.emit('ready', this);
       this.onReady.dispatch();
     }
+  }, {
+    key: "isReady",
+    get: function get() {
+      return this.effect !== null;
+    }
   }]);
 
   return PhaserNeutrinoEffect;
 }(Phaser.Group);
 
-var PhaserNeutrinoEffectModel = function (_Phaser$Sprite) {
-  _inherits(PhaserNeutrinoEffectModel, _Phaser$Sprite);
-
-  function PhaserNeutrinoEffectModel(context, effectPath, game) {
+var PhaserNeutrinoEffectModel = function () {
+  function PhaserNeutrinoEffectModel(context, effectPath) {
     _classCallCheck(this, PhaserNeutrinoEffectModel);
 
-    var _this2 = _possibleConstructorReturn(this, (PhaserNeutrinoEffectModel.__proto__ || Object.getPrototypeOf(PhaserNeutrinoEffectModel)).call(this, game));
+    this.ctx = context;
+    this.effectPath = effectPath;
+    this.effectModel = null;
+    this.numTexturesToLoadLeft = -1;
+    this.texturesRemap = null;
 
-    _this2.ctx = context;
-    _this2.effectPath = effectPath;
-    _this2.effectModel = null;
-    _this2.numTexturesToLoadLeft = -1;
-    _this2.texturesRemap = null;
+    this.onReady = new Phaser.Signal();
 
-    _this2.onReady = new Phaser.Signal();
-
-    var pixiNeutrinoEffect = _this2;
-    _this2.ctx.neutrino.loadEffect(_this2.ctx.effectsBasePath + effectPath, function (effectModel) {
+    var pixiNeutrinoEffect = this;
+    this.ctx.neutrino.loadEffect(this.ctx.effectsBasePath + effectPath, function (effectModel) {
       pixiNeutrinoEffect._onEffectLoaded(effectModel);
     });
-    return _this2;
   }
 
   _createClass(PhaserNeutrinoEffectModel, [{
-    key: "ready",
-    value: function ready() {
-      return this.numTexturesToLoadLeft === 0;
-    }
-  }, {
     key: "_getNewTexture",
     value: function _getNewTexture(id) {
       if (this.ctx.trimmedExtensionLookupFirst) id = id.replace(/\.[^/.]+$/, "");
@@ -286,7 +278,7 @@ var PhaserNeutrinoEffectModel = function (_Phaser$Sprite) {
   }, {
     key: "_onEffectLoaded",
     value: function _onEffectLoaded(effectModel) {
-      var _this3 = this;
+      var _this2 = this;
 
       this.effectModel = effectModel;
       this.textures = [];
@@ -311,7 +303,7 @@ var PhaserNeutrinoEffectModel = function (_Phaser$Sprite) {
               return function () {
                 self._onTextureLoaded(imageIndex, texture);
               };
-            }(_this3, imageIndex, texture);
+            }(_this2, imageIndex, texture);
 
             texture.on('update', callback);
           })();
@@ -364,10 +356,15 @@ var PhaserNeutrinoEffectModel = function (_Phaser$Sprite) {
         }
       }
     }
+  }, {
+    key: "isReady",
+    get: function get() {
+      return this.numTexturesToLoadLeft === 0;
+    }
   }]);
 
   return PhaserNeutrinoEffectModel;
-}(Phaser.Sprite);
+}();
 
 var PhaserNeutrinoMaterials = function () {
   function PhaserNeutrinoMaterials(gl) {
@@ -448,9 +445,6 @@ var PhaserNeutrinoMaterials = function () {
   }, {
     key: "setup",
     value: function setup(pMatrix, scale) {
-      // console.log('PIXINeutrinoMaterials setup', pMatrix)
-      // var gl = this.gl;
-
       this.pMatrix = pMatrix;
       this.scale = scale.slice();
       this.currentProgram = null;
