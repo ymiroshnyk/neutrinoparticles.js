@@ -41,7 +41,7 @@ function create() {
 
 function initParticles(){
 
-    const neutrinoContext = new PIXINeutrinoContext(game.renderer);
+    const neutrinoContext = new PhaserNeutrinoContext(game.renderer);
 	neutrinoContext.effectsBasePath = "export_js/";
 	neutrinoContext.texturesBasePath = "textures/";
 
@@ -50,8 +50,8 @@ function initParticles(){
       // you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
     }
 
-    const testModel = new PIXINeutrinoEffectModel(neutrinoContext, "water_stream.js", game);
-    testEffect = new PIXINeutrinoEffect(testModel, [400, 300, 0], game, 45);
+    const testModel = new PhaserNeutrinoEffectModel(neutrinoContext, "water_stream.js", game);
+    testEffect = new PhaserNeutrinoEffect(testModel, [400, 300, 0], game, 45);
 
 	function startAnimate(){
       console.log('startAnimate');
