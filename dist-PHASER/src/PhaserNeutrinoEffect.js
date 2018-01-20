@@ -21,9 +21,9 @@ class PhaserNeutrinoEffect extends Phaser.Group {
       this.scale.x = scale[0];
       this.scale.y = scale[1];
       this.scaleZ = scale[2];
-    }
-    else
+    } else {
       this.scaleZ = 1;
+    }
 
     if (effectModel.isReady) {
       this._onEffectReady();
@@ -55,7 +55,7 @@ class PhaserNeutrinoEffect extends Phaser.Group {
   renderWebGL(renderer) {
     if (!this.isReady) return;
 
-    var gl = renderer.gl;
+    const gl = renderer.gl;
 
     /*
     renderer.setObjectRenderer(renderer.emptyRenderer);
@@ -68,7 +68,7 @@ class PhaserNeutrinoEffect extends Phaser.Group {
     // hack! the only way to discard current shader for futher engine rendering
     //renderer._activeShader = null;
 
-    //---- from pixi.js filterManager ------------
+    //---- example from pixi.js filterManager ------------
     // update projection
     // now restore the regular shader..
     // this.renderSession.shaderManager.setShader(this.defaultShader);
@@ -101,6 +101,8 @@ class PhaserNeutrinoEffect extends Phaser.Group {
     array[8] = 1;
      */
     const projectionMatrix = [1, 0, 0, 1, 0, 0, 0, 0, 1];
+
+    //test values copied from pixi version
     // const projectionMatrix = [0.0025, 0, 0, 0, -0.0033333334140479565, 0, -1, 1, 1];
     //TODO - set transform and scale values appropriately on projectionMatrix
 
@@ -117,10 +119,14 @@ class PhaserNeutrinoEffect extends Phaser.Group {
       const renderCall = this.renderBuffers.renderCalls[renderCallIdx];
       const texIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].textureIndices[0];
 
-      // - bindTexture doesn't exist in this version of pixi
-      //try updateTexture instead
+      // - renderer.bindTexture doesn't exist in this version of pixi
       // renderer.bindTexture(this.effectModel.textures[texIndex], 0, true);
-      game.renderer.updateTexture(this.effectModel.textures[texIndex]);//, 0, true);
+      gl.activeTexture(gl.TEXTURE0);
+      const texture = this.effectModel.textures[texIndex];
+      game.renderer.updateTexture(texture);//, 0, true);
+      //   _glTextures = texture.baseTexture._glTextures;
+      // const glTexture = texture.baseTexture._glTextures[0];//game.renderer.glContextId];
+      //gl.bindTexture(gl.TEXTURE_2D, glTexture.texture);
 
       const materialIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].materialIndex;
       switch (this.effect.model.materials[materialIndex]) {
@@ -175,9 +181,8 @@ class PhaserNeutrinoEffect extends Phaser.Group {
   }
 
   _onEffectReady() {
-    console.log('Effect ready')
-    var position = [this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ];
-    var rotation = this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.rotation % 360);
+    const position = [this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ];
+    const rotation = this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.rotation % 360);
 
     if (this.effectModel.ctx.renderer.type === Phaser.PIXI.CANVAS_RENDERER) {
       this.effect = this.effectModel.effectModel.createCanvas2DInstance(position, rotation);
@@ -187,8 +192,6 @@ class PhaserNeutrinoEffect extends Phaser.Group {
       this.effect = this.effectModel.effectModel.createWGLInstance(position, rotation, this.renderBuffers);
       this.effect.texturesRemap = this.effectModel.texturesRemap;
     }
-
-    //this.emit('ready', this);
     this.onReady.dispatch();
   }
 }

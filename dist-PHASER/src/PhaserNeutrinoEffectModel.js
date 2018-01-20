@@ -22,7 +22,7 @@ class PhaserNeutrinoEffectModel {
 
   _getNewTexture(id){
     if (this.ctx.trimmedExtensionLookupFirst) id = id.replace(/\.[^/.]+$/, "");
-    //TODO - see if theres a better way of accessing this...
+    //TODO - see if theres a better way of accessing this image data...
     const imageData = game.cache._cache.image[id];
     const baseTexture = imageData.base;
     return new Phaser.PIXI.Texture(baseTexture, imageData.frame);
@@ -40,7 +40,7 @@ class PhaserNeutrinoEffectModel {
       let texture = this._getNewTexture(texturePath);
 
       if (!texture)
-      //TODO - fix this
+      //TODO - fix this for Phaser
         texture = PIXI.Texture.fromImage(this.ctx.texturesBasePath + texturePath);
 
       if (texture.baseTexture.hasLoaded) {
@@ -55,7 +55,6 @@ class PhaserNeutrinoEffectModel {
 
         texture.on('update', callback);
       }
-
     }
   }
 
