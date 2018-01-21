@@ -75,15 +75,14 @@ class PhaserNeutrinoEffect extends Phaser.Group {
     //gl.uniform2f(this.defaultShader.projectionVector, filterArea.width/2, -filterArea.height/2);
     //gl.uniform2f(this.defaultShader.offsetVector, -filterArea.x, -filterArea.y);
     // -----------------------------------
-    const defaultShader = game.renderer.shaderManager.defaultShader;
-    game.renderer.shaderManager.setShader(defaultShader);
+    game.renderer.renderSession.spriteBatch.stop();
 
     const renderSession = game.renderer.renderSession;
-    const projection = renderSession.projection,
-      offset = renderSession.offset;
-    gl.uniform2f(defaultShader.projectionVector, projection.x, -projection.y);
-    gl.uniform2f(defaultShader.offsetVector, -offset.x, -offset.y);
-
+    const projection = renderSession.projection;
+    const offset = renderSession.offset;
+    //gl.uniform2f(defaultShader.projectionVector, projection.x, -projection.y);
+    //gl.uniform2f(defaultShader.offsetVector, -offset.x, -offset.y);
+    
     // - _activeRenderTarget doesn't exist in this version of pixi
     // var target = renderer._activeRenderTarget;
     //console.log('projectionVector', defaultShader.projectionVector, 'offsetVector', defaultShader.offsetVector)
@@ -100,7 +99,7 @@ class PhaserNeutrinoEffect extends Phaser.Group {
     array[7] = 0;
     array[8] = 1;
      */
-    const projectionMatrix = [1, 0, 0, 1, 0, 0, 0, 0, 1];
+    //const projectionMatrix = [0.0025, 0, 0, 0, -0.0033333334140479565, 0, -1, 1, 1];//[1, 0, 0, 1, 0, 0, 0, 0, 1];
 
     //test values copied from pixi version
     // const projectionMatrix = [0.0025, 0, 0, 0, -0.0033333334140479565, 0, -1, 1, 1];
@@ -108,7 +107,7 @@ class PhaserNeutrinoEffect extends Phaser.Group {
 
 
     // this.ctx.materials.setup(target.projectionMatrix.toArray(true), [this.scale.x, this.scale.y]);
-    this.ctx.materials.setup(projectionMatrix, [this.scale.x, this.scale.y]);
+    this.ctx.materials.setup([projection.x, projection.y], [offset.x, offset.y], [this.scale.x, this.scale.y]);
 
     this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
 

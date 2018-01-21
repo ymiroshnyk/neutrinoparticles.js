@@ -8,7 +8,7 @@ class PhaserNeutrinoContext {
     this.trimmedExtensionLookupFirst = true;
 
     if (renderer.type === Phaser.PIXI.WEBGL_RENDERER) {
-      this.materials = new PhaserNeutrinoMaterials(renderer.gl);
+      this.materials = new PhaserNeutrinoMaterials(renderer);
     }
   }
 

@@ -1,21 +1,32 @@
+class PhaserNeutrinoShader {
+  constructor(program) {
+    this.program = program;
+    this._UID = PIXI._UID++;
+    this.attributes = [program.vertexPositionAttribute, program.colorAttribute, program.textureCoordAttribute];
+  }
+}
+
 class PhaserNeutrinoMaterials {
 
-  constructor(gl) {
-    this.gl = gl;
+  constructor(renderer) {
+    this.gl = renderer.gl;
 
     var vertexShaderSource = "\
 			attribute vec3 aVertexPosition;\
 			attribute vec4 aColor; \
 			attribute vec2 aTextureCoord;\
 			\
-			uniform mat3 projectionMatrix;\
+			uniform vec2 projectionVector;\
+      uniform vec2 offsetVector; \
 			uniform vec2 scale;\
 			\
 			varying vec4 vColor;\
 			varying vec2 vTextureCoord;\
+      \
+      const vec2 center = vec2(0, 0); \
 			\
 			void main(void) {\
-				gl_Position = vec4((projectionMatrix * vec3(aVertexPosition.xy * scale, 1.0)).xy, 0, 1);\
+        gl_Position = vec4(((aVertexPosition.xy * scale + offsetVector) / projectionVector) + center , 0.0, 1.0); \
 				vColor = vec4(aColor.rgb * aColor.a, aColor.a);\
 				vTextureCoord = vec2(aTextureCoord.x, 1.0 - aTextureCoord.y);\
 			}";
@@ -51,6 +62,10 @@ class PhaserNeutrinoMaterials {
     this.shaderProgram = this._makeShaderProgram(vertexShaderSource, fragmentShaderSource);
     this.shaderProgramMultiply = this._makeShaderProgram(vertexShaderSource, fragmentShaderMultiplySource);
 
+    this.shaderProgram.shader = new PhaserNeutrinoShader(this.shaderProgram);
+    this.shaderProgramMultiply.shader = new PhaserNeutrinoShader(this.shaderProgramMultiply);
+    renderer.shaderManager.setShader(this.shaderProgram.shader);
+
     this.pMatrix = null;
     this.currentProgram = null;
   }
@@ -70,34 +85,37 @@ class PhaserNeutrinoMaterials {
     return this.shaderProgram.textureCoordAttribute[index];
   }
 
-  setup(pMatrix, scale) {
-    this.pMatrix = pMatrix;
+  setup(projectionVector, offsetVector, scale) {
+    this.projectionVector = projectionVector.slice();
+    this.offsetVector = offsetVector.slice();
     this.scale = scale.slice();
     this.currentProgram = null;
   }
 
   switchToNormal(renderer) {
-    this._setProgram(this.shaderProgram);
+    this._setProgram(renderer, this.shaderProgram);
     renderer.blendModeManager.setBlendMode(0);
   }
 
   switchToAdd(renderer) {
-    this._setProgram(this.shaderProgram);
+    this._setProgram(renderer, this.shaderProgram);
     renderer.blendModeManager.setBlendMode(1);
   }
 
   switchToMultiply(renderer) {
-    this._setProgram(this.shaderProgramMultiply);
+    this._setProgram(renderer, this.shaderProgramMultiply);
     renderer.blendModeManager.setBlendMode(2);
   }
 
-  _setProgram(program) {
+  _setProgram(renderer, program) {
     var gl = this.gl;
 
     if (program !== this.currentProgram) {
-      gl.useProgram(program);
+      renderer.shaderManager.setShader(program.shader);
+
       // console.log('_setProgram',program.pMatrixUniform, this.pMatrix)
-      gl.uniformMatrix3fv(program.pMatrixUniform, false, this.pMatrix);
+      gl.uniform2fv(program.projectionVectorUniform, this.projectionVector);
+      gl.uniform2fv(program.offsetVectorUniform, this.offsetVector);
       gl.uniform1i(program.samplerUniform, 0);
       gl.uniform2f(program.scaleUniform, this.scale[0], this.scale[1]);
 
@@ -141,7 +159,8 @@ class PhaserNeutrinoMaterials {
     shaderProgram.colorAttribute = gl.getAttribLocation(shaderProgram, "aColor");
     shaderProgram.textureCoordAttribute = [gl.getAttribLocation(shaderProgram, "aTextureCoord")];
 
-    shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "projectionMatrix");
+    shaderProgram.projectionVectorUniform = gl.getUniformLocation(shaderProgram, "projectionVector");
+    shaderProgram.offsetVectorUniform = gl.getUniformLocation(shaderProgram, "offsetVector");
     shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
     shaderProgram.scaleUniform = gl.getUniformLocation(shaderProgram, "scale");
 
