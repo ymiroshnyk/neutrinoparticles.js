@@ -75,9 +75,9 @@ class PhaserNeutrinoEffect extends Phaser.Group {
     //gl.uniform2f(this.defaultShader.projectionVector, filterArea.width/2, -filterArea.height/2);
     //gl.uniform2f(this.defaultShader.offsetVector, -filterArea.x, -filterArea.y);
     // -----------------------------------
-    game.renderer.renderSession.spriteBatch.stop();
 
     const renderSession = game.renderer.renderSession;
+    renderSession.spriteBatch.stop();
     const projection = renderSession.projection;
     const offset = renderSession.offset;
     //gl.uniform2f(defaultShader.projectionVector, projection.x, -projection.y);
@@ -120,12 +120,16 @@ class PhaserNeutrinoEffect extends Phaser.Group {
 
       // - renderer.bindTexture doesn't exist in this version of pixi
       // renderer.bindTexture(this.effectModel.textures[texIndex], 0, true);
-      gl.activeTexture(gl.TEXTURE0);
+
+      //ref to pixi texture
       const texture = this.effectModel.textures[texIndex];
-      game.renderer.updateTexture(texture);//, 0, true);
-      //   _glTextures = texture.baseTexture._glTextures;
-      // const glTexture = texture.baseTexture._glTextures[0];//game.renderer.glContextId];
-      //gl.bindTexture(gl.TEXTURE_2D, glTexture.texture);
+      //game.renderer.updateTexture(texture);//, 0, true);
+
+      //instance of https://developer.mozilla.org/en-US/docs/Web/API/WebGLTexture
+      const glTexture = texture.baseTexture._glTextures[0];//game.renderer.glContextId];
+
+      gl.activeTexture(gl.TEXTURE0);//TODO - correct the value passed in here
+      gl.bindTexture(gl.TEXTURE_2D, glTexture.texture);
 
       const materialIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].materialIndex;
       switch (this.effect.model.materials[materialIndex]) {

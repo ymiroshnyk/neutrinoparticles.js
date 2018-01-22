@@ -48,7 +48,11 @@ function initParticles(){
       // you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
     }
 
+    //test particle foo
+    game.add.sprite(0, 0, 'fluid2');
+
     testEffect = new PhaserNeutrinoEffect(
+      //TODO it would be good if the name of the texture png could be passed in here!
       new PhaserNeutrinoEffectModel(neutrinoContext, "water_stream.js"),
       [0, 0, 0],
       game,

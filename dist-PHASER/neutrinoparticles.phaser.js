@@ -106,7 +106,7 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
       renderer.setObjectRenderer(renderer.emptyRenderer);
       renderer.bindVao(null);
       renderer.state.resetAttributes();
-        renderer.state.push();
+       renderer.state.push();
       renderer.state.setState(renderer.state.defaultState);*/
 
       // hack! the only way to discard current shader for futher engine rendering
@@ -119,9 +119,9 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
       //gl.uniform2f(this.defaultShader.projectionVector, filterArea.width/2, -filterArea.height/2);
       //gl.uniform2f(this.defaultShader.offsetVector, -filterArea.x, -filterArea.y);
       // -----------------------------------
-      game.renderer.renderSession.spriteBatch.stop();
 
       var renderSession = game.renderer.renderSession;
+      renderSession.spriteBatch.stop();
       var projection = renderSession.projection;
       var offset = renderSession.offset;
       //gl.uniform2f(defaultShader.projectionVector, projection.x, -projection.y);
@@ -164,12 +164,16 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
 
         // - renderer.bindTexture doesn't exist in this version of pixi
         // renderer.bindTexture(this.effectModel.textures[texIndex], 0, true);
-        gl.activeTexture(gl.TEXTURE0);
+
+        //ref to pixi texture
         var texture = this.effectModel.textures[texIndex];
-        game.renderer.updateTexture(texture); //, 0, true);
-        //   _glTextures = texture.baseTexture._glTextures;
-        // const glTexture = texture.baseTexture._glTextures[0];//game.renderer.glContextId];
-        //gl.bindTexture(gl.TEXTURE_2D, glTexture.texture);
+        //game.renderer.updateTexture(texture);//, 0, true);
+
+        //instance of https://developer.mozilla.org/en-US/docs/Web/API/WebGLTexture
+        var glTexture = texture.baseTexture._glTextures[0]; //game.renderer.glContextId];
+
+        gl.activeTexture(gl.TEXTURE0); //TODO - correct the value passed in here
+        gl.bindTexture(gl.TEXTURE_2D, glTexture.texture);
 
         var materialIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].materialIndex;
         switch (this.effect.model.materials[materialIndex]) {
