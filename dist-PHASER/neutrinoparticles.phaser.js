@@ -202,10 +202,10 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
         this.effect.texturesRemap = this.effectModel.texturesRemap;
       }
 
-      //get phaser to create webgl texture
-      //TODO - support more than one texture
-      var texture = this.effectModel.textures[0];
-      game.renderer.updateTexture(texture.baseTexture);
+      //get phaser to create webgl texture(s)
+      this.effectModel.textures.forEach(function (texture) {
+        game.renderer.updateTexture(texture.baseTexture);
+      });
 
       this.onReady.dispatch();
     }

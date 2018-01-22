@@ -139,7 +139,7 @@ class PhaserNeutrinoEffect extends Phaser.Group {
   }
 
   _onEffectReady() {
-    
+
     const position = [this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ];
     const rotation = this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.rotation % 360);
 
@@ -152,10 +152,10 @@ class PhaserNeutrinoEffect extends Phaser.Group {
       this.effect.texturesRemap = this.effectModel.texturesRemap;
     }
 
-    //get phaser to create webgl texture
-    //TODO - support more than one texture
-    const texture = this.effectModel.textures[0];
-    game.renderer.updateTexture(texture.baseTexture);
+    //get phaser to create webgl texture(s)
+    this.effectModel.textures.forEach(texture=>{
+      game.renderer.updateTexture(texture.baseTexture);
+    });
 
     this.onReady.dispatch();
   }
