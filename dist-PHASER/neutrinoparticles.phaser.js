@@ -118,18 +118,14 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
         var renderCall = this.renderBuffers.renderCalls[renderCallIdx];
         var texIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].textureIndices[0];
 
-        // - renderer.bindTexture doesn't exist in this version of pixi
-        // renderer.bindTexture(this.effectModel.textures[texIndex], 0, true);
-
         //ref to pixi texture
         var texture = this.effectModel.textures[texIndex];
-        //game.renderer.updateTexture(texture);//, 0, true);
 
         //instance of https://developer.mozilla.org/en-US/docs/Web/API/WebGLTexture
         var glTexture = texture.baseTexture._glTextures[0]; //game.renderer.glContextId];
 
-        gl.activeTexture(gl.TEXTURE0); //TODO - correct the value passed in here
-        gl.bindTexture(gl.TEXTURE_2D, glTexture.texture);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, glTexture);
 
         var materialIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].materialIndex;
         switch (this.effect.model.materials[materialIndex]) {
@@ -143,8 +139,6 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
 
         gl.drawElements(gl.TRIANGLES, renderCall.numIndices, gl.UNSIGNED_SHORT, renderCall.startIndex * 2);
       }
-
-      //renderer.state.pop();
     }
   }, {
     key: "restart",
