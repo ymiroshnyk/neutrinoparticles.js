@@ -102,55 +102,11 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
 
       var gl = renderer.gl;
 
-      /*
-      renderer.setObjectRenderer(renderer.emptyRenderer);
-      renderer.bindVao(null);
-      renderer.state.resetAttributes();
-       renderer.state.push();
-      renderer.state.setState(renderer.state.defaultState);*/
-
-      // hack! the only way to discard current shader for futher engine rendering
-      //renderer._activeShader = null;
-
-      //---- example from pixi.js filterManager ------------
-      // update projection
-      // now restore the regular shader..
-      // this.renderSession.shaderManager.setShader(this.defaultShader);
-      //gl.uniform2f(this.defaultShader.projectionVector, filterArea.width/2, -filterArea.height/2);
-      //gl.uniform2f(this.defaultShader.offsetVector, -filterArea.x, -filterArea.y);
-      // -----------------------------------
-
       var renderSession = game.renderer.renderSession;
       renderSession.spriteBatch.stop();
       var projection = renderSession.projection;
       var offset = renderSession.offset;
-      //gl.uniform2f(defaultShader.projectionVector, projection.x, -projection.y);
-      //gl.uniform2f(defaultShader.offsetVector, -offset.x, -offset.y);
 
-      // - _activeRenderTarget doesn't exist in this version of pixi
-      // var target = renderer._activeRenderTarget;
-      //console.log('projectionVector', defaultShader.projectionVector, 'offsetVector', defaultShader.offsetVector)
-      //projectionMatrix doesn't exist in this version of pixi
-
-      /* Matrix.ToArray
-      array[0] = this.a; > x scale
-      array[1] = this.c; > x skew
-      array[2] = this.tx;
-      array[3] = this.b; > y skew
-      array[4] = this.d; > y scale
-      array[5] = this.ty;
-      array[6] = 0;
-      array[7] = 0;
-      array[8] = 1;
-       */
-      //const projectionMatrix = [0.0025, 0, 0, 0, -0.0033333334140479565, 0, -1, 1, 1];//[1, 0, 0, 1, 0, 0, 0, 0, 1];
-
-      //test values copied from pixi version
-      // const projectionMatrix = [0.0025, 0, 0, 0, -0.0033333334140479565, 0, -1, 1, 1];
-      //TODO - set transform and scale values appropriately on projectionMatrix
-
-
-      // this.ctx.materials.setup(target.projectionMatrix.toArray(true), [this.scale.x, this.scale.y]);
       this.ctx.materials.setup([projection.x, projection.y], [offset.x, offset.y], [this.scale.x, this.scale.y]);
 
       this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
@@ -233,6 +189,7 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
   }, {
     key: "_onEffectReady",
     value: function _onEffectReady() {
+
       var position = [this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ];
       var rotation = this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.rotation % 360);
 
@@ -244,6 +201,12 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
         this.effect = this.effectModel.effectModel.createWGLInstance(position, rotation, this.renderBuffers);
         this.effect.texturesRemap = this.effectModel.texturesRemap;
       }
+
+      //get phaser to create webgl texture
+      //TODO - support more than one texture
+      var texture = this.effectModel.textures[0];
+      game.renderer.updateTexture(texture.baseTexture);
+
       this.onReady.dispatch();
     }
   }, {
