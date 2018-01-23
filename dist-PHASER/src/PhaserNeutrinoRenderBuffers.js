@@ -102,23 +102,23 @@ class PhaserNeutrinoRenderBuffers {
 
     {
       gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-
-      gl.enableVertexAttribArray(materials.positionAttribLocation());
+      // attribute is enabled inside PIXI
+      //gl.enableVertexAttribArray(materials.positionAttribLocation());
       gl.vertexAttribPointer(materials.positionAttribLocation(), 3, gl.FLOAT, false, 0, 0);
     }
 
     {
       gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
-
-      gl.enableVertexAttribArray(materials.colorAttribLocation());
+      // attribute is enabled inside PIXI
+      //gl.enableVertexAttribArray(materials.colorAttribLocation());
       gl.vertexAttribPointer(materials.colorAttribLocation(), 4, gl.UNSIGNED_BYTE, true, 0, 0);
     }
 
     this.texBuffers.forEach(function (buffer, index) {
 
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-
-      gl.enableVertexAttribArray(materials.texAttribLocation(index));
+      // attribute is enabled inside PIXI
+      //gl.enableVertexAttribArray(materials.texAttribLocation(index));
       gl.vertexAttribPointer(materials.texAttribLocation(index),
         this.texCoords[index].numComponents, gl.FLOAT, false, 0, 0);
 
