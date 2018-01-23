@@ -4,26 +4,39 @@ const gulp = require("gulp"),
   babel = require("gulp-babel"),
   watch = require('gulp-watch');
 
-const paths = {
-  phaser: "./dist-PHASER/",
-  outputFile: "neutrinoparticles.phaser.js"
-};
-paths.phaserSrc = paths.phaser + "src/";
-paths.phaserSrcGlob = paths.phaserSrc + "*.js";
+const tasks = [
+  {
+    name: "phaser",
+    sourcePath: "./dist-PHASER/src/",
+    distPath: "./dist-PHASER/",
+    outputDistFile: "neutrinoparticles.phaser.js"
+  },
+  {
+    name: "pixi",
+    sourcePath: "./src/PIXI/",
+    distPath: "./dist-PIXI/",
+    outputDistFile: "neutrinoparticles.pixi.js"
+  }
+];
 
-gulp.task("build-phaser", function () {
-  return gulp.src(paths.phaserSrcGlob)
-    .pipe(sourcemaps.init())
-    .pipe(concat(paths.outputFile))
-    .pipe(babel())
-    .pipe(sourcemaps.write("."))
-    // .pipe(watch(paths.phaserSrcGlob))
-    .pipe(gulp.dest(paths.phaser));
-});
+tasks.forEach(function (task) {
 
-//the watch task
-gulp.task('watch', function() {
-  return watch(paths.phaserSrc, function(data){
-    gulp.run("build-phaser");
-  })
+  // build task
+  gulp.task("build-" + task.name, function() {
+    return gulp.src(task.sourcePath + "*.js")
+      .pipe(sourcemaps.init())
+      .pipe(concat(task.outputDistFile))
+      .pipe(babel())
+      .pipe(sourcemaps.write("."))
+      // .pipe(watch(task.sourcePath + "*.js"))
+      .pipe(gulp.dest(task.distPath));
+  });
+
+  // watch task
+  gulp.task("watch-" + task.name, function () {
+    return watch(task.sourcePath, function (data) {
+      gulp.run("build-" + task.name);
+    })
+  });
+
 });
