@@ -16,6 +16,12 @@ const tasks = [
     sourcePath: "./src/PIXI/",
     distPath: "./dist-PIXI/",
     outputDistFile: "neutrinoparticles.pixi.js"
+  },
+  {
+    name: "three",
+    sourcePath: "./src/three/",
+    distPath: "./dist-three/",
+    outputDistFile: "neutrinoparticles.three.js"
   }
 ];
 
