@@ -458,10 +458,8 @@ gl_FragColor = vec4(mix(vec3(1, 1, 1), rgb, alpha), 1);\n\
     key: "_setProgram",
     value: function _setProgram(renderer, program) {
       var gl = this.gl;
-
       if (program !== this.currentProgram) {
         renderer.shaderManager.setShader(program.shader);
-
         // console.log('_setProgram',program.pMatrixUniform, this.pMatrix)
         gl.uniform2fv(program.projectionVectorUniform, this.projectionVector);
         gl.uniform2fv(program.offsetVectorUniform, this.offsetVector);

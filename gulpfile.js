@@ -7,7 +7,7 @@ const gulp = require("gulp"),
 const tasks = [
   {
     name: "phaser",
-    sourcePath: "./src/PHASER/",
+    sourcePath: "./src/Phaser/",
     distPath: "./dist-PHASER/",
     outputDistFile: "neutrinoparticles.phaser.js"
   },
