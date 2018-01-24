@@ -346,52 +346,58 @@ var PhaserNeutrinoMaterials = function () {
     this.gl = renderer.gl;
 
     var vertexShaderSource = "\
-			attribute vec3 aVertexPosition;\
-			attribute vec4 aColor; \
-			attribute vec2 aTextureCoord;\
-			\
-			uniform vec2 projectionVector;\
-      uniform vec2 offsetVector; \
-			uniform vec2 scale;\
-			\
-			varying vec4 vColor;\
-			varying vec2 vTextureCoord;\
-      \
-      const vec2 center = vec2(0, 0); \
-			\
-			void main(void) {\
-        gl_Position = vec4(((aVertexPosition.xy * scale + offsetVector) / projectionVector) + center , 0.0, 1.0); \
-				vColor = vec4(aColor.rgb * aColor.a, aColor.a);\
-				vTextureCoord = vec2(aTextureCoord.x, 1.0 - aTextureCoord.y);\
-			}";
+/* NeutrinoParticles Vertex Shader */ \n\
+\n\
+attribute vec3 aVertexPosition;\n\
+attribute vec2 aTextureCoord;\n\
+attribute vec4 aColor; \n\
+\n\
+uniform vec2 projectionVector;\n\
+uniform vec2 offsetVector; \n\
+uniform vec2 scale;\n\
+\n\
+varying vec4 vColor;\n\
+varying vec2 vTextureCoord;\n\
+\n\
+const vec2 center = vec2(0, 0); \n\
+\n\
+void main(void) {\n\
+gl_Position = vec4(((aVertexPosition.xy * scale + offsetVector) / projectionVector) + center , 0.0, 1.0); \n\
+	vColor = vec4(aColor.rgb * aColor.a, aColor.a);\n\
+	vTextureCoord = vec2(aTextureCoord.x, 1.0 - aTextureCoord.y);\n\
+}";
 
     var fragmentShaderSource = "\
-			precision mediump float;\
-			\
-			varying vec4 vColor;\
-			varying vec2 vTextureCoord;\
-		\
-			uniform sampler2D uSampler;\
-			\
-			void main(void) {\
-				gl_FragColor = vColor * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\
-			}";
+/* NeutrinoParticles Fragment Shader (Normal, Add materials) */ \n\
+\n\
+precision mediump float;\n\
+\n\
+varying vec4 vColor;\n\
+varying vec2 vTextureCoord;\n\
+\n\
+uniform sampler2D uSampler;\n\
+\n\
+void main(void) {\n\
+	gl_FragColor = vColor * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\n\
+}";
 
     var fragmentShaderMultiplySource = "\
-			precision mediump float;\
-			\
-			varying vec4 vColor;\
-			varying vec2 vTextureCoord;\
-			\
-			uniform sampler2D uSampler;\
-			\
-			void main(void)\
-			{\
-				vec4 texel = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\
-				vec3 rgb = vColor.rgb * texel.rgb;\
-				float alpha = vColor.a * texel.a;\
-				gl_FragColor = vec4(mix(vec3(1, 1, 1), rgb, alpha), 1);\
-			}";
+/* NeutrinoParticles Fragment Shader (Multiply material) */ \n\
+\n\
+precision mediump float;\n\
+\n\
+varying vec4 vColor;\n\
+varying vec2 vTextureCoord;\n\
+\n\
+uniform sampler2D uSampler;\n\
+\n\
+void main(void)\n\
+{\n\
+vec4 texel = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\n\
+vec3 rgb = vColor.rgb * texel.rgb;\n\
+float alpha = vColor.a * texel.a;\n\
+gl_FragColor = vec4(mix(vec3(1, 1, 1), rgb, alpha), 1);\n\
+}";
 
     this.shaderProgram = this._makeShaderProgram(vertexShaderSource, fragmentShaderSource);
     this.shaderProgramMultiply = this._makeShaderProgram(vertexShaderSource, fragmentShaderMultiplySource);
@@ -623,23 +629,23 @@ var PhaserNeutrinoRenderBuffers = function () {
 
       {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-
-        gl.enableVertexAttribArray(materials.positionAttribLocation());
+        // attribute is enabled inside PIXI
+        //gl.enableVertexAttribArray(materials.positionAttribLocation());
         gl.vertexAttribPointer(materials.positionAttribLocation(), 3, gl.FLOAT, false, 0, 0);
       }
 
       {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
-
-        gl.enableVertexAttribArray(materials.colorAttribLocation());
+        // attribute is enabled inside PIXI
+        //gl.enableVertexAttribArray(materials.colorAttribLocation());
         gl.vertexAttribPointer(materials.colorAttribLocation(), 4, gl.UNSIGNED_BYTE, true, 0, 0);
       }
 
       this.texBuffers.forEach(function (buffer, index) {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-
-        gl.enableVertexAttribArray(materials.texAttribLocation(index));
+        // attribute is enabled inside PIXI
+        //gl.enableVertexAttribArray(materials.texAttribLocation(index));
         gl.vertexAttribPointer(materials.texAttribLocation(index), this.texCoords[index].numComponents, gl.FLOAT, false, 0, 0);
       }, this);
 

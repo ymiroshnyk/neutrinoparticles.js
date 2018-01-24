@@ -508,7 +508,7 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 		key: "update",
 		value: function update(dt) {
 			if (this.effect != null) {
-				this.effect.update(dt, [this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ], this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.rotation % 360));
+        this.effect.update(dt, [this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ], this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.rotation % 360));
 			}
 		}
 	}, {
