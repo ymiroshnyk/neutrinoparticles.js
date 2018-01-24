@@ -23,9 +23,30 @@ class PhaserNeutrinoEffectModel {
   _getNewTexture(id){
     if (this.ctx.trimmedExtensionLookupFirst) id = id.replace(/\.[^/.]+$/, "");
     //TODO - see if theres a better way of accessing this image data...
-    const imageData = game.cache._cache.image[id];
-    const baseTexture = imageData.base;
-    return new Phaser.PIXI.Texture(baseTexture, imageData.frame);
+    const imageCache = game.cache._cache.image;
+    let imageData = imageCache[id];
+    if(!imageData){
+      let texture = null;
+      //have to check each cache entry :(
+      //(this is so much easier in pixi.js where all textures go into one cache!)
+      Object.keys(imageCache).forEach(name => {
+        const data = imageCache[name], fNames = data.frameData._frameNames;
+        if(fNames && fNames.hasOwnProperty(id)){
+          //this one contains the subtexture we are looking for
+          // - get a texture from it
+          const frameIndex = fNames[id];
+          const frame = data.frameData._frames[frameIndex];
+          //PIXI.Texture(baseTexture, frame, crop, trim)
+          texture = new PIXI.Texture(data.base, frame);
+        }
+      });
+
+      return texture;
+    } else {
+      const baseTexture = imageData.base;
+      return new Phaser.PIXI.Texture(baseTexture, imageData.frame);
+    }
+
   }
 
   _onEffectLoaded(effectModel) {
