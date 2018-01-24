@@ -36,8 +36,11 @@ class PhaserNeutrinoEffectModel {
           // - get a texture from it
           const frameIndex = fNames[id];
           const frame = data.frameData._frames[frameIndex];
+          const rect = new PIXI.Rectangle(frame.x, frame.y, frame.width, frame.height);
+          //console.log('frame', frame, 'rect',rect)
           //PIXI.Texture(baseTexture, frame, crop, trim)
-          texture = new PIXI.Texture(data.base, frame);
+          texture = new PIXI.Texture(data.base, rect, rect);
+          console.log(texture);
         }
       });
 
