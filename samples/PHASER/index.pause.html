@@ -11,7 +11,7 @@
 
 <script>
 
-  const testEffect = createDemo("water_stream.js",
+  const result = createDemo("water_stream.js",
     [{type: 'image', id:'fluid2', path:'./textures/fluid2.png'}],
     [0, 0, 0],
     null,
@@ -19,6 +19,9 @@
   );
 
   var onKeyPressed = function(e) {
+    const testEffect = result.testEffect;
+    if(!testEffect) return;
+
     if (e.keyCode == 80) { //'P'
       if (testEffect.effect.areAllEmittersPaused())
         testEffect.effect.unpauseAllEmitters();

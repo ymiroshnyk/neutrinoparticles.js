@@ -1,6 +1,8 @@
 var game, createDemo = (function(){
   let testEffect, lastUpdateTime = 0, effectScript, effectPosition, effectScale = null, rotateEffect = false, restartEffect = false;
 
+  const result = {testEffect: null};
+
   function createDemo(_effectScript,
                       _assets,
                       _effectPosition,
@@ -40,6 +42,7 @@ var game, createDemo = (function(){
 
     game = new Phaser.Game(800, 600, Phaser.WEBGL, 'phaser-example', { preload: preload, create: create, update: update });
 
+    return result;
   }
 
   function create() {
@@ -53,7 +56,6 @@ var game, createDemo = (function(){
 
     addLogo();
 
-    return testEffect;
   }
 
   function initParticles(){
@@ -72,6 +74,8 @@ var game, createDemo = (function(){
       0,
       effectScale
     );
+
+    result.testEffect = testEffect;
 
     function startAnimate(){
       console.log('start demo')
