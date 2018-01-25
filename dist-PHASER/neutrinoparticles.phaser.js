@@ -254,7 +254,8 @@ var PhaserNeutrinoEffectModel = function () {
             //console.log('frame', frame, 'rect',rect)
             //PIXI.Texture(baseTexture, frame, crop, trim)
             texture = new PIXI.Texture(data.base, rect, rect);
-            console.log(texture);
+            //just in case, store the rect on the texture as is done in recent pixi version
+            texture.orig = rect;
           }
         });
 
@@ -308,8 +309,7 @@ var PhaserNeutrinoEffectModel = function () {
 
       if (this.ctx.renderer.type === Phaser.PIXI.CANVAS_RENDERER) {
         var image = texture.baseTexture.source;
-        //TODO - texture.orig doesn't exist in this version of pixi...
-        this.textureImageDescs[index] = new this.ctx.neutrino.ImageDesc(image, texture.orig.x, texture.orig.y, texture.orig.width, texture.orig.height);
+        this.textureImageDescs[index] = new this.ctx.neutrino.ImageDesc(image, texture.crop.x, texture.crop.y, texture.crop.width, texture.crop.height);
       }
 
       if (this.numTexturesToLoadLeft === 0) {
@@ -322,14 +322,18 @@ var PhaserNeutrinoEffectModel = function () {
       }
     }
   }, {
+    key: "_isSubtexture",
+    value: function _isSubtexture(texture) {
+      return texture.frame.width < texture.baseTexture.width || texture.frame.height < texture.baseTexture.height;
+    }
+  }, {
     key: "_initTexturesRemapIfNeeded",
     value: function _initTexturesRemapIfNeeded() {
       var remapNeeded = false;
 
       for (var texIdx = 0; texIdx < this.textures.length; ++texIdx) {
-        var texture = this.textures[texIdx];
         //checks if its an atlas subtexture
-        if (texture.orig && (texture.orig.x !== 0 || texture.orig.y !== 0 || texture.orig.width !== texture.baseTexture.realWidth || texture.orig.height !== texture.baseTexture.realHeight)) {
+        if (this._isSubtexture(this.textures[texIdx])) {
           remapNeeded = true;
           break;
         }
@@ -339,9 +343,11 @@ var PhaserNeutrinoEffectModel = function () {
       if (remapNeeded) {
         var n = this.textures.length;
         for (var _texIdx = 0; _texIdx < n; ++_texIdx) {
-          var _texture = this.textures[_texIdx];
+          var texture = this.textures[_texIdx],
+              crop = texture.crop,
+              base = texture.baseTexture;
 
-          this.texturesRemap[_texIdx] = new this.ctx.neutrino.SubRect(_texture.orig.x / _texture.baseTexture.realWidth, 1.0 - (_texture.orig.y + _texture.orig.height) / _texture.baseTexture.realHeight, _texture.orig.width / _texture.baseTexture.realWidth, _texture.orig.height / _texture.baseTexture.realHeight);
+          this.texturesRemap[_texIdx] = new this.ctx.neutrino.SubRect(crop.x / base.width, 1.0 - (crop.y + crop.height) / base.height, crop.width / base.width, crop.height / base.height);
         }
       }
     }
