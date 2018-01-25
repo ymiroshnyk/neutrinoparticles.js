@@ -9,7 +9,7 @@ var game, createDemo = (function(){
                       _restartEffect){
 
     effectScript = _effectScript;
-    effectPosition = _effectPosition;
+    effectPosition = _effectPosition | [0, 0, 0];
     rotateEffect = _rotateEffect || false;
     restartEffect = _restartEffect || false;
     effectScale = _effectScale || null;
@@ -73,6 +73,7 @@ var game, createDemo = (function(){
     );
 
     function startAnimate(){
+      console.log('start demo')
       lastUpdateTime = Date.now();
       //now add the PhaserNeutrinoEffect (testEffect) to the game
       game.stage.addChild(testEffect);
