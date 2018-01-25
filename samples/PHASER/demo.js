@@ -1,5 +1,5 @@
 var game, createDemo = (function(){
-  let testEffect, lastUpdateTime = 0, effectScript, effectPosition, effectScale, rotateEffect = false, restartEffect = false;
+  let testEffect, lastUpdateTime = 0, effectScript, effectPosition, effectScale = null, rotateEffect = false, restartEffect = false;
 
   function createDemo(_effectScript,
                       _assets,
@@ -9,10 +9,10 @@ var game, createDemo = (function(){
                       _restartEffect){
 
     effectScript = _effectScript;
-    effectPosition = _effectPosition | [0, 0, 0];
+    effectPosition = _effectPosition || [0, 0, 0];
+    effectScale = _effectScale || null;
     rotateEffect = _rotateEffect || false;
     restartEffect = _restartEffect || false;
-    effectScale = _effectScale || null;
 
     function preload() {
 
@@ -53,6 +53,7 @@ var game, createDemo = (function(){
 
     addLogo();
 
+    return testEffect;
   }
 
   function initParticles(){

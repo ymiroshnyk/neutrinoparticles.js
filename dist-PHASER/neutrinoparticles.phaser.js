@@ -47,6 +47,7 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
   function PhaserNeutrinoEffect(effectModel, position, game, rotation, scale) {
     _classCallCheck(this, PhaserNeutrinoEffect);
 
+    // console.log('PhaserNeutrinoEffect',position, scale, rotation)
     var _this = _possibleConstructorReturn(this, (PhaserNeutrinoEffect.__proto__ || Object.getPrototypeOf(PhaserNeutrinoEffect)).call(this, game, null));
 
     _this._renderCanvas = _this.renderCanvas;
@@ -62,7 +63,7 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
 
     if (rotation) _this.rotation = rotation;
 
-    if (scale) {
+    if (Array.isArray(scale)) {
       _this.scale.x = scale[0];
       _this.scale.y = scale[1];
       _this.scaleZ = scale[2];
