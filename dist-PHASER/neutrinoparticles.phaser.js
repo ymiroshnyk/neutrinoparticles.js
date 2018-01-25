@@ -107,7 +107,9 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
       renderSession.spriteBatch.stop();
       var projection = renderSession.projection;
       var offset = renderSession.offset;
-
+      var position = this.position;
+      // console.log('projection', projection,'position',position,'offset',offset)
+      // this.ctx.materials.setup([position.x, -position.y], [offset.x, offset.y], [this.scale.x, this.scale.y]);
       this.ctx.materials.setup([projection.x, projection.y], [offset.x, offset.y], [this.scale.x, this.scale.y]);
 
       this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
@@ -195,12 +197,12 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
         this.renderBuffers = new PhaserNeutrinoRenderBuffers(this.ctx);
         this.effect = this.effectModel.effectModel.createWGLInstance(position, rotation, this.renderBuffers);
         this.effect.texturesRemap = this.effectModel.texturesRemap;
-      }
 
-      //get phaser to create webgl texture(s)
-      this.effectModel.textures.forEach(function (texture) {
-        game.renderer.updateTexture(texture.baseTexture);
-      });
+        //get phaser to create webgl texture(s)
+        this.effectModel.textures.forEach(function (texture) {
+          game.renderer.updateTexture(texture.baseTexture);
+        });
+      }
 
       this.onReady.dispatch();
     }

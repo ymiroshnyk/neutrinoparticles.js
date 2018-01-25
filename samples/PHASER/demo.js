@@ -39,7 +39,8 @@ var game, createDemo = (function(){
         }
       })
     }
-
+    //Phaser.WEBGL
+    //Phaser.CANVAS
     game = new Phaser.Game(800, 600, Phaser.WEBGL, 'phaser-example', { preload: preload, create: create, update: update });
 
     return result;
@@ -47,15 +48,18 @@ var game, createDemo = (function(){
 
   function create() {
 
-    //  This creates a simple sprite that is using our loaded image and
-    //  displays it on-screen
-    const s = game.add.sprite(80, 0, 'einstein');
-    s.rotation = 0.14;
+    createBgSprite();
 
     initParticles();
 
     addLogo();
 
+  }
+
+  function createBgSprite(){
+    const s = game.add.sprite(80, 0, 'einstein');
+    s.rotation = 0.14;
+    return s;
   }
 
   function initParticles(){
