@@ -7,97 +7,14 @@
 <script src="phaser/phaser.js"></script>
 <script src="../../dist/neutrinoparticles.js"></script>
 <script src="../../dist-PHASER/neutrinoparticles.phaser.js"></script>
+<script src="demo.js"></script>
 
 <script>
 
-const game = new Phaser.Game(800, 600, Phaser.WEBGL, 'phaser-example', { preload: preload, create: create, update: update });
-let testEffect;
-
-let lastUpdateTime = 0;//Date.now();
-
-function preload() {
-
-    //  You can fill the preloader with as many assets as your game requires
-
-    //  Here we are loading an image. The first parameter is the unique
-    //  string by which we'll identify the image later in our code.
-
-    //  The second parameter is the URL of the image (relative)
-    game.load.image('einstein', './assets/ra_einstein.png');
-    game.load.image('phaser-logo', './assets/phaser-logo-small.png');
-    //TODO it would be good if the name of the texture png could be fetched from water_stream.js!
-    game.load.image('fluid2', './textures/fluid2.png');
-
-}
-
-function create() {
-
-    //  This creates a simple sprite that is using our loaded image and
-    //  displays it on-screen
-    const s = game.add.sprite(80, 0, 'einstein');
-    s.rotation = 0.14;
-
-    initParticles();
-
-    addLogo();
-
-}
-
-function initParticles(){
-
-    const neutrinoContext = new PhaserNeutrinoContext(game.renderer, "export_js/", "textures/");
-
-    const noiseGenerator = new neutrinoContext.neutrino.NoiseGenerator();
-    while (!noiseGenerator.step()) { // approx. 5,000 steps
-      // you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
-    }
-
-    testEffect = new PhaserNeutrinoEffect(
-      new PhaserNeutrinoEffectModel(neutrinoContext, "water_stream.js"),
-      [0, 0, 0],
-      game,
-      0
-    );
-
-	function startAnimate(){
-      lastUpdateTime = Date.now();
-      //now add the PhaserNeutrinoEffect (testEffect) to the game
-      game.stage.addChild(testEffect);
-    }
-
-	if (testEffect.isReady) {
-      startAnimate();
-	} else {
-	    testEffect.onReady.addOnce(startAnimate);
-	}
-
-}
-
-function update(){
-  if(lastUpdateTime > 0){
-    let currentTime = Date.now();
-    let elapsedSeconds = (currentTime - lastUpdateTime) / 1000;
-    lastUpdateTime = currentTime;
-    testEffect.rotation += elapsedSeconds * 45.0;
-    testEffect.updateParticles(elapsedSeconds);
-  }
-}
-
-function addLogo(){
-  const baseX = 400;
-  const sprite = game.add.sprite(baseX, 300, 'phaser-logo');
-  sprite.anchor.set(0.5);
-  //make the logo jiggle about
-  let time = Date.now();
-  let timeCount = 0;
-  sprite.update = function(){
-    const oldTime = time;
-    time = Date.now();
-    timeCount += (time - oldTime) * 0.01;
-    sprite.rotation = Math.sin(timeCount) * 0.25;
-    sprite.x = baseX + (Math.cos(timeCount / 4) * 60);
-  }
-}
+  createDemo("water_stream.js",
+    [{type: 'image', id:'fluid2', path:'./textures/fluid2.png'}],
+    true
+  );
 
 </script>
 
