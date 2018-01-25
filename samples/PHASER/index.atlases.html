@@ -1,6 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>Hello World</title>
+<title>Atlas Example</title>
 <body>
 <script src="phaser/phaser.js"></script>
 <script src="../../dist/neutrinoparticles.js"></script>
@@ -18,9 +18,6 @@
     //phaser display content
     game.load.image('einstein', './assets/ra_einstein.png');
     game.load.image('phaser-logo', './assets/phaser-logo-small.png');
-
-
-    //game.load.image('fluid2', './textures/fluid2.png');
 
     //contains "stars4x4" and "star_glow_white.png"
     game.load.atlas('atlas1', 'textures/atlas.png', 'textures/atlas.json', Phaser.Loader.TEXTURE_ATLAS_JSON_HASH);
@@ -88,43 +85,6 @@
       sprite.x = baseX + (Math.cos(timeCount / 4) * 60);
     }
   }
-
-
-  //
-//  var startup = function() {
-//    var stage = new PIXI.Container();
-//
-//    var testModel = new PIXINeutrinoEffectModel(neutrinoContext, "stars.js");
-//    var testEffect = new PIXINeutrinoEffect(testModel, [400, 300, 0], 0);
-//    stage.addChild(testEffect);
-//
-//    if (testEffect.ready()) {
-//      animate();
-//    } else {
-//      testEffect.once('ready', animate);
-//    }
-//
-//    var lastUpdateTime = null;
-//
-//    function animate() {
-//      if (lastUpdateTime == null) {
-//        lastUpdateTime = Date.now();
-//      }
-//
-//      var currentTime = Date.now();
-//      var elapsedTime = (currentTime - lastUpdateTime) / 1000;
-//      lastUpdateTime = currentTime;
-//
-//      testEffect.update(elapsedTime > 1.0 ? 1.0 : elapsedTime);
-//
-//      // render the root container
-//      renderer.render(stage);
-//
-//      requestAnimationFrame(animate);
-//    }
-//  }
-//
-//  PIXI.loader.add("textures/atlas.json").load(startup);
 
 </script>
 </body>
