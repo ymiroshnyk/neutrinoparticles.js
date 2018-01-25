@@ -1,10 +1,18 @@
 var game, createDemo = (function(){
-  let testEffect, lastUpdateTime = 0, effectScript, rotateEffect = false;
+  let testEffect, lastUpdateTime = 0, effectScript, effectPosition, effectScale, rotateEffect = false, restartEffect = false;
 
-  function createDemo(_effectScript, _assets, _rotateEffect){
+  function createDemo(_effectScript,
+                      _assets,
+                      _effectPosition,
+                      _effectScale,
+                      _rotateEffect,
+                      _restartEffect){
 
     effectScript = _effectScript;
-    rotateEffect = _rotateEffect;
+    effectPosition = _effectPosition;
+    rotateEffect = _rotateEffect || false;
+    restartEffect = _restartEffect || false;
+    effectScale = _effectScale || null;
 
     function preload() {
 
@@ -17,6 +25,7 @@ var game, createDemo = (function(){
       game.load.image('einstein', './assets/ra_einstein.png');
       game.load.image('phaser-logo', './assets/phaser-logo-small.png');
 
+      //particle textures
       _assets.forEach(assetData => {
         switch(assetData.type){
           case 'atlas':
@@ -54,12 +63,13 @@ var game, createDemo = (function(){
     while (!noiseGenerator.step()) { // approx. 5,000 steps
       // you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
     }
-
+    //(effectModel, position, game, rotation, scale)
     testEffect = new PhaserNeutrinoEffect(
       new PhaserNeutrinoEffectModel(neutrinoContext, effectScript),
-      [0, 0, 0],
+      effectPosition,
       game,
-      0
+      0,
+      effectScale
     );
 
     function startAnimate(){
@@ -83,6 +93,10 @@ var game, createDemo = (function(){
       lastUpdateTime = currentTime;
       if(rotateEffect) testEffect.rotation += elapsedSeconds * 45.0;
       testEffect.updateParticles(elapsedSeconds);
+      // if number of particles in the effect is zero (suppose it finished) - restart it
+      if (restartEffect && testEffect.getNumParticles() < 1) {
+       testEffect.restart(null, null); // restart effect at the same position
+     }
     }
   }
 

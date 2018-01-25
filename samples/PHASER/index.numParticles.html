@@ -1,17 +1,20 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>Atlas Example</title>
+<title>Numparticles example</title>
 <body>
+
 <script src="phaser/phaser.js"></script>
 <script src="../../dist/neutrinoparticles.js"></script>
 <script src="../../dist-PHASER/neutrinoparticles.phaser.js"></script>
 <script src="demo.js"></script>
-
 <script>
 
-  createDemo("stars.js",
-    [{type: 'atlas', id:'atlas1', path:'./textures/atlas.png', dataPath: 'textures/atlas.json'}],
-    [400, 300, 0]
+  createDemo("non_looped.js",
+    [{type: 'image', id:'star_glow_white', path:'./textures/star_glow_white.png'}],
+    [400, 300, 0],
+    [2, 2, 2],
+    false,
+    true
   );
 
 </script>
