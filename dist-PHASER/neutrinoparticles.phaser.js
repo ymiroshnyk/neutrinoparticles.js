@@ -8,6 +8,77 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var PhaserNeutrino = function () {
+  function PhaserNeutrino() {
+    _classCallCheck(this, PhaserNeutrino);
+  }
+
+  _createClass(PhaserNeutrino, [{
+    key: "init",
+    value: function init(config) {
+      var effects = config && config.effects || "export_js/";
+      var textures = config && config.textures || "textures/";
+      //TODO instantiate a PhaserNeutrinoContext
+      this.neutrinoContext = new PhaserNeutrinoContext(game.renderer, effects, textures);
+      return this.neutrinoContext;
+    }
+  }, {
+    key: "generateTurbulance",
+    value: function generateTurbulance() {
+      if (!this.neutrinoContext) {
+        console.warn('PhaserNeutrino - call init first');
+        return;
+      }
+      var noiseGenerator = new this.neutrinoContext.neutrino.NoiseGenerator();
+      while (!noiseGenerator.step()) {// approx. 5,000 steps
+        // you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
+      }
+    }
+  }, {
+    key: "loadTurbulance",
+    value: function loadTurbulance() {
+      //TODO -
+    }
+  }, {
+    key: "loadModel",
+    value: function loadModel(effectScript) {
+      if (!this.neutrinoContext) {
+        console.warn('PhaserNeutrino - call init first');
+        return;
+      }
+      return new PhaserNeutrinoEffectModel(this.neutrinoContext, effectScript);
+    }
+  }, {
+    key: "createEffect",
+    value: function createEffect(model, props, game) {
+      var position = props.position,
+          scale = props.scale,
+          rotation = props.rotation;
+
+      if (!position) position = [0, 0, 0];
+      if (!scale) scale = [1, 1];
+      if (!rotation) rotation = 0;
+
+      //(effectModel, position, game, rotation, scale)
+      return new PhaserNeutrinoEffect(model, position, game, rotation, scale);
+    }
+  }]);
+
+  return PhaserNeutrino;
+}();
+
+Phaser.Game.prototype.neutrino = new PhaserNeutrino();
+
+//game.add.neutrino();
+Phaser.GameObjectFactory.prototype.neutrino = function (model, props) {
+  return Phaser.Game.prototype.neutrino.createEffect(model, props, this.game);
+};
+
+//game.make.neutrino();
+Phaser.GameObjectCreator.prototype.neutrino = function (model, props) {
+  return Phaser.Game.prototype.neutrino.createEffect(model, props, this.game);
+};
+
 var PhaserNeutrinoContext = function () {
   function PhaserNeutrinoContext(renderer) {
     var effectsBasePath = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
@@ -392,7 +463,7 @@ uniform vec2 scale;\n\
 varying vec4 vColor;\n\
 varying vec2 vTextureCoord;\n\
 \n\
-const vec2 center = vec2(0, 0); \n\
+const vec2 center = vec2(-1.0, 1.0); \n\
 \n\
 void main(void) {\n\
 gl_Position = vec4(((aVertexPosition.xy * scale + offsetVector) / projectionVector) + center , 0.0, 1.0); \n\

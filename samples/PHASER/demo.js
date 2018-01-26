@@ -85,20 +85,28 @@ var game, createDemo = (function(){
 
   function initParticles(){
 
-    const neutrinoContext = new PhaserNeutrinoContext(game.renderer, "export_js/", "textures/");
+    game.neutrino.init();
 
-    const noiseGenerator = new neutrinoContext.neutrino.NoiseGenerator();
-    while (!noiseGenerator.step()) { // approx. 5,000 steps
-      // you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
-    }
+    game.neutrino.generateTurbulance();
+
+    const model = game.neutrino.loadModel(effectScript);
+
     //(effectModel, position, game, rotation, scale)
-    testEffect = new PhaserNeutrinoEffect(
-      new PhaserNeutrinoEffectModel(neutrinoContext, effectScript),
-      effectPosition,
-      game,
-      0,
-      effectScale
-    );
+    // testEffect = new PhaserNeutrinoEffect(
+    //   model,
+    //   effectPosition,
+    //   game,
+    //   0,
+    //   effectScale
+    // );
+
+    testEffect = game.make.neutrino(model, {
+      position: effectPosition,
+      scale: effectScale,
+      rotation: 0
+    });
+
+    console.log('testEffect',testEffect)
 
     result.testEffect = testEffect;
 
