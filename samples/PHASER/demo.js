@@ -62,6 +62,27 @@ var game, createDemo = (function(){
     return s;
   }
 
+  
+/*
+  // Desired interface for NP in Phaser:
+  game.neutrino.init({
+    effects: "export_js/", // "" by default
+    textures: "textures/" // "" by default
+  });
+
+  game.neutrino.generateTurbulance(); // to generate turbulance texture
+  game.neturino.loadTurbulance("path_to_noise_texture"); // to load turbulance texture
+
+  model = game.neutrino.loadModel("path_to_effect_file");
+
+  effect = game.add.neutrino(model, { 
+    position: [400, 300, 0], // [0, 0, 0] by default
+    rotation: 45, // 0 by default
+    scale: [1, 1] // [1, 1] by default
+  });
+
+*/
+
   function initParticles(){
 
     const neutrinoContext = new PhaserNeutrinoContext(game.renderer, "export_js/", "textures/");
