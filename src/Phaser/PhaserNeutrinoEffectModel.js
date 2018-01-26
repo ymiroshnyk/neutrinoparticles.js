@@ -64,9 +64,16 @@ class PhaserNeutrinoEffectModel {
       const texturePath = effectModel.textures[imageIndex];
       let texture = this._getNewTexture(texturePath);
 
-      if (!texture)
-      //TODO - fix this for Phaser
-        texture = PIXI.Texture.fromImage(this.ctx.texturesBasePath + texturePath);
+      if (!texture){
+        //TODO - fix this for Phaser - set up to return an empty texture that gets populated once this loads
+        //texture = PIXI.Texture.fromImage(this.ctx.texturesBasePath + texturePath);
+        const loader = game.load.image(texturePath, this.ctx.texturesBasePath + texturePath);
+        loader.onLoadComplete.add(e => {
+          console.log('texture loaded!', texturePath)
+        });
+        console.log('load',texturePath, loader)
+
+      }
 
       if (texture.baseTexture.hasLoaded) {
         this._onTextureLoaded(imageIndex, texture);

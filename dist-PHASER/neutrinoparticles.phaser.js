@@ -8,6 +8,25 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+/*
+  // Desired interface for NP in Phaser:
+  game.neutrino.init({
+    effects: "export_js/", // "" by default
+    textures: "textures/" // "" by default
+  });
+
+  game.neutrino.generateTurbulance(); // to generate turbulance texture
+  game.neturino.loadTurbulance("path_to_noise_texture"); // to load turbulance texture
+
+  model = game.neutrino.loadModel("path_to_effect_file");
+
+  effect = game.add.neutrino(model, {
+    position: [400, 300, 0], // [0, 0, 0] by default
+    rotation: 45, // 0 by default
+    scale: [1, 1] // [1, 1] by default
+  });
+
+*/
 var PhaserNeutrino = function () {
   function PhaserNeutrino() {
     _classCallCheck(this, PhaserNeutrino);
@@ -36,9 +55,16 @@ var PhaserNeutrino = function () {
     }
   }, {
     key: "loadTurbulance",
-    value: function loadTurbulance() {
-      //TODO -
-    }
+    value: function loadTurbulance() {}
+    //TODO -
+
+
+    /**
+     *
+     * @param effectScript
+     * @returns {*}
+     */
+
   }, {
     key: "loadModel",
     value: function loadModel(effectScript) {
@@ -48,6 +74,15 @@ var PhaserNeutrino = function () {
       }
       return new PhaserNeutrinoEffectModel(this.neutrinoContext, effectScript);
     }
+
+    /**
+     *
+     * @param model
+     * @param props
+     * @param game
+     * @returns {PhaserNeutrinoEffect}
+     */
+
   }, {
     key: "createEffect",
     value: function createEffect(model, props, game) {
@@ -350,28 +385,36 @@ var PhaserNeutrinoEffectModel = function () {
       var numTextures = effectModel.textures.length;
       this.numTexturesToLoadLeft = numTextures;
 
-      for (var imageIndex = 0; imageIndex < numTextures; ++imageIndex) {
+      var _loop = function _loop(imageIndex) {
         var texturePath = effectModel.textures[imageIndex];
-        var texture = this._getNewTexture(texturePath);
+        var texture = _this2._getNewTexture(texturePath);
 
-        if (!texture)
-          //TODO - fix this for Phaser
-          texture = PIXI.Texture.fromImage(this.ctx.texturesBasePath + texturePath);
+        if (!texture) {
+          //TODO - fix this for Phaser - set up to return an empty texture that gets populated once this loads
+          //texture = PIXI.Texture.fromImage(this.ctx.texturesBasePath + texturePath);
+          var loader = game.load.image(texturePath, _this2.ctx.texturesBasePath + texturePath);
+          loader.onLoadComplete.add(function (e) {
+            console.log('texture loaded!', texturePath);
+          });
+          console.log('load', texturePath, loader);
+        }
 
         if (texture.baseTexture.hasLoaded) {
-          this._onTextureLoaded(imageIndex, texture);
+          _this2._onTextureLoaded(imageIndex, texture);
         } else {
-          (function () {
-            var callback = function (self, imageIndex, texture) {
-              texture.off('update', callback);
-              return function () {
-                self._onTextureLoaded(imageIndex, texture);
-              };
-            }(_this2, imageIndex, texture);
+          var callback = function (self, imageIndex, texture) {
+            texture.off('update', callback);
+            return function () {
+              self._onTextureLoaded(imageIndex, texture);
+            };
+          }(_this2, imageIndex, texture);
 
-            texture.on('update', callback);
-          })();
+          texture.on('update', callback);
         }
+      };
+
+      for (var imageIndex = 0; imageIndex < numTextures; ++imageIndex) {
+        _loop(imageIndex);
       }
     }
   }, {
@@ -417,9 +460,9 @@ var PhaserNeutrinoEffectModel = function () {
       if (remapNeeded) {
         var n = this.textures.length;
         for (var _texIdx = 0; _texIdx < n; ++_texIdx) {
-          var texture = this.textures[_texIdx],
-              crop = texture.crop,
-              base = texture.baseTexture;
+          var _texture = this.textures[_texIdx],
+              crop = _texture.crop,
+              base = _texture.baseTexture;
 
           this.texturesRemap[_texIdx] = new this.ctx.neutrino.SubRect(crop.x / base.width, 1.0 - (crop.y + crop.height) / base.height, crop.width / base.width, crop.height / base.height);
         }
