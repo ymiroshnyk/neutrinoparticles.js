@@ -25,7 +25,7 @@ uniform vec2 scale;\n\
 varying vec4 vColor;\n\
 varying vec2 vTextureCoord;\n\
 \n\
-const vec2 center = vec2(0, 0); \n\
+const vec2 center = vec2(-1.0, 1.0); \n\
 \n\
 void main(void) {\n\
 gl_Position = vec4(((aVertexPosition.xy * scale + offsetVector) / projectionVector) + center , 0.0, 1.0); \n\
