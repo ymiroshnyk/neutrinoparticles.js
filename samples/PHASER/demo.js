@@ -11,19 +11,14 @@ var game, createDemo = (function(){
                       _restartEffect){
 
     effectScript = _effectScript;
-    effectPosition = _effectPosition || [0, 0, 0];
+    effectPosition = _effectPosition || [400, 300, 0];
     effectScale = _effectScale || null;
     rotateEffect = _rotateEffect || false;
     restartEffect = _restartEffect || false;
 
     function preload() {
 
-      //  You can fill the preloader with as many assets as your game requires
-
-      //  Here we are loading an image. The first parameter is the unique
-      //  string by which we'll identify the image later in our code.
-
-      //  The second parameter is the URL of the image (relative)
+      //load some background assets for test purposes
       game.load.image('einstein', './assets/ra_einstein.png');
       game.load.image('phaser-logo', './assets/phaser-logo-small.png');
 
@@ -39,8 +34,8 @@ var game, createDemo = (function(){
         }
       })
     }
-    //Phaser.WEBGL
-    //Phaser.CANVAS
+
+    //Phaser.CANVAS // //Phaser.WEBGL
     game = new Phaser.Game(800, 600, Phaser.WEBGL, 'phaser-example', { preload: preload, create: create, update: update });
 
     return result;
@@ -64,21 +59,15 @@ var game, createDemo = (function(){
 
   function initParticles(){
 
+    //always call init first
     game.neutrino.init();
 
     game.neutrino.generateTurbulance();
 
+    //create the effect model
     const model = game.neutrino.loadModel(effectScript);
 
-    //(effectModel, position, game, rotation, scale)
-    // testEffect = new PhaserNeutrinoEffect(
-    //   model,
-    //   effectPosition,
-    //   game,
-    //   0,
-    //   effectScale
-    // );
-
+    //create the display object
     testEffect = game.add.neutrino(model,
       {
         position: effectPosition,
@@ -86,6 +75,7 @@ var game, createDemo = (function(){
         rotation: 0
       });
 
+    //add to result object in order to be externally accessible
     result.testEffect = testEffect;
 
     if (testEffect.isReady) {
@@ -113,7 +103,7 @@ var game, createDemo = (function(){
     const baseX = 400;
     const sprite = game.add.sprite(baseX, 300, 'phaser-logo');
     sprite.anchor.set(0.5);
-    //make the logo jiggle about
+    //make the logo jiggle about just for fun
     let time = Date.now();
     let timeCount = 0;
     sprite.update = function(){

@@ -59,6 +59,11 @@ class PhaserNeutrinoEffectModel {
 
   }
 
+  /**
+   *
+   * @param effectModel
+   * @private
+   */
   _onEffectLoaded(effectModel) {
     this.effectModel = effectModel;
     this.textures = [];
@@ -88,6 +93,13 @@ class PhaserNeutrinoEffectModel {
     }
   }
 
+  /**
+   *
+   * @param texturePath
+   * @param imageIndex
+   * @returns {Phaser.Loader}
+   * @private
+   */
   _loadTexture(texturePath, imageIndex) {
     const key = this._getKey(texturePath);
     const loader = game.load.image(key, this.ctx.texturesBasePath + texturePath);
@@ -96,8 +108,15 @@ class PhaserNeutrinoEffectModel {
       this._onTextureLoaded(imageIndex, tx);
     });
     loader.start();
+    return loader;
   }
 
+  /**
+   *
+   * @param index
+   * @param texture
+   * @private
+   */
   _onTextureLoaded(index, texture) {
     this.textures[index] = texture;
 

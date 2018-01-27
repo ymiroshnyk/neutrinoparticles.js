@@ -30,7 +30,7 @@ function createDemo(_effectScript,
                     _restartEffect){
 
   effectScript = _effectScript;
-  effectPosition = _effectPosition || [0, 0, 0];
+  effectPosition = _effectPosition || [400, 300, 0];
   effectScale = _effectScale || null;
   rotateEffect = _rotateEffect || false;
   restartEffect = _restartEffect || false;
@@ -66,10 +66,7 @@ function createDemo(_effectScript,
 
 function create() {
 
-  //  This creates a simple sprite that is using our loaded image and
-  //  displays it on-screen
-  const s = game.add.sprite(80, 0, 'einstein');
-  s.rotation = 0.14;
+  createBgSprite();
 
   initParticles();
 
@@ -77,48 +74,47 @@ function create() {
 
 }
 
+function createBgSprite(){
+  const s = game.add.sprite(80, 0, 'einstein');
+  s.rotation = 0.14;
+  return s;
+}
+
 function initParticles(){
 
-  const neutrinoContext = new PhaserNeutrinoContext(game.renderer, "export_js/", "textures/");
+  //always call init first
+  game.neutrino.init();
 
-  const noiseGenerator = new neutrinoContext.neutrino.NoiseGenerator();
-  while (!noiseGenerator.step()) { // approx. 5,000 steps
-    // you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
-  }
-  //(effectModel, position, game, rotation, scale)
-  testEffect = new PhaserNeutrinoEffect(
-    new PhaserNeutrinoEffectModel(neutrinoContext, effectScript),
-    effectPosition,
-    game,
-    0,
-    effectScale
-  );
-  testEffect2 = new PhaserNeutrinoEffect(
-    new PhaserNeutrinoEffectModel(neutrinoContext, effectScript),
-    [-200, 0, 0],
-    game,
-    0,
-    [0.5, 0.5, 0.5]
-  );
+  game.neutrino.generateTurbulance();
+
+  //create the effect model
+  const model = game.neutrino.loadModel(effectScript);
+
+  testEffect = game.add.neutrino(model,
+    {
+      position: effectPosition,
+      scale: effectScale,
+      rotation: 0
+    });
+
+  testEffect2 = game.add.neutrino(model,
+    {
+      position: [200, 300, 0],
+      scale: [0.5, 0.5, 0.5],
+      rotation: 0
+    });
 
   result.testEffect = testEffect;
-
-  function startAnimate(){
-    console.log('start demo')
-    lastUpdateTime = Date.now();
-    //now add the PhaserNeutrinoEffect (testEffect) to the game
-    game.stage.addChild(testEffect);
-    game.stage.addChild(testEffect2);
-  }
+  result.testEffect2 = testEffect2;
 
   function onEffectReady(){
     if (testEffect.isReady && testEffect2.isReady) {
-      startAnimate();
+      lastUpdateTime = Date.now();
     }
   }
 
   if (testEffect.isReady && testEffect2.isReady) {
-    startAnimate();
+    lastUpdateTime = Date.now();
   } else {
     if(!testEffect.isReady) testEffect.onReady.addOnce(onEffectReady);
     if(!testEffect2.isReady) testEffect2.onReady.addOnce(onEffectReady);
@@ -135,10 +131,6 @@ function update(){
     testEffect2.rotation = testEffect.rotation;
     testEffect.updateParticles(elapsedSeconds);
     testEffect2.updateParticles(elapsedSeconds);
-    // if number of particles in the effect is zero (suppose it finished) - restart it
-//    if (restartEffect && testEffect.getNumParticles() < 1) {
-//      testEffect.restart(null, null); // restart effect at the same position
-//    }
   }
 }
 
@@ -159,7 +151,6 @@ function addLogo(){
 }
 
 createDemo("water_stream.js", [{type: 'image', id:'fluid2', path:'./textures/fluid2.png'}]);
-
 
 </script>
 

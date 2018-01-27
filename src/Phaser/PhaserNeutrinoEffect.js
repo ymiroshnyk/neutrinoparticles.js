@@ -2,7 +2,6 @@ class PhaserNeutrinoEffect extends Phaser.Group {
 
   constructor(effectModel, position, game, rotation, scale) {
     super(game, null);
-    // console.log('PhaserNeutrinoEffect',position, scale, rotation)
     this._renderCanvas = this.renderCanvas;
     this._renderWebGL = this.renderWebGL;
 

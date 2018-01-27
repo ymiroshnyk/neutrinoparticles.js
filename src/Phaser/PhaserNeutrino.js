@@ -70,7 +70,7 @@ class PhaserNeutrino {
   createEffect(model, props, game){
     let {position, scale, rotation} = props;
     if(!position) position = [0, 0, 0];
-    if(!scale) scale = [1, 1];
+    if(!scale) scale = [1, 1, 1];
     if(!rotation) rotation = 0;
 
     //(effectModel, position, game, rotation, scale)

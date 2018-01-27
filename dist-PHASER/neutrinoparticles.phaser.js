@@ -91,7 +91,7 @@ var PhaserNeutrino = function () {
           rotation = props.rotation;
 
       if (!position) position = [0, 0, 0];
-      if (!scale) scale = [1, 1];
+      if (!scale) scale = [1, 1, 1];
       if (!rotation) rotation = 0;
 
       //(effectModel, position, game, rotation, scale)
@@ -155,7 +155,6 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
   function PhaserNeutrinoEffect(effectModel, position, game, rotation, scale) {
     _classCallCheck(this, PhaserNeutrinoEffect);
 
-    // console.log('PhaserNeutrinoEffect',position, scale, rotation)
     var _this = _possibleConstructorReturn(this, (PhaserNeutrinoEffect.__proto__ || Object.getPrototypeOf(PhaserNeutrinoEffect)).call(this, game, null));
 
     _this._renderCanvas = _this.renderCanvas;
@@ -383,6 +382,13 @@ var PhaserNeutrinoEffectModel = function () {
         return new Phaser.PIXI.Texture(baseTexture, imageData.frame);
       }
     }
+
+    /**
+     *
+     * @param effectModel
+     * @private
+     */
+
   }, {
     key: "_onEffectLoaded",
     value: function _onEffectLoaded(effectModel) {
@@ -417,6 +423,15 @@ var PhaserNeutrinoEffectModel = function () {
         }
       }
     }
+
+    /**
+     *
+     * @param texturePath
+     * @param imageIndex
+     * @returns {Phaser.Loader}
+     * @private
+     */
+
   }, {
     key: "_loadTexture",
     value: function _loadTexture(texturePath, imageIndex) {
@@ -429,7 +444,16 @@ var PhaserNeutrinoEffectModel = function () {
         _this3._onTextureLoaded(imageIndex, tx);
       });
       loader.start();
+      return loader;
     }
+
+    /**
+     *
+     * @param index
+     * @param texture
+     * @private
+     */
+
   }, {
     key: "_onTextureLoaded",
     value: function _onTextureLoaded(index, texture) {
