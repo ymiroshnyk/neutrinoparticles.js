@@ -71,19 +71,19 @@ var game, createDemo = (function(){
     const model = game.neutrino.loadModel(effectScript);
 
     //(effectModel, position, game, rotation, scale)
-    testEffect = new PhaserNeutrinoEffect(
-      model,
-      effectPosition,
-      game,
-      0,
-      effectScale
-    );
+    // testEffect = new PhaserNeutrinoEffect(
+    //   model,
+    //   effectPosition,
+    //   game,
+    //   0,
+    //   effectScale
+    // );
 
-    // testEffect = game.make.neutrino(model, {
-    //   position: effectPosition,
-    //   scale: effectScale,
-    //   rotation: 0
-    // });
+    testEffect = game.make.neutrino(model, {
+      position: effectPosition,
+      scale: effectScale,
+      rotation: 0
+    });
 
     console.log('testEffect',testEffect)
 

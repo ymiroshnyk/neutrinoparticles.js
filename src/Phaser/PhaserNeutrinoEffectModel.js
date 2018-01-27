@@ -71,15 +71,7 @@ class PhaserNeutrinoEffectModel {
       let texture = this._getNewTexture(texturePath);
 
       if (!texture){
-        // - fix this for Phaser
-        const key = this._getKey(texturePath);
-        const loader = game.load.image(key, this.ctx.texturesBasePath + texturePath);
-        loader.imageIndex = imageIndex;
-        loader.onFileComplete.add(e => {
-          const tx = this._getNewTexture(texturePath);
-          this._onTextureLoaded(loader.imageIndex, tx);
-        });
-        loader.start();
+        this._loadTexture(texturePath, imageIndex);
       } else {
         if (texture.baseTexture.hasLoaded) {
           this._onTextureLoaded(imageIndex, texture);
@@ -90,13 +82,20 @@ class PhaserNeutrinoEffectModel {
               self._onTextureLoaded(imageIndex, texture);
             }
           } (this, imageIndex, texture);
-
           texture.on('update', callback);
         }
       }
-
-
     }
+  }
+
+  _loadTexture(texturePath, imageIndex) {
+    const key = this._getKey(texturePath);
+    const loader = game.load.image(key, this.ctx.texturesBasePath + texturePath);
+    loader.onFileComplete.add(e => {
+      const tx = this._getNewTexture(texturePath);
+      this._onTextureLoaded(imageIndex, tx);
+    });
+    loader.start();
   }
 
   _onTextureLoaded(index, texture) {

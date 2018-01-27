@@ -392,39 +392,41 @@ var PhaserNeutrinoEffectModel = function () {
       var numTextures = effectModel.textures.length;
       this.numTexturesToLoadLeft = numTextures;
 
-      var _loop = function _loop(imageIndex) {
+      for (var imageIndex = 0; imageIndex < numTextures; ++imageIndex) {
         var texturePath = effectModel.textures[imageIndex];
-        var texture = _this2._getNewTexture(texturePath);
+        var texture = this._getNewTexture(texturePath);
 
         if (!texture) {
-          // - fix this for Phaser
-          var key = _this2._getKey(texturePath);
-          var loader = game.load.image(key, _this2.ctx.texturesBasePath + texturePath);
-          loader.imageIndex = imageIndex;
-          loader.onFileComplete.add(function (e) {
-            var tx = _this2._getNewTexture(texturePath);
-            _this2._onTextureLoaded(loader.imageIndex, tx);
-          });
-          loader.start();
+          this._loadTexture(texturePath, imageIndex);
         } else {
           if (texture.baseTexture.hasLoaded) {
-            _this2._onTextureLoaded(imageIndex, texture);
+            this._onTextureLoaded(imageIndex, texture);
           } else {
-            var callback = function (self, imageIndex, texture) {
-              texture.off('update', callback);
-              return function () {
-                self._onTextureLoaded(imageIndex, texture);
-              };
-            }(_this2, imageIndex, texture);
-
-            texture.on('update', callback);
+            (function () {
+              var callback = function (self, imageIndex, texture) {
+                texture.off('update', callback);
+                return function () {
+                  self._onTextureLoaded(imageIndex, texture);
+                };
+              }(_this2, imageIndex, texture);
+              texture.on('update', callback);
+            })();
           }
         }
-      };
-
-      for (var imageIndex = 0; imageIndex < numTextures; ++imageIndex) {
-        _loop(imageIndex);
       }
+    }
+  }, {
+    key: "_loadTexture",
+    value: function _loadTexture(texturePath, imageIndex) {
+      var _this3 = this;
+
+      var key = this._getKey(texturePath);
+      var loader = game.load.image(key, this.ctx.texturesBasePath + texturePath);
+      loader.onFileComplete.add(function (e) {
+        var tx = _this3._getNewTexture(texturePath);
+        _this3._onTextureLoaded(imageIndex, tx);
+      });
+      loader.start();
     }
   }, {
     key: "_onTextureLoaded",
@@ -469,9 +471,9 @@ var PhaserNeutrinoEffectModel = function () {
       if (remapNeeded) {
         var n = this.textures.length;
         for (var _texIdx = 0; _texIdx < n; ++_texIdx) {
-          var _texture = this.textures[_texIdx],
-              crop = _texture.crop,
-              base = _texture.baseTexture;
+          var texture = this.textures[_texIdx],
+              crop = texture.crop,
+              base = texture.baseTexture;
 
           this.texturesRemap[_texIdx] = new this.ctx.neutrino.SubRect(crop.x / base.width, 1.0 - (crop.y + crop.height) / base.height, crop.width / base.width, crop.height / base.height);
         }
