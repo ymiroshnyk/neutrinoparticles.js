@@ -20,8 +20,14 @@ class PhaserNeutrinoEffectModel {
     return this.numTexturesToLoadLeft === 0;
   }
 
+  _getKey(name){
+    if (this.ctx.trimmedExtensionLookupFirst) name = name.replace(/\.[^/.]+$/, "");
+    return name;
+  }
+
   _getNewTexture(id){
-    if (this.ctx.trimmedExtensionLookupFirst) id = id.replace(/\.[^/.]+$/, "");
+    //if (this.ctx.trimmedExtensionLookupFirst) id = id.replace(/\.[^/.]+$/, "");
+    id = this._getKey(id);
     //TODO - see if theres a better way of accessing this image data...
     const imageCache = game.cache._cache.image;
     let imageData = imageCache[id];
@@ -65,28 +71,31 @@ class PhaserNeutrinoEffectModel {
       let texture = this._getNewTexture(texturePath);
 
       if (!texture){
-        //TODO - fix this for Phaser - set up to return an empty texture that gets populated once this loads
-        //texture = PIXI.Texture.fromImage(this.ctx.texturesBasePath + texturePath);
-        const loader = game.load.image(texturePath, this.ctx.texturesBasePath + texturePath);
-        loader.onLoadComplete.add(e => {
-          console.log('texture loaded!', texturePath)
+        // - fix this for Phaser
+        const key = this._getKey(texturePath);
+        const loader = game.load.image(key, this.ctx.texturesBasePath + texturePath);
+        loader.imageIndex = imageIndex;
+        loader.onFileComplete.add(e => {
+          const tx = this._getNewTexture(texturePath);
+          this._onTextureLoaded(loader.imageIndex, tx);
         });
-        console.log('load',texturePath, loader)
-
-      }
-
-      if (texture.baseTexture.hasLoaded) {
-        this._onTextureLoaded(imageIndex, texture);
+        loader.start();
       } else {
-        const callback = function (self, imageIndex, texture) {
-          texture.off('update', callback);
-          return function () {
-            self._onTextureLoaded(imageIndex, texture);
-          }
-        } (this, imageIndex, texture);
+        if (texture.baseTexture.hasLoaded) {
+          this._onTextureLoaded(imageIndex, texture);
+        } else {
+          const callback = function (self, imageIndex, texture) {
+            texture.off('update', callback);
+            return function () {
+              self._onTextureLoaded(imageIndex, texture);
+            }
+          } (this, imageIndex, texture);
 
-        texture.on('update', callback);
+          texture.on('update', callback);
+        }
       }
+
+
     }
   }
 
