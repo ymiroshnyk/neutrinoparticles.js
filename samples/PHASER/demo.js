@@ -79,29 +79,20 @@ var game, createDemo = (function(){
     //   effectScale
     // );
 
-    testEffect = game.make.neutrino(model, {
-      position: effectPosition,
-      scale: effectScale,
-      rotation: 0
-    });
-
-    console.log('testEffect',testEffect)
+    testEffect = game.add.neutrino(model,
+      {
+        position: effectPosition,
+        scale: effectScale,
+        rotation: 0
+      });
 
     result.testEffect = testEffect;
 
-    function startAnimate(){
-      console.log('start demo')
-      lastUpdateTime = Date.now();
-      //now add the PhaserNeutrinoEffect (testEffect) to the game
-      game.stage.addChild(testEffect);
-    }
-
     if (testEffect.isReady) {
-      startAnimate();
+      lastUpdateTime = Date.now();
     } else {
-      testEffect.onReady.addOnce(startAnimate);
+      testEffect.onReady.addOnce(() => lastUpdateTime = Date.now());
     }
-
   }
 
   function update(){

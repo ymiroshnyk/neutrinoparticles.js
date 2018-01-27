@@ -106,7 +106,9 @@ Phaser.Game.prototype.neutrino = new PhaserNeutrino();
 
 //game.add.neutrino();
 Phaser.GameObjectFactory.prototype.neutrino = function (model, props) {
-  return Phaser.Game.prototype.neutrino.createEffect(model, props, this.game);
+  var effect = Phaser.Game.prototype.neutrino.createEffect(model, props, this.game);
+  game.stage.addChild(effect);
+  return effect;
 };
 
 //game.make.neutrino();
