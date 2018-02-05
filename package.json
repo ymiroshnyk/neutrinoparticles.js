@@ -2,9 +2,9 @@
   "name": "neutrinoparticles.js",
   "version": "1.0.0",
   "description": "Javascript runtimes for neutrinoparticles",
-  "main": "index.js",
+  "main": "./test/Phaser/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test-phaser": "./node_modules/.bin/electron ."
   },
   "repository": {
     "type": "git",
@@ -20,10 +20,11 @@
     "babel": "^6.23.0",
     "babel-core": "^6.26.0",
     "babel-preset-env": "^1.6.1",
+    "electron": "^1.7.12",
     "gulp": "^3.9.1",
     "gulp-babel": "^7.0.0",
     "gulp-concat": "^2.6.1",
-    "gulp-watch": "^5.0.0",
-	"gulp-sourcemaps": "^2.6.3"
+    "gulp-sourcemaps": "^2.6.3",
+    "gulp-watch": "^5.0.0"
   }
 }
