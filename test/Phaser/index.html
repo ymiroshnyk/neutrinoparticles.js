@@ -6,11 +6,10 @@
     <script src="../../samples/PHASER/phaser/phaser.js"></script>
     <script src="../../dist/neutrinoparticles.js"></script>
     <script src="../../dist-PHASER/neutrinoparticles.phaser.js"></script>
-    <script src="../../samples/PHASER/demo.js"></script>
+    <script src="TestDemo.js"></script>
+    <script src="image_comparison.js"></script>
     <style>
-      body {
-        margin: 0px;
-      }
+      body { margin: 0px; }
     </style>
   </head>
   <body>
@@ -25,11 +24,13 @@
        _rotateEffect,
        _restartEffect
       */
-      createDemo("water_stream.js",
-        [{type: 'image', id:'fluid2', path:'./textures/fluid2.png'}],
-        null, null,
-        true
-      );
+
+      const imageComparison = new ImageComparison({
+        effect: "water_stream.js",
+        endrot: 180,
+        time_interval: 0.1
+      });
+
 
     </script>
     <script>
