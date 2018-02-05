@@ -3,14 +3,35 @@
   <head>
     <meta charset="UTF-8">
     <title>Hello World!</title>
+    <script src="../../samples/PHASER/phaser/phaser.js"></script>
+    <script src="../../dist/neutrinoparticles.js"></script>
+    <script src="../../dist-PHASER/neutrinoparticles.phaser.js"></script>
+    <script src="../../samples/PHASER/demo.js"></script>
+    <style>
+      body {
+        margin: 0px;
+      }
+    </style>
   </head>
   <body>
-    <h1>Hello World!</h1>
-    <!-- All of the Node.js APIs are available in this renderer process. -->
-    We are using Node.js <script>document.write(process.versions.node)</script>,
-    Chromium <script>document.write(process.versions.chrome)</script>,
-    and Electron <script>document.write(process.versions.electron)</script>.
+  <!-- All of the Node.js APIs are available in this renderer process. -->
+    <script>
 
+      /*
+      _effectScript,
+       _assets,
+       _effectPosition,
+       _effectScale,
+       _rotateEffect,
+       _restartEffect
+      */
+      createDemo("water_stream.js",
+        [{type: 'image', id:'fluid2', path:'./textures/fluid2.png'}],
+        null, null,
+        true
+      );
+
+    </script>
     <script>
       // You can also require other files to run in this process
       require('./renderer.js')
