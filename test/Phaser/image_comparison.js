@@ -111,7 +111,7 @@ class ImageComparison {
       } else {
         this._complete();
       }
-    }, 100);
+    }, 250);
   }
 
   _complete(){
@@ -150,10 +150,15 @@ class ImageComparison {
     name += 'turb' + this.turbulance+delimiter;
     name += 'pos' + data.position+delimiter;
     name += 'rot' + data.rotation;
-    name += 'png';
+    name += '.png';
     return name;
   }
 
+  /**
+   *
+   * @returns {{data: *, time: (number|*), rotation, position: number}}
+   * @private
+   */
   _screenGrab(){
     return {
       data: this._screenGrabBuffer(),
@@ -165,12 +170,13 @@ class ImageComparison {
   }
 
   _screenGrabBuffer(){
-    const base64 = game.canvas.toDataURL("image/png");
-    const matches = base64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
-    if (matches.length !== 3) {
-      throw new Error('Invalid canvas data!');
-    }
-    return new Buffer(matches[2], 'base64');
+    const dataUrl = game.canvas.toDataURL("image/png");
+    return new Buffer(dataUrl.split(",")[1], 'base64');
+    // const matches = base64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
+    // if (matches.length !== 3) {
+    //   throw new Error('Invalid canvas data!');
+    // }
+    // return new Buffer(matches[2], 'base64');
   }
 
   // _screenGrabImage(){
