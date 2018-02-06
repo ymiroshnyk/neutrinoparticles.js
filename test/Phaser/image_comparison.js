@@ -27,8 +27,7 @@ class ImageComparison {
     this.effectName = this.effect.substr(0, this.effect.lastIndexOf('.')) || this.effect;
 
     this.outputPath = this._setOutputPath();
-    console.log('outputPath',this.outputPath)
-
+    
     this.preload = this._preload.bind(this);
     this.create = this._create.bind(this);
     this.update = this._update.bind(this);
@@ -37,12 +36,18 @@ class ImageComparison {
     this.screenGrabs = [];
 
     const type = this.webgl? Phaser.WEBGL : Phaser.CANVAS;
-    game = new Phaser.Game(800, 600, type, 'phaser-example', { preload: this.preload,
-                                                                create: this.create,
-                                                                update: this.update,
-                                                                preserveDrawingBuffer: true });
 
-
+    game = new Phaser.Game({
+      width: 800,
+      height: 600,
+      renderer: type,
+      preserveDrawingBuffer: true,
+      state: {
+        preload: this.preload,
+        create: this.create,
+        update: this.update
+      }
+    });
   }
 
   _setOutputPath(){
@@ -95,9 +100,7 @@ class ImageComparison {
 
   _start(){
     this.iterations = this.intervals;
-
     this._advance();
-
   }
 
   _advance(){
@@ -115,8 +118,8 @@ class ImageComparison {
   }
 
   _complete(){
-    console.log('!!!COMPLETE!!!')
-    console.log(this.screenGrabs)
+    // console.log('!!!COMPLETE!!!')
+    // console.log(this.screenGrabs)
 
     if(this.isReferencePass){
       this._writeImagesToDisk(this.screenGrabs);
@@ -127,7 +130,7 @@ class ImageComparison {
     screenGrabs.forEach(grab => {
       const name = this._getFileName(grab);
       const filePath = this.outputPath + name;
-      console.log('filePath:', filePath)
+      // console.log('filePath:', filePath)
       fs.writeFile(filePath, grab.data, err => {
         console.log('write', filePath, err)
       })
