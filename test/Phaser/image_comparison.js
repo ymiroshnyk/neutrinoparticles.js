@@ -1,4 +1,6 @@
 
+const fs = require('fs');
+
 var game;
 
 class ImageComparison {
@@ -22,6 +24,11 @@ class ImageComparison {
     this._setDefaults();
     Object.assign(this, config);
 
+    this.effectName = this.effect.substr(0, this.effect.lastIndexOf('.')) || this.effect;
+
+    this.outputPath = this._setOutputPath();
+    console.log('outputPath',this.outputPath)
+
     this.preload = this._preload.bind(this);
     this.create = this._create.bind(this);
     this.update = this._update.bind(this);
@@ -36,6 +43,10 @@ class ImageComparison {
                                                                 preserveDrawingBuffer: true });
 
 
+  }
+
+  _setOutputPath(){
+    return __dirname + '/output/';
   }
 
   _preload() {
@@ -106,12 +117,46 @@ class ImageComparison {
   _complete(){
     console.log('!!!COMPLETE!!!')
     console.log(this.screenGrabs)
+
+    if(this.isReferencePass){
+      this._writeImagesToDisk(this.screenGrabs);
+    }
   }
 
+  _writeImagesToDisk(screenGrabs){
+    screenGrabs.forEach(grab => {
+      const name = this._getFileName(grab);
+      const filePath = this.outputPath + name;
+      console.log('filePath:', filePath)
+      fs.writeFile(filePath, grab.data, err => {
+        console.log('write', filePath, err)
+      })
+    });
+  }
+
+  /**
+   *
+   * @param data
+   * @returns {string}
+   * @private
+   */
+  _getFileName(data){
+    // Reference file names consist all necessary values to identify it and use in comparison:
+    // effect_name-wgl0-time0.00-turb0-pos0;0;0-rot0.png
+    const delimiter = '-';
+    let name = this.effectName+delimiter;
+    name += 'wgl' + this.webgl+delimiter;
+    name += 'time' + data.time+delimiter;
+    name += 'turb' + this.turbulance+delimiter;
+    name += 'pos' + data.position+delimiter;
+    name += 'rot' + data.rotation;
+    name += 'png';
+    return name;
+  }
 
   _screenGrab(){
     return {
-      image: this._screenGrabImage(),
+      data: this._screenGrabBuffer(),
       time: this._currentTime,
       rotation: this.testEffect.rotation,
       //TODO - store the time, rotation, position
@@ -119,11 +164,20 @@ class ImageComparison {
     }
   }
 
-  _screenGrabImage(){
-    const image = new Image();
-    image.src = game.canvas.toDataURL("image/png");
-    return image;
+  _screenGrabBuffer(){
+    const base64 = game.canvas.toDataURL("image/png");
+    const matches = base64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
+    if (matches.length !== 3) {
+      throw new Error('Invalid canvas data!');
+    }
+    return new Buffer(matches[2], 'base64');
   }
+
+  // _screenGrabImage(){
+  //   const image = new Image();
+  //   image.src = game.canvas.toDataURL("image/png");
+  //   return image;
+  // }
 
   _getScale(effect){
     return null;//[1, 1, 1];
