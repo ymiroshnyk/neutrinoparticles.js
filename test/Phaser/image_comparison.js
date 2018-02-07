@@ -27,7 +27,7 @@ class ImageComparison {
     this.effectName = this.effect.substr(0, this.effect.lastIndexOf('.')) || this.effect;
 
     this.outputPath = this._setOutputPath();
-    
+
     this.preload = this._preload.bind(this);
     this.create = this._create.bind(this);
     this.update = this._update.bind(this);
@@ -123,16 +123,31 @@ class ImageComparison {
 
     if(this.isReferencePass){
       this._writeImagesToDisk(this.screenGrabs);
+    } else {
+      //load the reference images then compare them
+      const loader = new ImageLoader(this.screenGrabs, this.outputPath, ()=> {
+        console.log('all images loaded')
+        this._compareImages();
+      });
     }
   }
 
+  _compareImages(){
+    new CompareQueue(this.screenGrabs, this.outputPath);
+  }
+
+  /**
+   *
+   * @param screenGrabs
+   * @private
+   */
   _writeImagesToDisk(screenGrabs){
     screenGrabs.forEach(grab => {
-      const name = this._getFileName(grab);
-      const filePath = this.outputPath + name;
+      const filePath = this.outputPath + grab.name;
       // console.log('filePath:', filePath)
       fs.writeFile(filePath, grab.data, err => {
         console.log('write', filePath, err)
+        //TODO - after the last one, close down the app
       })
     });
   }
@@ -163,30 +178,40 @@ class ImageComparison {
    * @private
    */
   _screenGrab(){
-    return {
-      data: this._screenGrabBuffer(),
+    const dataUrl = game.canvas.toDataURL("image/png");
+    const grab = {
+      data: new Buffer(dataUrl.split(",")[1], 'base64'),
+      image: this._imageFromDataUrl(dataUrl),
       time: this._currentTime,
       rotation: this.testEffect.rotation,
-      //TODO - store the time, rotation, position
+      //TODO - store the position
       position: 0
-    }
+    };
+    grab.name = this._getFileName(grab);
+    return grab;
   }
 
-  _screenGrabBuffer(){
-    const dataUrl = game.canvas.toDataURL("image/png");
-    return new Buffer(dataUrl.split(",")[1], 'base64');
-    // const matches = base64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
-    // if (matches.length !== 3) {
-    //   throw new Error('Invalid canvas data!');
-    // }
-    // return new Buffer(matches[2], 'base64');
-  }
-
-  // _screenGrabImage(){
-  //   const image = new Image();
-  //   image.src = game.canvas.toDataURL("image/png");
-  //   return image;
+  // _screenGrabBuffer(){
+  //   const dataUrl = game.canvas.toDataURL("image/png");
+  //   return new Buffer(dataUrl.split(",")[1], 'base64');
+  //   // const matches = base64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
+  //   // if (matches.length !== 3) {
+  //   //   throw new Error('Invalid canvas data!');
+  //   // }
+  //   // return new Buffer(matches[2], 'base64');
   // }
+
+  /**
+   *
+   * @param dataUrl
+   * @returns {*}
+   * @private
+   */
+  _imageFromDataUrl(dataUrl){
+      const image = new Image();
+      image.src = dataUrl;
+      return image;
+  }
 
   _getScale(effect){
     return null;//[1, 1, 1];
@@ -231,6 +256,83 @@ class ImageComparison {
     }
   }
 
+}
+
+class CompareQueue {
+  constructor(screenGrabs, folderPath, callback){
+    this.screenGrabs = screenGrabs;
+    this.folderPath = folderPath;
+
+    this._test(this.screenGrabs[0])
+  }
+
+  _test(grab){
+    const rembrandt = new Rembrandt({
+      // `imageA` and `imageB` can be either Strings (file path on node.js,
+      // public url on Browsers) or Buffers
+      imageA: grab.image,
+      imageB: grab.comparison,//fs.readFileSync('/path/to/imageB'),
+
+      // Needs to be one of Rembrandt.THRESHOLD_PERCENT or Rembrandt.THRESHOLD_PIXELS
+      thresholdType: Rembrandt.THRESHOLD_PERCENT,
+
+      // The maximum threshold (0...1 for THRESHOLD_PERCENT, pixel count for THRESHOLD_PIXELS
+      maxThreshold: 0.01,
+
+      // Maximum color delta (0...255):
+      maxDelta: 20,
+
+      // Maximum surrounding pixel offset
+      maxOffset: 0,
+
+      renderComposition: false, // Should Rembrandt render a composition image?
+      compositionMaskColor: Rembrandt.Color.RED // Color of unmatched pixels
+    })
+
+// Run the comparison
+    rembrandt.compare()
+      .then(function (result) {
+        console.log('Passed:', result.passed)
+        console.log('Pixel Difference:', result.differences, 'Percentage Difference', result.percentageDifference, '%')
+        console.log('Composition image buffer:', result.compositionImage)
+
+        // Note that `compositionImage` is an Image when Rembrandt.js is run in the browser environment
+      })
+      .catch((e) => {
+        console.error(e)
+      })
+  }
+}
+
+
+class ImageLoader {
+
+  constructor(screenGrabs, folderPath, callback){
+    this.counter = screenGrabs.length;
+    this.folderPath = folderPath;
+    this.callback = callback;
+    this.onImageLoaded = this._imageLoaded.bind(this);
+    screenGrabs.forEach(grab => {
+      this._loadImage(grab);
+    });
+  }
+
+  _loadImage(grab){
+    const image = new Image();
+    image.onload = event => {
+      this.onImageLoaded(grab);
+    };
+    grab.comparison = image;
+    image.src = this.folderPath + grab.name;
+  }
+
+  _imageLoaded(grab){
+    //console.log('image loaded', grab.name)
+    this.counter--;
+    if(this.counter === 0){
+      this.callback();
+    }
+  }
 
 }
 
