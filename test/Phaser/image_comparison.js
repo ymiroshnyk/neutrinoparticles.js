@@ -1,5 +1,6 @@
 
 const fs = require('fs');
+const ipc = require('electron').ipcRenderer;
 
 var game;
 
@@ -144,6 +145,16 @@ class ImageComparison {
     console.log('passed:', didPass)
     console.log(screenGrabs)
 
+    const results = screenGrabs.map(grab=>{
+      const r = grab.result;
+      return {
+        name: grab.name,
+        passed: r.passed,
+        difference: r.percentageDifference
+      }
+    });
+
+    ipc.send('test-result', { didPass: didPass, results: results });
   }
 
   /**
