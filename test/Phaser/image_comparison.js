@@ -133,7 +133,33 @@ class ImageComparison {
   }
 
   _compareImages(){
-    new CompareQueue(this.screenGrabs, this.outputPath);
+    new CompareQueue(this.screenGrabs, this.outputPath, ()=> {
+      this._result(this.screenGrabs)
+    });
+  }
+
+  _result(screenGrabs){
+
+    const didPass = this._checkPassed(screenGrabs)
+    console.log('passed:', didPass)
+    console.log(screenGrabs)
+
+  }
+
+  /**
+   *
+   * @param screenGrabs
+   * @returns {boolean}
+   * @private
+   */
+  _checkPassed(screenGrabs){
+    let passed = true;
+    screenGrabs.forEach(grab => {
+      if(!grab.result.passed){
+        passed = false;
+      }
+    });
+    return passed;
   }
 
   /**
@@ -179,10 +205,13 @@ class ImageComparison {
    */
   _screenGrab(){
     const dataUrl = game.canvas.toDataURL("image/png");
+
+    const roundedTime = Math.round(this._currentTime * 1000) / 1000;
+
     const grab = {
       data: new Buffer(dataUrl.split(",")[1], 'base64'),
       image: this._imageFromDataUrl(dataUrl),
-      time: this._currentTime,
+      time: roundedTime,//this._currentTime,
       rotation: this.testEffect.rotation,
       //TODO - store the position
       position: 0
@@ -262,10 +291,27 @@ class CompareQueue {
   constructor(screenGrabs, folderPath, callback){
     this.screenGrabs = screenGrabs;
     this.folderPath = folderPath;
+    this.callback = callback;
+    this._current = -1;
 
-    this._test(this.screenGrabs[0])
+    this._next();
   }
 
+  _next(){
+    this._current++;
+    if(this._current < this.screenGrabs.length){
+      this._test(this.screenGrabs[this._current])
+    } else {
+      //complete
+      this.callback();
+    }
+  }
+
+  /**
+   *
+   * @param grab
+   * @private
+   */
   _test(grab){
     const rembrandt = new Rembrandt({
       // `imageA` and `imageB` can be either Strings (file path on node.js,
@@ -287,23 +333,30 @@ class CompareQueue {
 
       renderComposition: false, // Should Rembrandt render a composition image?
       compositionMaskColor: Rembrandt.Color.RED // Color of unmatched pixels
-    })
+    });
 
-// Run the comparison
+    const _self = this;
+
+    // Run the comparison
     rembrandt.compare()
       .then(function (result) {
-        console.log('Passed:', result.passed)
+        console.log(grab.name, 'Passed:', result.passed)
         console.log('Pixel Difference:', result.differences, 'Percentage Difference', result.percentageDifference, '%')
-        console.log('Composition image buffer:', result.compositionImage)
+        //console.log('Composition image buffer:', result.compositionImage)
+
+          //TODO - proceed on to the next image
+        grab.result = result;
+        _self._next();
 
         // Note that `compositionImage` is an Image when Rembrandt.js is run in the browser environment
       })
       .catch((e) => {
         console.error(e)
+        grab.result = e;
+        _self._next();
       })
   }
 }
-
 
 class ImageLoader {
 
