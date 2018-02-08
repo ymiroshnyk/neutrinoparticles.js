@@ -25,19 +25,22 @@
        _restartEffect
       */
 
-      const imageComparison = new ImageComparison({
-        effect: "water_stream.js",
-        endrot: 180,
-        webgl: 1,
-        time_interval: 0.1,
-        reference_pass: 0
+//      const imageComparison = new ImageComparison({
+//        effect: "water_stream.js",
+//        endrot: 180,
+//        webgl: 1,
+//        time_interval: 0.1,
+//        reference_pass: 0
+//      });
+
+      //const ipc = require('electron').ipcRenderer;
+      ipc.on('settings', (event, args) => {
+        console.log('settings: ', args)
+        const imageComparison = new ImageComparison(args);
       });
+      ipc.send('fetch-settings');
 
 
-    </script>
-    <script>
-      // You can also require other files to run in this process
-      require('./renderer.js')
     </script>
   </body>
 </html>

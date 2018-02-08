@@ -13,6 +13,9 @@ const url = require('url')
 let mainWindow
 
 function createWindow () {
+
+  const settings = getSettings();
+
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 800, height: 600})
 
@@ -21,7 +24,7 @@ function createWindow () {
     pathname: path.join(__dirname, 'index.html'),
     protocol: 'file:',
     slashes: true
-  }))
+  }));
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
@@ -38,7 +41,45 @@ function createWindow () {
     console.log('test-result', data)
     mainWindow.close();
   })
+
+  ipcMain.on('fetch-settings', (event, data) => {
+    mainWindow.webContents.send('settings', settings);
+  })
 }
+
+function getSettings(){
+
+  const settings = {
+    effect: 'water_stream.js',
+    webgl: 1,
+    time_interval: 0.1,//secs
+    intervals: 10,
+    turbulance: 'none',
+    startpos: [400, 300, 0],
+    endpos: [400, 300, 0],
+    startrot: 0,
+    endrot: 0,
+    reference_pass: 0
+  };
+
+  const args = process.argv.slice(2);
+  console.log('args:',args)
+  //the first 2 args are to be ignored
+  if(args.length > 0){
+
+    // print process.argv
+    args.forEach(function (val, index, array) {
+      const nvp = val.split('=');
+      if(nvp.length > 0){
+        const name = nvp[0];
+        const value = nvp[1];
+        settings[name] = value;
+      }
+    })
+  }
+  return settings;
+}
+
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
