@@ -1,4 +1,5 @@
-const electron = require('electron')
+const electron = require('electron');
+const colors = require('colors');
 // Module to control application life.
 const app = electron.app
 const ipcMain = electron.ipcMain
@@ -38,13 +39,42 @@ function createWindow () {
   })
 
   ipcMain.on('test-result', (event, data) => {
-    console.log('test-result', data)
-    mainWindow.close();
+    logOutput(data)
+    shutdown();
   })
 
   ipcMain.on('fetch-settings', (event, data) => {
     mainWindow.webContents.send('settings', settings);
   })
+
+  ipcMain.on('reference_complete', (event, data) => {
+    console.log('Reference Pass Completed')
+    shutdown();
+  })
+}
+
+function logOutput(data){
+  if(data.didPass){
+    console.log('TEST PASSED!'.green.underline.bold)
+  } else {
+    console.log('TEST FAILED!'.red.underline.bold)
+  }
+  data.results.forEach(result => {
+    let msg = `* ${result.name} difference: ${result.difference} passed: ${result.passed}`;
+    if(result.passed){
+      console.log(msg.green);
+    } else {
+      if(result.error){
+        msg = `* ${result.name} error: ${result.error} passed: ${result.passed}`;
+      }
+      console.log(msg.red);
+    }
+  });
+}
+
+function shutdown(){
+  mainWindow.close();
+  app.quit();
 }
 
 function getSettings(){
@@ -72,7 +102,7 @@ function getSettings(){
       const nvp = val.split('=');
       if(nvp.length > 0){
         const name = nvp[0];
-        const value = nvp[1];
+        const value = evaluate(nvp[1]);
         settings[name] = value;
       }
     })
@@ -80,7 +110,19 @@ function getSettings(){
   return settings;
 }
 
-
+function evaluate(value){
+  //check if its meant to be a number
+  if(isNaN(parseInt(value))){
+    return value;
+  } else {
+    //check if its meant to be a float
+    if(value.indexOf('.') > -1){
+      return parseFloat(value);
+    } else {
+      return parseInt(value);
+    }
+  }
+}
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.

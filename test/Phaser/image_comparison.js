@@ -150,6 +150,7 @@ class ImageComparison {
       return {
         name: grab.name,
         passed: r.passed,
+        error: r.error,
         difference: r.percentageDifference
       }
     });
@@ -179,12 +180,18 @@ class ImageComparison {
    * @private
    */
   _writeImagesToDisk(screenGrabs){
+
+    let counter = 0;
+
     screenGrabs.forEach(grab => {
       const filePath = this.outputPath + grab.name;
       // console.log('filePath:', filePath)
       fs.writeFile(filePath, grab.data, err => {
         console.log('write', filePath, err)
         //TODO - after the last one, close down the app
+        if(++counter === screenGrabs.length){
+          ipc.send('reference_complete');
+        };
       })
     });
   }
@@ -230,16 +237,6 @@ class ImageComparison {
     grab.name = this._getFileName(grab);
     return grab;
   }
-
-  // _screenGrabBuffer(){
-  //   const dataUrl = game.canvas.toDataURL("image/png");
-  //   return new Buffer(dataUrl.split(",")[1], 'base64');
-  //   // const matches = base64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
-  //   // if (matches.length !== 3) {
-  //   //   throw new Error('Invalid canvas data!');
-  //   // }
-  //   // return new Buffer(matches[2], 'base64');
-  // }
 
   /**
    *
@@ -324,48 +321,59 @@ class CompareQueue {
    * @private
    */
   _test(grab){
-    const rembrandt = new Rembrandt({
-      // `imageA` and `imageB` can be either Strings (file path on node.js,
-      // public url on Browsers) or Buffers
-      imageA: grab.image,
-      imageB: grab.comparison,//fs.readFileSync('/path/to/imageB'),
 
-      // Needs to be one of Rembrandt.THRESHOLD_PERCENT or Rembrandt.THRESHOLD_PIXELS
-      thresholdType: Rembrandt.THRESHOLD_PERCENT,
+    if(!grab.comparison){
+      grab.result = {
+        passed: false,
+        error: 'Reference image not found'
+      }
+      this._next();
+    } else {
 
-      // The maximum threshold (0...1 for THRESHOLD_PERCENT, pixel count for THRESHOLD_PIXELS
-      maxThreshold: 0.01,
+      const rembrandt = new Rembrandt({
+        // `imageA` and `imageB` can be either Strings (file path on node.js,
+        // public url on Browsers) or Buffers
+        imageA: grab.image,
+        imageB: grab.comparison,//fs.readFileSync('/path/to/imageB'),
 
-      // Maximum color delta (0...255):
-      maxDelta: 20,
+        // Needs to be one of Rembrandt.THRESHOLD_PERCENT or Rembrandt.THRESHOLD_PIXELS
+        thresholdType: Rembrandt.THRESHOLD_PERCENT,
 
-      // Maximum surrounding pixel offset
-      maxOffset: 0,
+        // The maximum threshold (0...1 for THRESHOLD_PERCENT, pixel count for THRESHOLD_PIXELS
+        maxThreshold: 0.01,
 
-      renderComposition: false, // Should Rembrandt render a composition image?
-      compositionMaskColor: Rembrandt.Color.RED // Color of unmatched pixels
-    });
+        // Maximum color delta (0...255):
+        maxDelta: 20,
 
-    const _self = this;
+        // Maximum surrounding pixel offset
+        maxOffset: 0,
 
-    // Run the comparison
-    rembrandt.compare()
-      .then(function (result) {
-        console.log(grab.name, 'Passed:', result.passed)
-        console.log('Pixel Difference:', result.differences, 'Percentage Difference', result.percentageDifference, '%')
-        //console.log('Composition image buffer:', result.compositionImage)
+        renderComposition: false, // Should Rembrandt render a composition image?
+        compositionMaskColor: Rembrandt.Color.RED // Color of unmatched pixels
+      });
+
+      const _self = this;
+
+      // Run the comparison
+      rembrandt.compare()
+        .then(function (result) {
+          console.log(grab.name, 'Passed:', result.passed)
+          console.log('Pixel Difference:', result.differences, 'Percentage Difference', result.percentageDifference, '%')
+          //console.log('Composition image buffer:', result.compositionImage)
 
           //TODO - proceed on to the next image
-        grab.result = result;
-        _self._next();
+          grab.result = result;
+          _self._next();
 
-        // Note that `compositionImage` is an Image when Rembrandt.js is run in the browser environment
-      })
-      .catch((e) => {
-        console.error(e)
-        grab.result = e;
-        _self._next();
-      })
+          // Note that `compositionImage` is an Image when Rembrandt.js is run in the browser environment
+        })
+        .catch((e) => {
+          console.error(e)
+          grab.result = e;
+          _self._next();
+        })
+
+    }
   }
 }
 
@@ -384,6 +392,10 @@ class ImageLoader {
   _loadImage(grab){
     const image = new Image();
     image.onload = event => {
+      this.onImageLoaded(grab);
+    };
+    image.onerror = event => {
+      grab.comparison = null;
       this.onImageLoaded(grab);
     };
     grab.comparison = image;
