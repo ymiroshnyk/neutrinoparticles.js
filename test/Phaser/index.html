@@ -16,30 +16,11 @@
   <!-- All of the Node.js APIs are available in this renderer process. -->
     <script>
 
-      /*
-      _effectScript,
-       _assets,
-       _effectPosition,
-       _effectScale,
-       _rotateEffect,
-       _restartEffect
-      */
-
-//      const imageComparison = new ImageComparison({
-//        effect: "water_stream.js",
-//        endrot: 180,
-//        webgl: 1,
-//        time_interval: 0.1,
-//        reference_pass: 0
-//      });
-
-      //const ipc = require('electron').ipcRenderer;
       ipc.on('settings', (event, args) => {
         console.log('settings: ', args)
-        const imageComparison = new ImageComparison(args);
+        new ImageComparison(args);
       });
       ipc.send('fetch-settings');
-
 
     </script>
   </body>

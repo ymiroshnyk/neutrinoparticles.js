@@ -22,6 +22,7 @@ class ImageComparison {
        reference_pass - if 1 - reference pass is turned on. No comparison is making.
    */
   constructor(config){
+    this._grabDelay = 250;
     this._setDefaults();
     Object.assign(this, config);
 
@@ -49,6 +50,31 @@ class ImageComparison {
         update: this.update
       }
     });
+  }
+
+  /**
+   *
+   * wgl - WebGl is turned on
+   * turb - turbulance is turned off (1 - generated, 2 - loaded)
+   * time - current time
+   * pos - current position
+   * rot - current rotation
+   * scale - current scale
+   * @private
+   */
+  _setDefaults(){
+    this.effect = 'water_stream.js';
+    this.webgl = 1;
+    this.time_interval = 0.1;//secs
+    this.intervals = 10;
+    this.turbulance = 'none';
+    this.startpos = [400, 300, 0];
+    this.endpos = [400, 300, 0];
+    this.startrot = 0;
+    this.endrot = 0;
+    this.startscale = [1, 1, 1];
+    this.endscale = [1, 1, 1];
+    this.reference_pass = 0;
   }
 
   _setOutputPath(){
@@ -89,7 +115,7 @@ class ImageComparison {
     this.testEffect = game.add.neutrino(model,
       {
         position: this.startpos,
-        scale: this._getScale(this.effect),
+        scale: this.startscale,
         rotation: 0
       });
     if (this.testEffect.isReady) {
@@ -100,13 +126,26 @@ class ImageComparison {
   }
 
   _start(){
-    this.iterations = this.intervals;
+    this.screenGrabs.push(this._screenGrab());
+    this.iterations = --this.intervals;
     this._advance();
   }
 
   _advance(){
     this.testEffect.updateParticles(this.time_interval);
+    //rotate
     this.testEffect.rotation += this.rotationPerInterval;
+    //scale
+    const scalePerInterval = this.scalePerInterval;
+    this.testEffect.scale.x += scalePerInterval[0];
+    this.testEffect.scale.y += scalePerInterval[1];
+    this.testEffect.scaleZ += scalePerInterval[2];
+    //translate
+    const positionPerInterval = this.positionPerInterval;
+    this.testEffect.position.x += positionPerInterval[0];
+    this.testEffect.position.y += positionPerInterval[1];
+    this.testEffect.positionZ += positionPerInterval[2];
+    //
     this._currentTime += this.time_interval;
     setTimeout(e => {
       this.screenGrabs.push(this._screenGrab());
@@ -115,19 +154,15 @@ class ImageComparison {
       } else {
         this._complete();
       }
-    }, 250);
+    }, this._grabDelay);
   }
 
   _complete(){
-    // console.log('!!!COMPLETE!!!')
-    // console.log(this.screenGrabs)
-
     if(this.isReferencePass){
       this._writeImagesToDisk(this.screenGrabs);
     } else {
       //load the reference images then compare them
       const loader = new ImageLoader(this.screenGrabs, this.outputPath, ()=> {
-        console.log('all images loaded')
         this._compareImages();
       });
     }
@@ -142,8 +177,8 @@ class ImageComparison {
   _result(screenGrabs){
 
     const didPass = this._checkPassed(screenGrabs)
-    console.log('passed:', didPass)
-    console.log(screenGrabs)
+    // console.log('passed:', didPass)
+    // console.log(screenGrabs)
 
     const results = screenGrabs.map(grab=>{
       const r = grab.result;
@@ -211,7 +246,8 @@ class ImageComparison {
     name += 'time' + data.time+delimiter;
     name += 'turb' + this.turbulance+delimiter;
     name += 'pos' + data.position+delimiter;
-    name += 'rot' + data.rotation;
+    name += 'rot' + data.rotation+delimiter;
+    name += 'scale' + data.scale;
     name += '.png';
     return name;
   }
@@ -231,11 +267,27 @@ class ImageComparison {
       image: this._imageFromDataUrl(dataUrl),
       time: roundedTime,//this._currentTime,
       rotation: this.testEffect.rotation,
-      //TODO - store the position
-      position: 0
+      position: this._getPosition(this.testEffect),
+      scale: this._getScale(this.testEffect)
     };
     grab.name = this._getFileName(grab);
     return grab;
+  }
+
+  _getPosition(target){
+    return [
+      target.position.x,
+      target.position.y,
+      target.positionZ,
+    ]
+  }
+
+  _getScale(target){
+    return [
+      target.scale.x,
+      target.scale.y,
+      target.scaleZ,
+    ]
   }
 
   /**
@@ -250,10 +302,6 @@ class ImageComparison {
       return image;
   }
 
-  _getScale(effect){
-    return null;//[1, 1, 1];
-  }
-
   _getAssets(effect){
     switch(effect){
       case 'water_stream.js':
@@ -265,32 +313,32 @@ class ImageComparison {
 
   _update(){ }
 
-  _setDefaults(){
-    this.effect = 'water_stream.js';
-    this.webgl = 1;
-    this.time_interval = 0.0166;//secs
-    this.intervals = 10;
-    this.turbulance = 'none';
-    this.startpos = [400, 300, 0];
-    this.endpos = [400, 300, 0];
-    this.startrot = 0;
-    this.endrot = 0;
-    this.reference_pass = 0;
-
+  _getStep(a, b){
+    return (b - a) / this.intervals;
   }
 
   get isReferencePass(){
     return this.reference_pass === 1;
   }
 
+  get scalePerInterval(){
+    return [
+      this._getStep(this.startscale[0], this.endscale[0]),
+      this._getStep(this.startscale[1], this.endscale[1]),
+      this._getStep(this.startscale[2], this.endscale[2])
+    ]
+  }
+
+  get positionPerInterval(){
+    return [
+      this._getStep(this.startpos[0], this.endpos[0]),
+      this._getStep(this.startpos[1], this.endpos[1]),
+      this._getStep(this.startpos[2], this.endpos[2])
+    ]
+  }
+
   get rotationPerInterval(){
-    if(this.endrot === this.startrot){
-      return 0;
-    } else {
-      // const totalSecs = this.time_interval * this.intervals;
-      const totalRotation = this.endrot - this.startrot;
-      return totalRotation / this.intervals;
-    }
+    return this._getStep(this.startrot, this.endrot);
   }
 
 }

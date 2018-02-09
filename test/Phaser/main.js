@@ -48,7 +48,7 @@ function createWindow () {
   })
 
   ipcMain.on('reference_complete', (event, data) => {
-    console.log('Reference Pass Completed')
+    console.log('Reference Pass Completed'.green.underline.bold)
     shutdown();
   })
 }
@@ -87,6 +87,8 @@ function getSettings(){
     turbulance: 'none',
     startpos: [400, 300, 0],
     endpos: [400, 300, 0],
+    startscale: [1,1,1],
+    endscale: [1,1,1],
     startrot: 0,
     endrot: 0,
     reference_pass: 0
@@ -102,7 +104,7 @@ function getSettings(){
       const nvp = val.split('=');
       if(nvp.length > 0){
         const name = nvp[0];
-        const value = evaluate(nvp[1]);
+        const value = JSON.parse(nvp[1]);
         settings[name] = value;
       }
     })
@@ -110,19 +112,6 @@ function getSettings(){
   return settings;
 }
 
-function evaluate(value){
-  //check if its meant to be a number
-  if(isNaN(parseInt(value))){
-    return value;
-  } else {
-    //check if its meant to be a float
-    if(value.indexOf('.') > -1){
-      return parseFloat(value);
-    } else {
-      return parseInt(value);
-    }
-  }
-}
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
