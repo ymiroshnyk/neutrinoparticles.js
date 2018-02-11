@@ -11,11 +11,69 @@ const url = require('url')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let mainWindow
+let mainWindow;
+
+const _testQueue = getTestQueue();
+
+function getTestQueue(){
+  //parse query strings
+  const settings = getSettings();
+
+  if(settings.effect === '*'){
+    //make a queue of all the effects
+    return [
+      Object.assign({}, settings, {effect: 'water_stream.js'}),
+      Object.assign({}, settings, {effect: 'stars.js'}),
+      Object.assign({}, settings, {effect: 'noise.js'}),
+      Object.assign({}, settings, {effect: 'non_looped.js'}),
+      Object.assign({}, settings, {effect: 'physics_drag_test.js'})
+    ];
+  } else {
+    return [settings];
+  }
+}
+
+function activateTest(){
+  if(_testQueue.length > 0){
+    createWindow();
+  } else {
+    shutdown();
+  }
+}
+
+function start(){
+
+  ipcMain.on('test-result', (event, data) => {
+    logOutput(data)
+    mainWindow.close();
+    setTimeout(e=>{
+      activateTest();
+    }, 500)
+  })
+
+  ipcMain.on('fetch-settings', (event, data) => {
+
+    const config = _testQueue.shift();
+    console.log('settings: ',config)
+
+    mainWindow.webContents.send('settings', config);
+  })
+
+  ipcMain.on('reference_complete', (event, data) => {
+    console.log('Reference Pass Completed'.green.underline.bold)
+    shutdown();
+  });
+
+  ipcMain.on('error', (event, data) => {
+    console.log('ERROR!'.red.underline.bold)
+    console.log(data);
+    shutdown();
+  })
+
+  activateTest();
+}
 
 function createWindow () {
-
-  const settings = getSettings();
 
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 800, height: 600})
@@ -38,27 +96,9 @@ function createWindow () {
     mainWindow = null
   })
 
-  ipcMain.on('test-result', (event, data) => {
-    logOutput(data)
-    shutdown();
-  })
-
-  ipcMain.on('fetch-settings', (event, data) => {
-    mainWindow.webContents.send('settings', settings);
-  })
-
-  ipcMain.on('reference_complete', (event, data) => {
-    console.log('Reference Pass Completed'.green.underline.bold)
-    shutdown();
-  })
 }
 
 function logOutput(data){
-  if(data.didPass){
-    console.log('TEST PASSED!'.green.underline.bold)
-  } else {
-    console.log('TEST FAILED!'.red.underline.bold)
-  }
   data.results.forEach(result => {
     let msg = `* ${result.name} difference: ${result.difference} passed: ${result.passed}`;
     if(result.passed){
@@ -70,10 +110,15 @@ function logOutput(data){
       console.log(msg.red);
     }
   });
+  if(data.didPass){
+    console.log('TEST PASSED!'.green.underline.bold)
+  } else {
+    console.log('TEST FAILED!'.red.underline.bold)
+  }
 }
 
 function shutdown(){
-  mainWindow.close();
+  if(mainWindow) mainWindow.close();
   app.quit();
 }
 
@@ -104,7 +149,7 @@ function getSettings(){
       const nvp = val.split('=');
       if(nvp.length > 0){
         const name = nvp[0];
-        const value = JSON.parse(nvp[1]);
+        const value = _parse(nvp[1]);
         settings[name] = value;
       }
     })
@@ -112,10 +157,20 @@ function getSettings(){
   return settings;
 }
 
+function _parse(value){
+  let output;
+  try {
+    output = JSON.parse(value);
+  } catch(e){
+    output = value;
+  }
+  return output;
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+app.on('ready', start)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {

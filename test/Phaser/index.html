@@ -18,7 +18,12 @@
 
       ipc.on('settings', (event, args) => {
         console.log('settings: ', args)
-        new ImageComparison(args);
+        try {
+          new ImageComparison(args);
+        } catch(e){
+          ipc.send('error', e.toString());
+        }
+
       });
       ipc.send('fetch-settings');
 

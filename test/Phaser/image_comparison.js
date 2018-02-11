@@ -26,7 +26,7 @@ class ImageComparison {
     this._setDefaults();
     Object.assign(this, config);
 
-    this.effectName = this.effect.substr(0, this.effect.lastIndexOf('.')) || this.effect;
+    this._validate();
 
     this.outputPath = this._setOutputPath();
 
@@ -37,12 +37,15 @@ class ImageComparison {
     this._currentTime = 0;
     this.screenGrabs = [];
 
+    this.effectName = this.effect.substr(0, this.effect.lastIndexOf('.')) || this.effect;
+
     const type = this.webgl? Phaser.WEBGL : Phaser.CANVAS;
 
     game = new Phaser.Game({
       width: 800,
       height: 600,
       renderer: type,
+      antialias: true,
       preserveDrawingBuffer: true,
       state: {
         preload: this.preload,
@@ -50,6 +53,48 @@ class ImageComparison {
         update: this.update
       }
     });
+  }
+
+  _validate(){
+    //allow passing in 1 rather than [1, 1, 1]
+    this.startscale = this._validateArray(this.startscale);
+    this.endscale = this._validateArray(this.endscale);
+    //only accept proper position values
+    if(!Array.isArray(this.startpos)){
+      throw new Error('Invalid start position - must be a 3 item numeric array, eg [0, 0, 0]');
+    }
+    if(!Array.isArray(this.endpos)){
+      throw new Error('Invalid end position - must be a 3 item numeric array, eg [0, 0, 0]');
+    }
+    if(isNaN(this.startrot)){
+      throw new Error('Invalid start rotation - must be a number');
+    }
+    if(isNaN(this.endrot)){
+      throw new Error('Invalid start rotation - must be a number');
+    }
+    if(isNaN(this.time_interval)){
+      throw new Error('Invalid time_interval - must be a number');
+    }
+    if(isNaN(this.intervals)){
+      throw new Error('Invalid intervals - must be a number');
+    }
+  }
+
+  /**
+   *
+   * @param list
+   * @returns {*}
+   * @private
+   */
+  _validateArray(list){
+    if(!Array.isArray(list)){
+      if(!isNaN(list)){
+        return [list, list, list];
+      }
+      return [1, 1, 1];
+    } else {
+      return list;
+    }
   }
 
   /**
@@ -77,8 +122,18 @@ class ImageComparison {
     this.reference_pass = 0;
   }
 
+  /**
+   * creates output folder if not present
+   * @returns {string}
+   * @private
+   */
   _setOutputPath(){
-    return __dirname + '/output/';
+    const outputPath = __dirname + '/output/';
+    //create that folder if it does not exist
+    if(!fs.existsSync(outputPath)){
+      fs.mkdirSync(outputPath);
+    }
+    return outputPath;
   }
 
   _preload() {
@@ -243,11 +298,11 @@ class ImageComparison {
     const delimiter = '-';
     let name = this.effectName+delimiter;
     name += 'wgl' + this.webgl+delimiter;
-    name += 'time' + data.time+delimiter;
+    name += 'time' + this._round(data.time)+delimiter;
     name += 'turb' + this.turbulance+delimiter;
-    name += 'pos' + data.position+delimiter;
-    name += 'rot' + data.rotation+delimiter;
-    name += 'scale' + data.scale;
+    name += 'pos' + this._roundArray(data.position)+delimiter;
+    name += 'rot' + this._round(data.rotation)+delimiter;
+    name += 'scale' + this._roundArray(data.scale);
     name += '.png';
     return name;
   }
@@ -260,18 +315,26 @@ class ImageComparison {
   _screenGrab(){
     const dataUrl = game.canvas.toDataURL("image/png");
 
-    const roundedTime = Math.round(this._currentTime * 1000) / 1000;
+    // const roundedTime = Math.round(this._currentTime * 1000) / 1000;
 
     const grab = {
       data: new Buffer(dataUrl.split(",")[1], 'base64'),
       image: this._imageFromDataUrl(dataUrl),
-      time: roundedTime,//this._currentTime,
+      time: this._currentTime,
       rotation: this.testEffect.rotation,
       position: this._getPosition(this.testEffect),
       scale: this._getScale(this.testEffect)
     };
     grab.name = this._getFileName(grab);
     return grab;
+  }
+
+  _roundArray(list){
+    return list.map(v => this._round(v));
+  }
+
+  _round(value){
+    return Math.round(value * 100) / 100;
   }
 
   _getPosition(target){
@@ -306,6 +369,11 @@ class ImageComparison {
     switch(effect){
       case 'water_stream.js':
         return [{type: 'image', id:'fluid2', path:'./textures/fluid2.png'}];
+      case 'noise.js':
+      case 'non_looped.js':
+      case 'physics_drag_test.js':
+      case 'random_test.js':
+        return [{type: 'image', id:'star_glow_white', path:'./textures/star_glow_white.png'}];
       case 'stars.js':
         return [{type: 'atlas', id:'atlas1', path:'./textures/atlas.png', dataPath: 'textures/atlas.json'}];
     }
