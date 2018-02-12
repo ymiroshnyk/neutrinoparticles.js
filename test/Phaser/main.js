@@ -1,5 +1,6 @@
 const electron = require('electron');
 const colors = require('colors');
+const glob = require("glob")
 // Module to control application life.
 const app = electron.app
 const ipcMain = electron.ipcMain
@@ -19,18 +20,22 @@ function getTestQueue(){
   //parse query strings
   const settings = getSettings();
 
-  if(settings.effect === '*'){
-    //make a queue of all the effects
-    return [
-      Object.assign({}, settings, {effect: 'water_stream.js'}),
-      Object.assign({}, settings, {effect: 'stars.js'}),
-      Object.assign({}, settings, {effect: 'noise.js'}),
-      Object.assign({}, settings, {effect: 'non_looped.js'}),
-      Object.assign({}, settings, {effect: 'physics_drag_test.js'})
-    ];
+  const effectsDir = __dirname + '/effects/'
+  const config = { cwd: effectsDir, ignore: []}
+  //allow glob for settings.effect
+  let files;
+  //allow exclusions
+  if(settings.effect.indexOf('!') === 0){
+    config.ignore.push(settings.effect.substr(1));
+    files = glob.sync('*.js',config)
   } else {
-    return [settings];
+    files = glob.sync(settings.effect,config)
   }
+
+  console.log('effect:',settings.effect)
+  console.log('files:',files)
+  
+  return files.map(effect => Object.assign({}, settings, {effect}));
 }
 
 function activateTest(){

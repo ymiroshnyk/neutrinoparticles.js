@@ -23,6 +23,7 @@
     "babel-preset-env": "^1.6.1",
     "colors": "^1.1.2",
     "electron": "^1.7.12",
+    "glob": "^7.1.2",
     "gulp": "^3.9.1",
     "gulp-babel": "^7.0.0",
     "gulp-concat": "^2.6.1",
