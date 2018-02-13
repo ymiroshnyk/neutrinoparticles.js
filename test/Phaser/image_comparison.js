@@ -366,6 +366,10 @@ class ImageComparison {
   }
 
   _getAssets(effect){
+    //if its a path then just strip off the file name
+    if(effect.indexOf('/') > -1){
+      effect = effect.substr(effect.lastIndexOf('/') + 1);
+    }
     switch(effect){
       case 'water_stream.js':
         return [{type: 'image', id:'fluid2', path:'./textures/fluid2.png'}];
@@ -376,6 +380,8 @@ class ImageComparison {
         return [{type: 'image', id:'star_glow_white', path:'./textures/star_glow_white.png'}];
       case 'stars.js':
         return [{type: 'atlas', id:'atlas1', path:'./textures/atlas.png', dataPath: 'textures/atlas.json'}];
+      default:
+        return [{type: 'image', id:'star_glow_white', path:'./textures/star_glow_white.png'}];
     }
   }
 
