@@ -49,12 +49,12 @@ function activateTest(){
 function start(){
 
   ipcMain.on('test-result', (event, data) => {
-    logOutput(data)
+    logOutput(data);
     mainWindow.close();
     setTimeout(e=>{
       activateTest();
     }, 500)
-  })
+  });
 
   ipcMain.on('fetch-settings', (event, data) => {
 
@@ -62,11 +62,15 @@ function start(){
     console.log('settings: ',config)
 
     mainWindow.webContents.send('settings', config);
-  })
+  });
 
   ipcMain.on('reference_complete', (event, data) => {
-    console.log('Reference Pass Completed'.green.underline.bold)
-    shutdown();
+    const msg = 'Reference Pass Completed for ' + data.effect;
+    console.log(msg.green.underline.bold);
+    mainWindow.close();
+    setTimeout(e=>{
+      activateTest();
+    }, 500)
   });
 
   ipcMain.on('error', (event, data) => {

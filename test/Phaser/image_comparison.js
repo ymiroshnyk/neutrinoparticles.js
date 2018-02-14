@@ -6,7 +6,6 @@ var game;
 
 class ImageComparison {
 
-
   /**
    *
    * @param config
@@ -280,7 +279,7 @@ class ImageComparison {
         console.log('write', filePath, err)
         //TODO - after the last one, close down the app
         if(++counter === screenGrabs.length){
-          ipc.send('reference_complete');
+          ipc.send('reference_complete', {effect: this.effect});
         };
       })
     });
@@ -365,6 +364,7 @@ class ImageComparison {
       return image;
   }
 
+  //TODO - don't do this, use load on demand if not an atlas
   _getAssets(effect){
     //if its a path then just strip off the file name
     if(effect.indexOf('/') > -1){
