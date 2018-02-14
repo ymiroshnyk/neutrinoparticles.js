@@ -137,19 +137,12 @@ class ImageComparison {
 
   _preload() {
 
-    const _assets = this._getAssets(this.effect);
-
-    //particle textures
-    _assets.forEach(assetData => {
-      switch(assetData.type){
-        case 'atlas':
-          game.load.atlas(assetData.id, assetData.path, assetData.dataPath, Phaser.Loader.TEXTURE_ATLAS_JSON_HASH);
-          break;
-        case 'image':
-          game.load.image(assetData.id, assetData.path);
-          break
-      }
-    })
+    //atlases get preloaded
+    if(this.atlas){
+      const imagePath = this.atlas + '.png';
+      const dataPath = this.atlas + '.json';
+      game.load.atlas(this.atlas, imagePath, dataPath, Phaser.Loader.TEXTURE_ATLAS_JSON_HASH);
+    }
   }
 
   _create(){
@@ -274,13 +267,19 @@ class ImageComparison {
 
     screenGrabs.forEach(grab => {
       const filePath = this.outputPath + grab.name;
-      // console.log('filePath:', filePath)
+      //console.log('filePath:', filePath)
       fs.writeFile(filePath, grab.data, err => {
         console.log('write', filePath, err)
-        //TODO - after the last one, close down the app
-        if(++counter === screenGrabs.length){
-          ipc.send('reference_complete', {effect: this.effect});
-        };
+        // - error handling!
+        if(err){
+          ipc.send('error', err)
+        } else {
+          // - after the last one, close down the app
+          if(++counter === screenGrabs.length){
+            ipc.send('reference_complete', {effect: this.effect});
+          };
+        }
+
       })
     });
   }
@@ -295,7 +294,11 @@ class ImageComparison {
     // Reference file names consist all necessary values to identify it and use in comparison:
     // effect_name-wgl0-time0.00-turb0-pos0;0;0-rot0.png
     const delimiter = '-';
-    let name = this.effectName+delimiter;
+
+    //crop off any sub folder path
+    const effectName = this.effectName.substr(this.effectName.lastIndexOf('/') + 1);
+
+    let name = effectName+delimiter;
     name += 'wgl' + this.webgl+delimiter;
     name += 'time' + this._round(data.time)+delimiter;
     name += 'turb' + this.turbulance+delimiter;
@@ -362,27 +365,6 @@ class ImageComparison {
       const image = new Image();
       image.src = dataUrl;
       return image;
-  }
-
-  //TODO - don't do this, use load on demand if not an atlas
-  _getAssets(effect){
-    //if its a path then just strip off the file name
-    if(effect.indexOf('/') > -1){
-      effect = effect.substr(effect.lastIndexOf('/') + 1);
-    }
-    switch(effect){
-      case 'water_stream.js':
-        return [{type: 'image', id:'fluid2', path:'./textures/fluid2.png'}];
-      case 'noise.js':
-      case 'non_looped.js':
-      case 'physics_drag_test.js':
-      case 'random_test.js':
-        return [{type: 'image', id:'star_glow_white', path:'./textures/star_glow_white.png'}];
-      case 'stars.js':
-        return [{type: 'atlas', id:'atlas1', path:'./textures/atlas.png', dataPath: 'textures/atlas.json'}];
-      default:
-        return [{type: 'image', id:'star_glow_white', path:'./textures/star_glow_white.png'}];
-    }
   }
 
   _update(){ }

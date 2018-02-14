@@ -77,7 +77,7 @@ function start(){
     console.log('ERROR!'.red.underline.bold)
     console.log(data);
     shutdown();
-  })
+  });
 
   activateTest();
 }
@@ -138,6 +138,7 @@ function getSettings(){
     webgl: 1,
     time_interval: 0.1,//secs
     intervals: 10,
+    atlas: null,
     turbulance: 'none',
     startpos: [400, 300, 0],
     endpos: [400, 300, 0],
