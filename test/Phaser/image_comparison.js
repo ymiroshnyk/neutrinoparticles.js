@@ -136,13 +136,44 @@ class ImageComparison {
   }
 
   _preload() {
-
     //atlases get preloaded
     if(this.atlas){
-      const imagePath = this.atlas + '.png';
-      const dataPath = this.atlas + '.json';
-      game.load.atlas(this.atlas, imagePath, dataPath, Phaser.Loader.TEXTURE_ATLAS_JSON_HASH);
+      if(Array.isArray(atlas)){
+        atlas.forEach(p => this._loadAtlas(p));
+      } else {
+        this._loadAtlas(atlas);
+      }
     }
+  }
+
+  /**
+   *
+   * @param atlasPath
+   * @private
+   */
+  _loadAtlas(atlasPath){
+    console.log('_loadAtlas', atlasPath)
+    //strip off file extension if present
+    const atlas = this._stripFileExtension(atlasPath)
+    const imagePath = atlas + '.png';
+    const dataPath = atlas + '.json';
+    game.load.atlas(this.atlas, imagePath, dataPath, Phaser.Loader.TEXTURE_ATLAS_JSON_HASH);
+  }
+
+  /**
+   *
+   * @param filePath
+   * @returns {*}
+   * @private
+   */
+  _stripFileExtension(filePath){
+    let p = filePath;
+    const pathEnd = filePath.substr(-5);
+    if(pathEnd.indexOf('.') > -1){
+      const index = filePath.lastIndexOf('.');
+      p = filePath.substr(0, index);
+    }
+    return p;
   }
 
   _create(){
