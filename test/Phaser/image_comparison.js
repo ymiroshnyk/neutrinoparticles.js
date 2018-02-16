@@ -31,7 +31,6 @@ class ImageComparison {
 
     this.preload = this._preload.bind(this);
     this.create = this._create.bind(this);
-    this.update = this._update.bind(this);
 
     this._currentTime = 0;
     this.screenGrabs = [];
@@ -48,8 +47,7 @@ class ImageComparison {
       preserveDrawingBuffer: true,
       state: {
         preload: this.preload,
-        create: this.create,
-        update: this.update
+        create: this.create
       }
     });
   }
@@ -177,7 +175,7 @@ class ImageComparison {
   }
 
   _create(){
-    //now all loaded
+
 
     //always call init first
     game.neutrino.init({
@@ -268,7 +266,7 @@ class ImageComparison {
       }
     });
 
-    ipc.send('test-result', { didPass: didPass, results: results });
+    ipc.send('test-result', { didPass: didPass, results: results , effect: this.effectName});
   }
 
   /**
@@ -321,7 +319,7 @@ class ImageComparison {
    * @returns {string}
    * @private
    */
-  _getFileName(data){
+  _createFileName(data){
     // Reference file names consist all necessary values to identify it and use in comparison:
     // effect_name-wgl0-time0.00-turb0-pos0;0;0-rot0.png
     const delimiter = '-';
@@ -358,7 +356,7 @@ class ImageComparison {
       position: this._getPosition(this.testEffect),
       scale: this._getScale(this.testEffect)
     };
-    grab.name = this._getFileName(grab);
+    grab.name = this._createFileName(grab);
     return grab;
   }
 
@@ -397,8 +395,6 @@ class ImageComparison {
       image.src = dataUrl;
       return image;
   }
-
-  _update(){ }
 
   _getStep(a, b){
     return (b - a) / this.intervals;

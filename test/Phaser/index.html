@@ -16,6 +16,10 @@
   <!-- All of the Node.js APIs are available in this renderer process. -->
     <script>
 
+      window.onerror = function(error){
+        ipc.send('error', error);
+      }
+
       ipc.on('settings', (event, args) => {
         console.log('settings: ', args)
         try {
@@ -26,10 +30,6 @@
 
       });
       ipc.send('fetch-settings');
-
-      window.onerror = function(error){
-        ipc.send('error', error);
-      }
 
     </script>
   </body>

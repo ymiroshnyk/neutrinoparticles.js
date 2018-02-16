@@ -57,8 +57,12 @@ function start(){
   });
 
   ipcMain.on('fetch-settings', (event, data) => {
-
     const config = _testQueue.shift();
+    if(config.reference_pass === 1){
+      console.log(('Creating reference for: ' + config.effect).green.underline.bold)
+    } else {
+      console.log(('TESTING EFFECT: ' + config.effect).green.underline.bold)
+    }
     console.log('settings: ',config)
 
     mainWindow.webContents.send('settings', config);
@@ -79,7 +83,11 @@ function start(){
     shutdown();
   });
 
-  activateTest();
+  if(_testQueue.length > 0){
+    activateTest();
+  } else {
+    console.log('ERROR! tests not found'.red.underline.bold)
+  }
 }
 
 function createWindow () {
@@ -120,7 +128,7 @@ function logOutput(data){
     }
   });
   if(data.didPass){
-    console.log('TEST PASSED!'.green.underline.bold)
+    console.log(('TEST PASSED! for ' + data.effect + '\n\n').green.underline.bold)
   } else {
     console.log('TEST FAILED!'.red.underline.bold)
   }
