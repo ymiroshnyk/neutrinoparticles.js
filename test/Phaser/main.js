@@ -50,10 +50,12 @@ function start(){
 
   ipcMain.on('test-result', (event, data) => {
     logOutput(data);
-    mainWindow.close();
-    setTimeout(e=>{
+    console.log('setting timeout...')
+    setTimeout(e => {
+      console.log('timeout called to activate test!')
       activateTest();
-    }, 500)
+    }, 500);
+    mainWindow.close();
   });
 
   ipcMain.on('fetch-settings', (event, data) => {
