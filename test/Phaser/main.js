@@ -38,6 +38,13 @@ function getTestQueue(){
   return files.map(effect => Object.assign({}, settings, {effect}));
 }
 
+function next(){
+    setTimeout(e => {
+        activateTest();
+    }, 500);
+    if(_testQueue.length === 0) mainWindow.close();
+}
+
 function activateTest(){
   if(_testQueue.length > 0){
     createWindow();
@@ -50,10 +57,7 @@ function start(){
 
   ipcMain.on('test-result', (event, data) => {
     logOutput(data);
-    setTimeout(e => {
-      activateTest();
-    }, 500);
-    if(_testQueue.length === 0) mainWindow.close();
+    next();
   });
 
   ipcMain.on('fetch-settings', (event, data) => {
@@ -71,10 +75,7 @@ function start(){
   ipcMain.on('reference_complete', (event, data) => {
     const msg = 'Reference Pass Completed for ' + data.effect;
     console.log(msg.green.underline.bold);
-    mainWindow.close();
-    setTimeout(e=>{
-      activateTest();
-    }, 500)
+    next();
   });
 
   ipcMain.on('error', (event, data) => {
