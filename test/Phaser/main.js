@@ -21,7 +21,7 @@ function getTestQueue(){
   const settings = getSettings();
 
   const effectsDir = __dirname + '/effects/'
-  const config = { cwd: effectsDir, ignore: []}
+  const config = { cwd: effectsDir, ignore: [], nodir: true}
   //allow glob for settings.effect
   let files;
   //allow exclusions

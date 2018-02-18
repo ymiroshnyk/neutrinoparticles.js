@@ -136,10 +136,10 @@ class ImageComparison {
   _preload() {
     //atlases get preloaded
     if(this.atlas){
-      if(Array.isArray(atlas)){
-        atlas.forEach(p => this._loadAtlas(p));
+      if(Array.isArray(this.atlas)){
+          this.atlas.forEach(p => this._loadAtlas(p));
       } else {
-        this._loadAtlas(atlas);
+        this._loadAtlas(this.atlas);
       }
     }
   }
