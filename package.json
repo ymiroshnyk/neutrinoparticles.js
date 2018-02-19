@@ -4,8 +4,7 @@
   "description": "Javascript runtimes for neutrinoparticles",
   "main": "./test/Phaser/main.js",
   "scripts": {
-    "test-phaser": "./node_modules/.bin/electron .",
-    "phaser-rotation": "./node_modules/.bin/electron . endrot=180"
+    "test-phaser": "./node_modules/.bin/electron ."
   },
   "repository": {
     "type": "git",

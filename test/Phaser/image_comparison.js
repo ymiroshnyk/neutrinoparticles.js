@@ -295,7 +295,20 @@ class ImageComparison {
     let counter = 0;
 
     screenGrabs.forEach(grab => {
-      const filePath = this.outputPath + grab.name;
+      let filePath, targetFolder;
+
+      if(grab.subfolder){
+          targetFolder = this.outputPath + grab.subfolder;
+      } else {
+          targetFolder = this.outputPath;
+      }
+      filePath = targetFolder + grab.name;
+      console.log('filePath',filePath);
+
+      //create folder if needed
+      if(!fs.existsSync(targetFolder)){
+        fs.mkdirSync(targetFolder);
+      }
       //console.log('filePath:', filePath)
       fs.writeFile(filePath, grab.data, err => {
         console.log('write', filePath, err)
@@ -311,6 +324,21 @@ class ImageComparison {
 
       })
     });
+  }
+
+  /**
+   *
+   * @param effectName
+   * @returns {*}
+   * @private
+   */
+  _getSubfolder(effectName){
+    const index = effectName.lastIndexOf('/');
+    if(index > -1){
+      return effectName.substr(0, index + 1);
+    } else {
+      return null;
+    }
   }
 
   /**
@@ -354,7 +382,8 @@ class ImageComparison {
       time: this._currentTime,
       rotation: this.testEffect.rotation,
       position: this._getPosition(this.testEffect),
-      scale: this._getScale(this.testEffect)
+      scale: this._getScale(this.testEffect),
+      subfolder: this._getSubfolder(this.effectName)
     };
     grab.name = this._createFileName(grab);
     return grab;
