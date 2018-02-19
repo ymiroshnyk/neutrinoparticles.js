@@ -184,6 +184,9 @@ class ImageComparison {
     // - only generate turbulence if specified in arguments!
     if(this.turbulance === 'gen'){
         game.neutrino.generateTurbulance();
+    } else if(this.turbulance === 'load'){
+      //TODO will need to wait for load to complete, also pass in a path etc
+        game.neutrino.loadTurbulance();
     }
 
     //create the effect model
