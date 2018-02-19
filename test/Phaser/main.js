@@ -12,7 +12,7 @@ const url = require('url')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let mainWindow;
+let mainWindow, holderWindow;
 
 const _testQueue = getTestQueue();
 
@@ -39,10 +39,11 @@ function getTestQueue(){
 }
 
 function next(){
+    mainWindow.close();
     setTimeout(e => {
         activateTest();
     }, 500);
-    if(_testQueue.length === 0) mainWindow.close();
+    // if(_testQueue.length === 0) mainWindow.close();
 }
 
 function activateTest(){
@@ -54,6 +55,7 @@ function activateTest(){
 }
 
 function start(){
+  holderWindow = createHolderWindow();
 
   ipcMain.on('test-result', (event, data) => {
     logOutput(data);
@@ -91,6 +93,16 @@ function start(){
   }
 }
 
+function createHolderWindow () {
+  const holder = new BrowserWindow({width: 10, height: 10});
+    holder.on('closed', function () {
+        // Dereference the window object, usually you would store windows
+        // in an array if your app supports multi windows, this is the time
+        // when you should delete the corresponding element.
+        holderWindow = null
+    });
+    return holder;
+}
 function createWindow () {
 
   // Create the browser window.
@@ -138,6 +150,7 @@ function logOutput(data){
 function shutdown(){
   console.log('shutdown');
   if(mainWindow) mainWindow.close();
+  if(holderWindow) holderWindow.close();
   app.quit();
 }
 
