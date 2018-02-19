@@ -176,13 +176,15 @@ class ImageComparison {
 
   _create(){
 
-
     //always call init first
     game.neutrino.init({
       effects: 'effects/'
     });
 
-    game.neutrino.generateTurbulance();
+    // - only generate turbulence if specified in arguments!
+    if(this.turbulance === 'gen'){
+        game.neutrino.generateTurbulance();
+    }
 
     //create the effect model
     const model = game.neutrino.loadModel(this.effect);
