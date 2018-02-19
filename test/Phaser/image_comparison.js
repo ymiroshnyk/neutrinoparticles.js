@@ -109,7 +109,7 @@ class ImageComparison {
     this.webgl = 1;
     this.time_interval = 0.1;//secs
     this.intervals = 10;
-    this.turbulance = 'none';
+    this.turbulance = 0;//'none';
     this.startpos = [400, 300, 0];
     this.endpos = [400, 300, 0];
     this.startrot = 0;
@@ -182,12 +182,13 @@ class ImageComparison {
     });
 
     // - only generate turbulence if specified in arguments!
-    if(this.turbulance === 'gen'){
+    if(this.turbulance === 1 || this.turbulance === '1'){
         game.neutrino.generateTurbulance();
-    } else if(this.turbulance === 'load'){
-      //TODO will need to wait for load to complete, also pass in a path etc
-        game.neutrino.loadTurbulance();
     }
+    // else if(this.turbulance === 'load'){
+    //   //TODO will need to wait for load to complete, also pass in a path etc
+    //     game.neutrino.loadTurbulance();
+    // }
 
     //create the effect model
     const model = game.neutrino.loadModel(this.effect);
@@ -362,7 +363,7 @@ class ImageComparison {
 
     let name = effectName+delimiter;
     name += 'wgl' + this.webgl+delimiter;
-    name += 'time' + this._round(data.time)+delimiter;
+    name += 'time' + this._getTimeString(data.time)+delimiter;
     name += 'turb' + this.turbulance+delimiter;
     name += 'pos' + this._roundArray(data.position)+delimiter;
     name += 'rot' + this._round(data.rotation)+delimiter;
@@ -401,6 +402,16 @@ class ImageComparison {
   _round(value){
     return Math.round(value * 100) / 100;
   }
+
+  _getTimeString(input) {
+      const value = this._round(input).toString();
+      if (value.indexOf('.') === -1) {
+        return value + '.0';
+      } else {
+        return value;
+      }
+  }
+
 
   _getPosition(target){
     return [
