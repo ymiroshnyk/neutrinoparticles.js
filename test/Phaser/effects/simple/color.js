@@ -1,4 +1,4 @@
-// 42771a11-8ac0-463d-ac92-02af745f464c
+// abf102d2-0aca-42ae-a9fa-02669105dd34
 
 function NeutrinoEffect(ctx) {
 
@@ -1104,101 +1104,107 @@ function NeutrinoEffect(ctx) {
 		Ld._init(this, /**/position, /**/rotation);
 		return Ld;
 	}
-	this.textures = ['star_glow_white.png'];
+	this.textures = ['test0.png'];
 	this.materials = [0];
 	this.renderStyles = [{materialIndex:0,textureIndices:[0]}];
 	this.Xe = 100;
 
 	function Emitter_DefaultEmitter() {
 
-		var _1 = [], _3 = [], _5=[], _5fs=[], _5vs=[], _5rw=[], _5rwn=[], _5rwl, _5v=[], _5p=[], _5dtl, _5dtp, _5df, _5fsd=[], _7=[], _7x=[], _7y=[], _7z=[], _8, _6;
-		this.pe = [{xe:1,Rc:1,Sc:1,renderStyleIndex:0}];
+		var _1 = [], _3 = [], _6, _7 = [], _7i0, _7s0 = [], _7i1, _7s1 = [], _7i2, _7s2 = [], _9=[], _11, _10;
+		this.pe = [{xe:0,Rc:1,Sc:1,renderStyleIndex:0}];
 		this.name = "DefaultEmitter";
 
 		this.ud = function(Bd) {
 			Bd.dd();
+			Bd._7 = [
+				[
+					[1,1,1]
+				],
+				[
+					[0,1,1]
+				],
+				[
+					[0,0,0]
+				]
+			];
 			Bd.jd = 100;
 			Bd.Vc = 0;
 		}
 
 		this.Mb = function(vd) {
-			vd.zb = 0.5;
+			vd.zb = 5;
 			vd.Gb = 1;
-			vd.Jb = 5;
+			vd.Jb = 1;
 		}
 
 		this.Pb = function(Qb, Bd, vd) {
-			vd.zb = 0.5;
+			vd.zb = 5;
 		}
 
 		this.fd = function(Bd, Xb) {
-			Xb.Mc=[];
 			Xb._ = 0.0;
 			ctx.W(_1, 0, 0, 0);
 			Xb._2 = [];
 			ctx.c(Xb._2, Bd.Ab, _1);
-			ctx.randv3gen(_3, 1000, Bd.Ld.rand);
+			ctx.randv3gen(_3, 100, Bd.Ld.rand);
 			Xb._4 = [];
 			ctx.T(Xb._4, _3);
+			Xb._5 = 0;
+			_6 = 0 + Bd.Ld.rand() * (1 - 0);
+			_7i0=(_6<0?0:(_6>1?1:_6));
+			ctx.V(_7s0,0,(_7i0-0)*1);
+			_7i1=(_6<0?0:(_6>1?1:_6));
+			ctx.V(_7s1,0,(_7i1-0)*1);
+			_7i2=(_6<0?0:(_6>1?1:_6));
+			ctx.V(_7s2,0,(_7i2-0)*1);
+			ctx.W(_7, Db.nb(Bd._7[0][_7s0[0]],_7s0[1]),Db.nb(Bd._7[1][_7s1[0]],_7s1[1]),Db.nb(Bd._7[2][_7s2[0]],_7s2[1]));
+			Xb._8 = [];
+			ctx.T(Xb._8, _7);
 			ctx.T(Xb.Ab, Xb._2);
 		}
 
 		this.gd = function(Bd, Xb) {
-			Xb.Mc=[];
 			Xb._ = 0.0;
 			ctx.W(_1, 0, 0, 0);
 			Xb._2 = [];
 			ctx.c(Xb._2, Bd.Ab, _1);
-			ctx.randv3gen(_3, 1000, Bd.Ld.rand);
+			ctx.randv3gen(_3, 100, Bd.Ld.rand);
 			Xb._4 = [];
 			ctx.T(Xb._4, _3);
+			Xb._5 = 0;
+			_6 = 0 + Bd.Ld.rand() * (1 - 0);
+			_7i0=(_6<0?0:(_6>1?1:_6));
+			ctx.V(_7s0,0,(_7i0-0)*1);
+			_7i1=(_6<0?0:(_6>1?1:_6));
+			ctx.V(_7s1,0,(_7i1-0)*1);
+			_7i2=(_6<0?0:(_6>1?1:_6));
+			ctx.V(_7s2,0,(_7i2-0)*1);
+			ctx.W(_7, Db.nb(Bd._7[0][_7s0[0]],_7s0[1]),Db.nb(Bd._7[1][_7s1[0]],_7s1[1]),Db.nb(Bd._7[2][_7s2[0]],_7s2[1]));
+			Xb._8 = [];
+			ctx.T(Xb._8, _7);
 			ctx.T(Xb.Ab, Xb._2);
 		}
 
 		this.qc = function(Qb, Bd, Xb) {
 			Xb._ += Qb;
-			ctx.T(_5fs, [0,0,0]);
-			ctx.T(_5vs, [0,0,0]);
-			_5dtl = Qb;
-			ctx.T(_5v, Xb._4);
-			ctx.T(_5p, Xb._2);
-			while (_5dtl > 0.0001) {
-				_5dtp = _5dtl;
-				ctx.T(_5fsd, _5fs);
-				ctx.g(_5rw, _5vs, _5v);
-				_5rwl = ctx.P(_5rw);
-				if (_5rwl > 0.0001) {
-					_5rwl = Math.sqrt(_5rwl);
-					ctx.w(_5rwn, _5rw, _5rwl);
-					_5df = 0.01 * 1 * _5rwl;
-					if (_5df * _5dtp > 0.2) 
-						_5dtp = 0.2 / _5df;
-					ctx.c(_5fsd, _5fsd, ctx.v(_5rwn, _5rwl * _5df));
-				}
-				ctx.c(_5v, _5v, ctx.v(_5fsd, _5dtp));
-				ctx.c(_5p, _5p, ctx.v(_5v, _5dtp));
-				_5dtl -= _5dtp;
-			}
-			ctx.T(Xb._2, _5p);
-			ctx.T(Xb._4, _5v);
+			ctx.T(_9, Xb._4);
+			ctx.u(_9, _9, Qb);
+			ctx.c(_9, _9, Xb._2);
+			ctx.T(Xb._2, _9);
 			ctx.T(Xb.Ab, Xb._2);
-			ctx.Q(_7z, [0,0,1]);
-			ctx.I(_7y, _7z, Xb._4);
-			ctx.Q(_7y, _7y);
-			ctx.I(_7x, _7y, _7z);
-			ctx.pb(_7, _7x, _7y, _7z);
-			_8 = 30;
+			_11 = 30;
 			ctx.S(Xb.Pd,[0.5,0.5]);
-			ctx.U(Xb.Mc, _7);
-			ctx.V(Xb.Nd,_8,_8);
-			ctx.T(Xb.gf,[1,1,1]);
+			Xb.Md = Xb._5;
+			ctx.V(Xb.Nd,_11,_11);
+			ctx.T(Xb.gf,Xb._8);
 			Xb.Od = 1;
 			Xb.Qc = 0;
 		}
 
 		this.Cc = function(Bd, Xb, Wc) {
-			_6 = 4;
-			return Xb._ > _6;
+			_10 = 2;
+			return Xb._ > _10;
 		}
 
 
@@ -1207,8 +1213,10 @@ function NeutrinoEffect(ctx) {
 	this.qd = function(Ld) {
 		Ld.Dd = 0.0333333;
 		Ld.Ud = 0;
-		Ld.taus88 = new ctx.taus88(100);
+		Ld.taus88 = new ctx.taus88(0);
 		Ld.rand = function() { return Ld.taus88.rand(); }
 		Ld.pd(new Emitter_DefaultEmitter());
 	}
+			this.nb = function(funcValues, je) { 				var indexInt = Math.floor(je); 				var nextInt = indexInt + 1; 				return ctx.X(funcValues[indexInt], funcValues[nextInt], je - indexInt); 			}
+
 }

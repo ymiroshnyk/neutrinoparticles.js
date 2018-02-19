@@ -1,4 +1,4 @@
-// 3cf30122-7679-4de4-b8b0-99be89410d13
+// 3964e570-8ec6-4462-90f6-423d8f0ffcf8
 
 function NeutrinoEffect(ctx) {
 
@@ -1104,22 +1104,19 @@ function NeutrinoEffect(ctx) {
 		Ld._init(this, /**/position, /**/rotation);
 		return Ld;
 	}
-	this.textures = ['stars4x4.png','star_glow_white.png'];
+	this.textures = ['test0.png'];
 	this.materials = [0];
-	this.renderStyles = [{materialIndex:0,textureIndices:[0]},{materialIndex:0,textureIndices:[1]}];
-	this.Xe = 200;
+	this.renderStyles = [{materialIndex:0,textureIndices:[0]}];
+	this.Xe = 100;
 
-	function Emitter_Stars_from_grid() {
+	function Emitter_DefaultEmitter() {
 
-		var _1, _2 = [], _2i, _2s = [], _3 = [], _5 = [], _7, _9, _11, _13=[], _14, _16, _15;
-		this.pe = [{xe:0,Rc:2,Sc:2,renderStyleIndex:0}];
-		this.name = "Stars_from_grid";
+		var _1 = [], _3 = [], _6=[], _6a=[], _6i=[], _7=[], _7fs=[], _7vs=[], _7rw=[], _7rwn=[], _7rwl, _7v=[], _7p=[], _7dtl, _7dtp, _7df, _7fsd=[], _9, _8;
+		this.pe = [{xe:0,Rc:1,Sc:1,renderStyleIndex:0}];
+		this.name = "DefaultEmitter";
 
 		this.ud = function(Bd) {
 			Bd.dd();
-			Bd._2 = [
-				[[-200,200],[-199,-200],[-199,-200]]
-			];
 			Bd.jd = 100;
 			Bd.Vc = 0;
 		}
@@ -1136,195 +1133,58 @@ function NeutrinoEffect(ctx) {
 
 		this.fd = function(Bd, Xb) {
 			Xb._ = 0.0;
-			_1 = 0 + Bd.Ld.rand() * (1 - 0);
-			_2i = Db.kb(_1);
-			ctx.V(_2s,0,(_2i-0)*1);
-			Db.lb(_2, Bd._2[_2s[0]], _2s[1]);
-			ctx.W(_3, _2[0], _2[1], 0);
+			ctx.W(_1, 0, 0, 0);
+			Xb._2 = [];
+			ctx.c(Xb._2, Bd.Ab, _1);
+			ctx.randv3gen(_3, 100, Bd.Ld.rand);
 			Xb._4 = [];
-			ctx.rb(Xb._4, _3, Bd.Mc);
-			ctx.c(Xb._4, Bd.Ab, Xb._4);
-			ctx.randv3gen(_5, 10, Bd.Ld.rand);
-			Xb._6 = [];
-			ctx.rb(Xb._6, _5, Bd.Mc);
-			ctx.c(Xb._6, Bd.ad, Xb._6);
-			_7 = 0 + Bd.Ld.rand() * (360 - 0);
-			Xb._8 = _7;
-			_9 = 0 + Bd.Ld.rand() * (4 - 0);
-			Xb._10 = _9;
-			_11 = -60 + Bd.Ld.rand() * (60 - -60);
-			Xb._12 = _11;
-			ctx.T(Xb.Ab, Xb._4);
+			ctx.T(Xb._4, _3);
+			Xb._5 = 0;
+			ctx.T(Xb.Ab, Xb._2);
 		}
 
 		this.gd = function(Bd, Xb) {
 			Xb._ = 0.0;
-			_1 = 0 + Bd.Ld.rand() * (1 - 0);
-			_2i = Db.kb(_1);
-			ctx.V(_2s,0,(_2i-0)*1);
-			Db.lb(_2, Bd._2[_2s[0]], _2s[1]);
-			ctx.W(_3, _2[0], _2[1], 0);
+			ctx.W(_1, 0, 0, 0);
+			Xb._2 = [];
+			ctx.c(Xb._2, Bd.Ab, _1);
+			ctx.randv3gen(_3, 100, Bd.Ld.rand);
 			Xb._4 = [];
-			ctx.rb(Xb._4, _3, Bd.Mc);
-			ctx.c(Xb._4, Bd.Ab, Xb._4);
-			ctx.randv3gen(_5, 10, Bd.Ld.rand);
-			Xb._6 = [];
-			ctx.rb(Xb._6, _5, Bd.Mc);
-			ctx.c(Xb._6, Bd.ad, Xb._6);
-			_7 = 0 + Bd.Ld.rand() * (360 - 0);
-			Xb._8 = _7;
-			_9 = 0 + Bd.Ld.rand() * (4 - 0);
-			Xb._10 = _9;
-			_11 = -60 + Bd.Ld.rand() * (60 - -60);
-			Xb._12 = _11;
-			ctx.T(Xb.Ab, Xb._4);
+			ctx.T(Xb._4, _3);
+			Xb._5 = 0;
+			ctx.T(Xb.Ab, Xb._2);
 		}
 
 		this.qc = function(Qb, Bd, Xb) {
 			Xb._ += Qb;
-			ctx.T(_13, Xb._6);
-			ctx.u(_13, _13, Qb);
-			ctx.c(_13, _13, Xb._4);
-			ctx.T(Xb._4, _13);
-			_14 = Xb._8 + Qb * Xb._12;
-			Xb._8 = _14;
-			ctx.T(Xb.Ab, Xb._4);
-			_16 = 30;
+			ctx.u(_6a, [100,50,30], Bd.Ld.Rb);
+			ctx.c(_6a, _6a, Xb._2);
+			ctx.u(_6i, _6a, 1.0 / 1000); 
+			ctx.xb(_6, _6i);
+			ctx.k(_6, _6, [0.0078125,0.0078125,0.0078125]);
+			ctx.c(_6, _6, [-1,-1,-1]);
+			ctx.u(_6, _6, 200);
+			ctx.T(_7fs, _6);
+			ctx.T(_7vs, [0,0,0]);
+			ctx.u(_7v, _7fs, Qb);
+			ctx.c(_7v, _7v, Xb._4);
+			ctx.u(_7p, _7v, Qb);
+			ctx.c(_7p, _7p, Xb._2);
+			ctx.T(Xb._2, _7p);
+			ctx.T(Xb._4, _7v);
+			ctx.T(Xb.Ab, Xb._2);
+			_9 = 30;
 			ctx.S(Xb.Pd,[0.5,0.5]);
-			Xb.Md = Xb._8;
-			ctx.V(Xb.Nd,_16,_16);
+			Xb.Md = Xb._5;
+			ctx.V(Xb.Nd,_9,_9);
 			ctx.T(Xb.gf,[1,1,1]);
-			Xb.Od = 1;
-			Xb.Qc = Xb._10;
-		}
-
-		this.Cc = function(Bd, Xb, Wc) {
-			_15 = 2;
-			return Xb._ > _15;
-		}
-
-
-	}
-
-	function Emitter_Simple_star() {
-
-		var _1, _2 = [], _2i, _2s = [], _3 = [], _5 = [], _7, _9, _10 = [], _10i0, _10s0 = [], _10i1, _10s1 = [], _10i2, _10s2 = [], _12, _14=[], _15, _17, _16;
-		this.pe = [{xe:0,Rc:1,Sc:1,renderStyleIndex:1}];
-		this.name = "Simple_star";
-
-		this.ud = function(Bd) {
-			Bd.dd();
-			Bd._2 = [
-				[[199,-198],[202,199],[202,199]]
-			];
-			Bd._10 = [
-				[
-					[1,1,1]
-				],
-				[
-					[0,1,1]
-				],
-				[
-					[0,0,0]
-				]
-			];
-			Bd.jd = 100;
-			Bd.Vc = 0;
-		}
-
-		this.Mb = function(vd) {
-			vd.zb = 5;
-			vd.Gb = 1;
-			vd.Jb = 1;
-		}
-
-		this.Pb = function(Qb, Bd, vd) {
-			vd.zb = 5;
-		}
-
-		this.fd = function(Bd, Xb) {
-			Xb._ = 0.0;
-			_1 = 0 + Bd.Ld.rand() * (1 - 0);
-			_2i = Db.kb(_1);
-			ctx.V(_2s,0,(_2i-0)*1);
-			Db.lb(_2, Bd._2[_2s[0]], _2s[1]);
-			ctx.W(_3, _2[0], _2[1], 0);
-			Xb._4 = [];
-			ctx.rb(Xb._4, _3, Bd.Mc);
-			ctx.c(Xb._4, Bd.Ab, Xb._4);
-			ctx.randv3gen(_5, 10, Bd.Ld.rand);
-			Xb._6 = [];
-			ctx.rb(Xb._6, _5, Bd.Mc);
-			ctx.c(Xb._6, Bd.ad, Xb._6);
-			_7 = 0 + Bd.Ld.rand() * (360 - 0);
-			Xb._8 = _7;
-			_9 = 0 + Bd.Ld.rand() * (1 - 0);
-			_10i0=(_9<0?0:(_9>1?1:_9));
-			ctx.V(_10s0,0,(_10i0-0)*1);
-			_10i1=(_9<0?0:(_9>1?1:_9));
-			ctx.V(_10s1,0,(_10i1-0)*1);
-			_10i2=(_9<0?0:(_9>1?1:_9));
-			ctx.V(_10s2,0,(_10i2-0)*1);
-			ctx.W(_10, Db.nb(Bd._10[0][_10s0[0]],_10s0[1]),Db.nb(Bd._10[1][_10s1[0]],_10s1[1]),Db.nb(Bd._10[2][_10s2[0]],_10s2[1]));
-			Xb._11 = [];
-			ctx.T(Xb._11, _10);
-			_12 = -60 + Bd.Ld.rand() * (60 - -60);
-			Xb._13 = _12;
-			ctx.T(Xb.Ab, Xb._4);
-		}
-
-		this.gd = function(Bd, Xb) {
-			Xb._ = 0.0;
-			_1 = 0 + Bd.Ld.rand() * (1 - 0);
-			_2i = Db.kb(_1);
-			ctx.V(_2s,0,(_2i-0)*1);
-			Db.lb(_2, Bd._2[_2s[0]], _2s[1]);
-			ctx.W(_3, _2[0], _2[1], 0);
-			Xb._4 = [];
-			ctx.rb(Xb._4, _3, Bd.Mc);
-			ctx.c(Xb._4, Bd.Ab, Xb._4);
-			ctx.randv3gen(_5, 10, Bd.Ld.rand);
-			Xb._6 = [];
-			ctx.rb(Xb._6, _5, Bd.Mc);
-			ctx.c(Xb._6, Bd.ad, Xb._6);
-			_7 = 0 + Bd.Ld.rand() * (360 - 0);
-			Xb._8 = _7;
-			_9 = 0 + Bd.Ld.rand() * (1 - 0);
-			_10i0=(_9<0?0:(_9>1?1:_9));
-			ctx.V(_10s0,0,(_10i0-0)*1);
-			_10i1=(_9<0?0:(_9>1?1:_9));
-			ctx.V(_10s1,0,(_10i1-0)*1);
-			_10i2=(_9<0?0:(_9>1?1:_9));
-			ctx.V(_10s2,0,(_10i2-0)*1);
-			ctx.W(_10, Db.nb(Bd._10[0][_10s0[0]],_10s0[1]),Db.nb(Bd._10[1][_10s1[0]],_10s1[1]),Db.nb(Bd._10[2][_10s2[0]],_10s2[1]));
-			Xb._11 = [];
-			ctx.T(Xb._11, _10);
-			_12 = -60 + Bd.Ld.rand() * (60 - -60);
-			Xb._13 = _12;
-			ctx.T(Xb.Ab, Xb._4);
-		}
-
-		this.qc = function(Qb, Bd, Xb) {
-			Xb._ += Qb;
-			ctx.T(_14, Xb._6);
-			ctx.u(_14, _14, Qb);
-			ctx.c(_14, _14, Xb._4);
-			ctx.T(Xb._4, _14);
-			_15 = Xb._8 + Qb * Xb._13;
-			Xb._8 = _15;
-			ctx.T(Xb.Ab, Xb._4);
-			_17 = 30;
-			ctx.S(Xb.Pd,[0.5,0.5]);
-			Xb.Md = Xb._8;
-			ctx.V(Xb.Nd,_17,_17);
-			ctx.T(Xb.gf,Xb._11);
 			Xb.Od = 1;
 			Xb.Qc = 0;
 		}
 
 		this.Cc = function(Bd, Xb, Wc) {
-			_16 = 2;
-			return Xb._ > _16;
+			_8 = 2;
+			return Xb._ > _8;
 		}
 
 
@@ -1333,14 +1193,8 @@ function NeutrinoEffect(ctx) {
 	this.qd = function(Ld) {
 		Ld.Dd = 0.0333333;
 		Ld.Ud = 0;
-		Ld.rand = function() { return Math.random(); };
-		Ld.pd(new Emitter_Stars_from_grid());
-		Ld.pd(new Emitter_Simple_star());
+		Ld.taus88 = new ctx.taus88(0);
+		Ld.rand = function() { return Ld.taus88.rand(); }
+		Ld.pd(new Emitter_DefaultEmitter());
 	}
-			this.kb = function (v) { 				return (v < 0) ? 0 : ((v > 1) ? 1 : v); 			}
-
-			this.lb = function (r, path, je) { 				var indexInt = Math.floor(je); 				var lerp = je - indexInt; 				ctx.Y(r, path[indexInt], path[indexInt + 1], lerp); 			}
-
-			this.nb = function(funcValues, je) { 				var indexInt = Math.floor(je); 				var nextInt = indexInt + 1; 				return ctx.X(funcValues[indexInt], funcValues[nextInt], je - indexInt); 			}
-
 }
