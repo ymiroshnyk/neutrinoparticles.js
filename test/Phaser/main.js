@@ -157,7 +157,7 @@ function shutdown(){
 function getSettings(){
 
   const settings = {
-    effect: 'water_stream.js',
+    effect: '**/*',
     webgl: 1,
     time_interval: 0.1,//secs
     intervals: 10,
