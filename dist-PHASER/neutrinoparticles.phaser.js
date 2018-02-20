@@ -55,7 +55,7 @@ var PhaserNeutrino = function () {
     }
   }, {
     key: "loadTurbulance",
-    value: function loadTurbulance() {}
+    value: function loadTurbulance(path) {}
     //TODO -
 
 
@@ -325,6 +325,8 @@ var PhaserNeutrinoEffect = function (_Phaser$Group) {
 
 var PhaserNeutrinoEffectModel = function () {
   function PhaserNeutrinoEffectModel(context, effectPath) {
+    var _this2 = this;
+
     _classCallCheck(this, PhaserNeutrinoEffectModel);
 
     this.ctx = context;
@@ -333,11 +335,23 @@ var PhaserNeutrinoEffectModel = function () {
     this.numTexturesToLoadLeft = -1;
     this.texturesRemap = null;
 
+    this._names = {};
+
     this.onReady = new Phaser.Signal();
 
     var pixiNeutrinoEffect = this;
     this.ctx.neutrino.loadEffect(this.ctx.effectsBasePath + effectPath, function (effectModel) {
       pixiNeutrinoEffect._onEffectLoaded(effectModel);
+    });
+
+    game.load.onFileComplete.add(function (progress, key, success) {
+      //console.log('onFileComplete', progress, key, success)
+      var _names$key = _this2._names[key],
+          texturePath = _names$key.texturePath,
+          imageIndex = _names$key.imageIndex;
+
+      var tx = _this2._getNewTexture(texturePath);
+      _this2._onTextureLoaded(imageIndex, tx);
     });
   }
 
@@ -392,7 +406,7 @@ var PhaserNeutrinoEffectModel = function () {
   }, {
     key: "_onEffectLoaded",
     value: function _onEffectLoaded(effectModel) {
-      var _this2 = this;
+      var _this3 = this;
 
       this.effectModel = effectModel;
       this.textures = [];
@@ -416,7 +430,7 @@ var PhaserNeutrinoEffectModel = function () {
                 return function () {
                   self._onTextureLoaded(imageIndex, texture);
                 };
-              }(_this2, imageIndex, texture);
+              }(_this3, imageIndex, texture);
               texture.on('update', callback);
             })();
           }
@@ -435,14 +449,10 @@ var PhaserNeutrinoEffectModel = function () {
   }, {
     key: "_loadTexture",
     value: function _loadTexture(texturePath, imageIndex) {
-      var _this3 = this;
-
       var key = this._getKey(texturePath);
+      this._names[key] = { texturePath: texturePath, imageIndex: imageIndex };
+      //console.log('_loadTexture', this.ctx.texturesBasePath + texturePath)
       var loader = game.load.image(key, this.ctx.texturesBasePath + texturePath);
-      loader.onFileComplete.add(function (e) {
-        var tx = _this3._getNewTexture(texturePath);
-        _this3._onTextureLoaded(imageIndex, tx);
-      });
       loader.start();
       return loader;
     }
@@ -478,6 +488,7 @@ var PhaserNeutrinoEffectModel = function () {
   }, {
     key: "_isSubtexture",
     value: function _isSubtexture(texture) {
+      if (!texture) return false;
       return texture.frame.width < texture.baseTexture.width || texture.frame.height < texture.baseTexture.height;
     }
   }, {

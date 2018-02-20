@@ -8,12 +8,22 @@ class PhaserNeutrinoEffectModel {
     this.numTexturesToLoadLeft = -1;
     this.texturesRemap = null;
 
+    this._names = {};
+
     this.onReady = new Phaser.Signal();
 
     var pixiNeutrinoEffect = this;
     this.ctx.neutrino.loadEffect(this.ctx.effectsBasePath + effectPath, function (effectModel) {
       pixiNeutrinoEffect._onEffectLoaded(effectModel);
     });
+
+    game.load.onFileComplete.add((progress, key, success) => {
+        //console.log('onFileComplete', progress, key, success)
+        const {texturePath, imageIndex} = this._names[key];
+        const tx = this._getNewTexture(texturePath);
+        this._onTextureLoaded(imageIndex, tx);
+    });
+
   }
 
   get isReady(){
@@ -102,11 +112,9 @@ class PhaserNeutrinoEffectModel {
    */
   _loadTexture(texturePath, imageIndex) {
     const key = this._getKey(texturePath);
+    this._names[key] = {texturePath, imageIndex};
+    //console.log('_loadTexture', this.ctx.texturesBasePath + texturePath)
     const loader = game.load.image(key, this.ctx.texturesBasePath + texturePath);
-    loader.onFileComplete.add(e => {
-      const tx = this._getNewTexture(texturePath);
-      this._onTextureLoaded(imageIndex, tx);
-    });
     loader.start();
     return loader;
   }
@@ -139,9 +147,9 @@ class PhaserNeutrinoEffectModel {
   }
 
   _isSubtexture(texture){
+    if(!texture) return false;
     return texture.frame.width < texture.baseTexture.width || texture.frame.height < texture.baseTexture.height;
   }
-
 
   _initTexturesRemapIfNeeded() {
     let remapNeeded = false;
