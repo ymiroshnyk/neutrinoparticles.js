@@ -1,4 +1,4 @@
-// 7b3854cb-a279-4f12-b5e1-4df98cf0b4c3
+// 92d0441b-4aca-476b-872f-57ed22ca44cf
 
 function NeutrinoEffect(ctx) {
 
@@ -1104,87 +1104,79 @@ function NeutrinoEffect(ctx) {
 		Ld._init(this, /**/position, /**/rotation);
 		return Ld;
 	}
-	this.textures = ['star_glow_white.png'];
+	this.textures = ['test0.png'];
 	this.materials = [0];
 	this.renderStyles = [{materialIndex:0,textureIndices:[0]}];
-	this.Xe = 1000;
+	this.Xe = 100;
 
 	function Emitter_DefaultEmitter() {
 
-		var _1 = [], _3 = [], _6=[], _6a=[], _6i=[], _7=[], _7fs=[], _7vs=[], _7rw=[], _7rwn=[], _7rwl, _7v=[], _7p=[], _7dtl, _7dtp, _7df, _7fsd=[], _9, _8;
+		var _1, _2 = [], _2i, _2s = [], _3 = [], _7, _6;
 		this.pe = [{xe:0,Rc:1,Sc:1,renderStyleIndex:0}];
 		this.name = "DefaultEmitter";
 
 		this.ud = function(Bd) {
 			Bd.dd();
-			Bd.jd = 1000;
+			Bd._2 = [
+				[[-200,0],[-100,-202],[-100,-202]],
+				[[-100,-202],[-92.7306,-170.221],[-84.5118,-138.682],[-75.1593,-107.462],[-64.4275,-76.6872],[-51.9835,-46.5705],[-37.3549,-17.4531],[-19.8799,10.0368],[1.33874,34.7238],[27.2242,54.3906],[57.6542,65.6396],[90.0953,66.084],[121.322,57.0512],[149.985,41.6189],[176.093,22.1385],[200,-3.51126e-05],[200,-3.51126e-05]],
+				[[201,-161],[22,-251],[22,-251]]
+			];
+			Bd.jd = 100;
 			Bd.Vc = 0;
 		}
 
 		this.Mb = function(vd) {
-			vd.zb = 100;
+			vd.zb = 50;
 			vd.Gb = 1;
 			vd.Jb = 1;
 		}
 
 		this.Pb = function(Qb, Bd, vd) {
-			vd.zb = 100;
+			vd.zb = 50;
 		}
 
 		this.fd = function(Bd, Xb) {
 			Xb._ = 0.0;
-			ctx.W(_1, 0, 0, 0);
-			Xb._2 = [];
-			ctx.c(Xb._2, Bd.Ab, _1);
-			ctx.randv3gen(_3, 10, Bd.Ld.rand);
+			_1 = 0 + Bd.Ld.rand() * (1 - 0);
+			_2i = Db.kb(_1);
+			_2i<0.780805?_2i<0.246595?ctx.V(_2s,0,(_2i-0)*4.05523):ctx.V(_2s,1,(_2i-0.246595)*28.0788):ctx.V(_2s,2,(_2i-0.780805)*4.56215);
+			Db.lb(_2, Bd._2[_2s[0]], _2s[1]);
+			ctx.W(_3, _2[0], _2[1], 0);
 			Xb._4 = [];
-			ctx.T(Xb._4, _3);
+			ctx.c(Xb._4, Bd.Ab, _3);
 			Xb._5 = 0;
-			ctx.T(Xb.Ab, Xb._2);
+			ctx.T(Xb.Ab, Xb._4);
 		}
 
 		this.gd = function(Bd, Xb) {
 			Xb._ = 0.0;
-			ctx.W(_1, 0, 0, 0);
-			Xb._2 = [];
-			ctx.c(Xb._2, Bd.Ab, _1);
-			ctx.randv3gen(_3, 10, Bd.Ld.rand);
+			_1 = 0 + Bd.Ld.rand() * (1 - 0);
+			_2i = Db.kb(_1);
+			_2i<0.780805?_2i<0.246595?ctx.V(_2s,0,(_2i-0)*4.05523):ctx.V(_2s,1,(_2i-0.246595)*28.0788):ctx.V(_2s,2,(_2i-0.780805)*4.56215);
+			Db.lb(_2, Bd._2[_2s[0]], _2s[1]);
+			ctx.W(_3, _2[0], _2[1], 0);
 			Xb._4 = [];
-			ctx.T(Xb._4, _3);
+			ctx.c(Xb._4, Bd.Ab, _3);
 			Xb._5 = 0;
-			ctx.T(Xb.Ab, Xb._2);
+			ctx.T(Xb.Ab, Xb._4);
 		}
 
 		this.qc = function(Qb, Bd, Xb) {
 			Xb._ += Qb;
-			ctx.u(_6a, [100,50,30], Bd.Ld.Rb);
-			ctx.c(_6a, _6a, Xb._2);
-			ctx.u(_6i, _6a, 1.0 / 1000); 
-			ctx.xb(_6, _6i);
-			ctx.k(_6, _6, [0.0078125,0.0078125,0.0078125]);
-			ctx.c(_6, _6, [-1,-1,-1]);
-			ctx.u(_6, _6, 200);
-			ctx.T(_7fs, _6);
-			ctx.T(_7vs, [0,0,0]);
-			ctx.u(_7v, _7fs, Qb);
-			ctx.c(_7v, _7v, Xb._4);
-			ctx.u(_7p, _7v, Qb);
-			ctx.c(_7p, _7p, Xb._2);
-			ctx.T(Xb._2, _7p);
-			ctx.T(Xb._4, _7v);
-			ctx.T(Xb.Ab, Xb._2);
-			_9 = 10;
+			ctx.T(Xb.Ab, Xb._4);
+			_7 = 30;
 			ctx.S(Xb.Pd,[0.5,0.5]);
 			Xb.Md = Xb._5;
-			ctx.V(Xb.Nd,_9,_9);
+			ctx.V(Xb.Nd,_7,_7);
 			ctx.T(Xb.gf,[1,1,1]);
 			Xb.Od = 1;
 			Xb.Qc = 0;
 		}
 
 		this.Cc = function(Bd, Xb, Wc) {
-			_8 = 5;
-			return Xb._ > _8;
+			_6 = 2;
+			return Xb._ > _6;
 		}
 
 
@@ -1197,4 +1189,8 @@ function NeutrinoEffect(ctx) {
 		Ld.rand = function() { return Ld.taus88.rand(); }
 		Ld.pd(new Emitter_DefaultEmitter());
 	}
+			this.kb = function (v) { 				return (v < 0) ? 0 : ((v > 1) ? 1 : v); 			}
+
+			this.lb = function (r, path, je) { 				var indexInt = Math.floor(je); 				var lerp = je - indexInt; 				ctx.Y(r, path[indexInt], path[indexInt + 1], lerp); 			}
+
 }

@@ -1,4 +1,4 @@
-// ce72ef2d-5414-42ec-a88c-b15c51f79873
+// dbd15b3e-6ec6-4419-8c23-fd964f372741
 
 function NeutrinoEffect(ctx) {
 
@@ -1104,35 +1104,19 @@ function NeutrinoEffect(ctx) {
 		Ld._init(this, /**/position, /**/rotation);
 		return Ld;
 	}
-	this.textures = ['star_glow_white.png'];
+	this.textures = ['test0.png'];
 	this.materials = [0];
 	this.renderStyles = [{materialIndex:0,textureIndices:[0]}];
 	this.Xe = 100;
 
 	function Emitter_DefaultEmitter() {
 
-		var _1 = [], _3 = [], _6, _7 = [], _7i0, _7s0 = [], _7i1, _7s1 = [], _7i2, _7s2 = [], _9 = [], _10=[], _10fs=[], _10vs=[], _10rw=[], _10rwn=[], _10rwl, _10v=[], _10p=[], _10dtl, _10dtp, _10df, _10fsd=[], _12, _11, _13, _14, _14i0, _14s0 = [], _15;
-		this.pe = [{xe:0,Rc:1,Sc:1,renderStyleIndex:0}];
+		var _1 = [], _3 = [], _6, _8=[], _10, _9;
+		this.pe = [{xe:0,Rc:2,Sc:2,renderStyleIndex:0}];
 		this.name = "DefaultEmitter";
 
 		this.ud = function(Bd) {
 			Bd.dd();
-			Bd._7 = [
-				[
-					[1,1,1]
-				],
-				[
-					[0,1,1]
-				],
-				[
-					[0,0,0]
-				]
-			];
-			Bd._14 = [
-				[
-					[1,0,0]
-				]
-			];
 			Bd.jd = 100;
 			Bd.Vc = 0;
 		}
@@ -1140,8 +1124,7 @@ function NeutrinoEffect(ctx) {
 		this.Mb = function(vd) {
 			vd.zb = 5;
 			vd.Gb = 1;
-			vd.Jb = 100;
-			vd.Ib = 1;
+			vd.Jb = 1;
 		}
 
 		this.Pb = function(Qb, Bd, vd) {
@@ -1153,20 +1136,12 @@ function NeutrinoEffect(ctx) {
 			ctx.W(_1, 0, 0, 0);
 			Xb._2 = [];
 			ctx.c(Xb._2, Bd.Ab, _1);
-			ctx.randv3gen(_3, 500, Bd.Ld.rand);
+			ctx.randv3gen(_3, 100, Bd.Ld.rand);
 			Xb._4 = [];
 			ctx.T(Xb._4, _3);
 			Xb._5 = 0;
-			_6 = 0 + Bd.Ld.rand() * (1 - 0);
-			_7i0=(_6<0?0:(_6>1?1:_6));
-			ctx.V(_7s0,0,(_7i0-0)*1);
-			_7i1=(_6<0?0:(_6>1?1:_6));
-			ctx.V(_7s1,0,(_7i1-0)*1);
-			_7i2=(_6<0?0:(_6>1?1:_6));
-			ctx.V(_7s2,0,(_7i2-0)*1);
-			ctx.W(_7, Db.nb(Bd._7[0][_7s0[0]],_7s0[1]),Db.nb(Bd._7[1][_7s1[0]],_7s1[1]),Db.nb(Bd._7[2][_7s2[0]],_7s2[1]));
-			Xb._8 = [];
-			ctx.T(Xb._8, _7);
+			_6 = 0 + Bd.Ld.rand() * (4 - 0);
+			Xb._7 = _6;
 			ctx.T(Xb.Ab, Xb._2);
 		}
 
@@ -1175,61 +1150,34 @@ function NeutrinoEffect(ctx) {
 			ctx.W(_1, 0, 0, 0);
 			Xb._2 = [];
 			ctx.c(Xb._2, Bd.Ab, _1);
-			ctx.randv3gen(_3, 500, Bd.Ld.rand);
+			ctx.randv3gen(_3, 100, Bd.Ld.rand);
 			Xb._4 = [];
 			ctx.T(Xb._4, _3);
 			Xb._5 = 0;
-			Xb._8 = [];
-			ctx.T(Xb._8, _7);
+			_6 = 0 + Bd.Ld.rand() * (4 - 0);
+			Xb._7 = _6;
 			ctx.T(Xb.Ab, Xb._2);
 		}
 
 		this.qc = function(Qb, Bd, Xb) {
 			Xb._ += Qb;
-			ctx.W(_9, 0, 100, 0);
-			ctx.T(_10fs, _9);
-			ctx.T(_10vs, [0,0,0]);
-			_10dtl = Qb;
-			ctx.T(_10v, Xb._4);
-			ctx.T(_10p, Xb._2);
-			while (_10dtl > 0.0001) {
-				_10dtp = _10dtl;
-				ctx.T(_10fsd, _10fs);
-				ctx.g(_10rw, _10vs, _10v);
-				_10rwl = ctx.P(_10rw);
-				if (_10rwl > 0.0001) {
-					_10rwl = Math.sqrt(_10rwl);
-					ctx.w(_10rwn, _10rw, _10rwl);
-					_10df = 0.01 * 1 * _10rwl;
-					if (_10df * _10dtp > 0.2) 
-						_10dtp = 0.2 / _10df;
-					ctx.c(_10fsd, _10fsd, ctx.v(_10rwn, _10rwl * _10df));
-				}
-				ctx.c(_10v, _10v, ctx.v(_10fsd, _10dtp));
-				ctx.c(_10p, _10p, ctx.v(_10v, _10dtp));
-				_10dtl -= _10dtp;
-			}
-			ctx.T(Xb._2, _10p);
-			ctx.T(Xb._4, _10v);
+			ctx.T(_8, Xb._4);
+			ctx.u(_8, _8, Qb);
+			ctx.c(_8, _8, Xb._2);
+			ctx.T(Xb._2, _8);
 			ctx.T(Xb.Ab, Xb._2);
-			_12 = 30;
-			_11 = 1;
-			_13 = (Xb._ / _11);
-			_14i0=(_13<0?0:(_13>1?1:_13));
-			ctx.V(_14s0,0,(_14i0-0)*1);
-			_14 = Db.nb(Bd._14[0][_14s0[0]],_14s0[1]);
-			_15 = (_12 * _14);
+			_10 = 30;
 			ctx.S(Xb.Pd,[0.5,0.5]);
 			Xb.Md = Xb._5;
-			ctx.V(Xb.Nd,_15,_15);
-			ctx.T(Xb.gf,Xb._8);
+			ctx.V(Xb.Nd,_10,_10);
+			ctx.T(Xb.gf,[1,1,1]);
 			Xb.Od = 1;
-			Xb.Qc = 0;
+			Xb.Qc = Xb._7;
 		}
 
 		this.Cc = function(Bd, Xb, Wc) {
-			_11 = 1;
-			return Xb._ > _11;
+			_9 = 2;
+			return Xb._ > _9;
 		}
 
 
@@ -1238,9 +1186,8 @@ function NeutrinoEffect(ctx) {
 	this.qd = function(Ld) {
 		Ld.Dd = 0.0333333;
 		Ld.Ud = 0;
-		Ld.rand = function() { return Math.random(); };
+		Ld.taus88 = new ctx.taus88(0);
+		Ld.rand = function() { return Ld.taus88.rand(); }
 		Ld.pd(new Emitter_DefaultEmitter());
 	}
-			this.nb = function(funcValues, je) { 				var indexInt = Math.floor(je); 				var nextInt = indexInt + 1; 				return ctx.X(funcValues[indexInt], funcValues[nextInt], je - indexInt); 			}
-
 }
