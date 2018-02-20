@@ -309,7 +309,7 @@ class ImageComparison {
           targetFolder = this.outputPath;
       }
       filePath = targetFolder + grab.name;
-      console.log('filePath',filePath);
+      // console.log('filePath',filePath);
 
       //create folder if needed
       if(!fs.existsSync(targetFolder)){
@@ -575,7 +575,14 @@ class ImageLoader {
       this.onImageLoaded(grab);
     };
     grab.comparison = image;
-    image.src = this.folderPath + grab.name;
+    //Must include subfolder!
+    let targetFolder;
+    if(grab.subfolder){
+        targetFolder = this.folderPath + grab.subfolder;
+    } else {
+        targetFolder = this.folderPath;
+    }
+    image.src = targetFolder + grab.name;
   }
 
   _imageLoaded(grab){
