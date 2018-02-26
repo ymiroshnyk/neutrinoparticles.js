@@ -1,26 +1,7 @@
 
-const fs = require('fs');
-const ipc = require('electron').ipcRenderer;
 
-var game;
-
-class ImageComparison {
-
-  /**
-   *
-   * @param config
-       effect - effect file name. It will be taken from /test/Phaser/effects/ folder.
-       webgl - WebGL renderer is used if equal to 1, and Canvas - otherwise.
-       time_interval - taking canvas shots time interval (and comparison as well).
-       intervals - number of time intervals to process.
-       turbulance - 'none' means no turbulance, 'gen' - generate turbulance before processing, 'load' - load turbulance texture from file.
-       startpos - starting position of effect (time = 0).
-       endpos - ending position of effect (time = time_interval * intervals).
-       startrot - starting rotation of effect in degrees (time = 0).
-       endrot - ending rotation of effect in degrees (time = time_interval * intervals).
-       reference_pass - if 1 - reference pass is turned on. No comparison is making.
-   */
-  constructor(config){
+class TestBase {
+  constructor(config) {
     this._grabDelay = 250;
     this._setDefaults();
     Object.assign(this, config);
@@ -37,19 +18,6 @@ class ImageComparison {
 
     this.effectName = this.effect.substr(0, this.effect.lastIndexOf('.')) || this.effect;
 
-    /*const type = this.webgl? Phaser.WEBGL : Phaser.CANVAS;
-
-    game = new Phaser.Game({
-      width: 800,
-      height: 600,
-      renderer: type,
-      antialias: true,
-      preserveDrawingBuffer: true,
-      state: {
-        preload: this.preload,
-        create: this.create
-      }
-    });*/
   }
 
   _validate(){
@@ -137,26 +105,13 @@ class ImageComparison {
     //atlases get preloaded
     if(this.atlas){
       if(Array.isArray(this.atlas)){
-          this.atlas.forEach(p => this._loadAtlas(p));
+        this.atlas.forEach(p => this._loadAtlas(p));
       } else {
         this._loadAtlas(this.atlas);
       }
     }
   }
 
-  /**
-   *
-   * @param atlasPath
-   * @private
-   */
-  _loadAtlas(atlasPath){
-    console.log('_loadAtlas', atlasPath)
-    //strip off file extension if present
-    const atlas = this._stripFileExtension(atlasPath)
-    const imagePath = atlas + '.png';
-    const dataPath = atlas + '.json';
-    // game.load.atlas(this.atlas, imagePath, dataPath, Phaser.Loader.TEXTURE_ATLAS_JSON_HASH);
-  }
 
   /**
    *
@@ -174,72 +129,10 @@ class ImageComparison {
     return p;
   }
 
-  _create(){
-
-    //effect path is one folder up
-    const effectsBasePath = '../effects/';
-
-    //always call init first
-    game.neutrino.init({
-      effects: effectsBasePath
-    });
-
-    // - only generate turbulence if specified in arguments!
-    if(this.turbulance === 1 || this.turbulance === '1'){
-        game.neutrino.generateTurbulance();
-    }
-    // else if(this.turbulance === 'load'){
-    //   //TODO will need to wait for load to complete, also pass in a path etc
-    //     game.neutrino.loadTurbulance();
-    // }
-
-    //create the effect model
-    const model = game.neutrino.loadModel(this.effect);
-
-    //create the display object
-    this.testEffect = game.add.neutrino(model,
-      {
-        position: this.startpos,
-        scale: this.startscale,
-        rotation: 0
-      });
-    if (this.testEffect.isReady) {
-      this._start();
-    } else {
-      this.testEffect.onReady.addOnce(() => this._start());
-    }
-  }
-
   _start(){
     this.screenGrabs.push(this._screenGrab());
     this.iterations = --this.intervals;
     this._advance();
-  }
-
-  _advance(){
-    this.testEffect.updateParticles(this.time_interval);
-    //rotate
-    this.testEffect.rotation += this.rotationPerInterval;
-    //scale
-    const scalePerInterval = this.scalePerInterval;
-    this.testEffect.scale.x += scalePerInterval[0];
-    this.testEffect.scale.y += scalePerInterval[1];
-    this.testEffect.scaleZ += scalePerInterval[2];
-    //translate
-    const positionPerInterval = this.positionPerInterval;
-    this.testEffect.position.x += positionPerInterval[0];
-    this.testEffect.position.y += positionPerInterval[1];
-    this.testEffect.positionZ += positionPerInterval[2];
-    //
-    this._currentTime += this.time_interval;
-    setTimeout(e => {
-      this.screenGrabs.push(this._screenGrab());
-      if(--this.iterations > 0){
-        this._advance();
-      } else {
-        this._complete();
-      }
-    }, this._grabDelay);
   }
 
   _complete(){
@@ -259,6 +152,7 @@ class ImageComparison {
     });
   }
 
+
   _result(screenGrabs){
 
     const didPass = this._checkPassed(screenGrabs)
@@ -277,7 +171,6 @@ class ImageComparison {
 
     ipc.send('test-result', { didPass: didPass, results: results , effect: this.effectName});
   }
-
   /**
    *
    * @param screenGrabs
@@ -307,9 +200,9 @@ class ImageComparison {
       let filePath, targetFolder;
 
       if(grab.subfolder){
-          targetFolder = this.outputPath + grab.subfolder;
+        targetFolder = this.outputPath + grab.subfolder;
       } else {
-          targetFolder = this.outputPath;
+        targetFolder = this.outputPath;
       }
       filePath = targetFolder + grab.name;
       // console.log('filePath',filePath);
@@ -374,29 +267,6 @@ class ImageComparison {
     return name;
   }
 
-  /**
-   *
-   * @returns {{data: *, time: (number|*), rotation, position: number}}
-   * @private
-   */
-  _screenGrab(){
-    const dataUrl = game.canvas.toDataURL("image/png");
-
-    // const roundedTime = Math.round(this._currentTime * 1000) / 1000;
-
-    const grab = {
-      data: new Buffer(dataUrl.split(",")[1], 'base64'),
-      image: this._imageFromDataUrl(dataUrl),
-      time: this._currentTime,
-      rotation: this.testEffect.rotation,
-      position: this._getPosition(this.testEffect),
-      scale: this._getScale(this.testEffect),
-      subfolder: this._getSubfolder(this.effectName)
-    };
-    grab.name = this._createFileName(grab);
-    return grab;
-  }
-
   _roundArray(list){
     return list.map(v => this._round(v));
   }
@@ -406,12 +276,12 @@ class ImageComparison {
   }
 
   _getTimeString(input) {
-      const value = this._round(input).toString();
-      if (value.indexOf('.') === -1) {
-        return value + '.0';
-      } else {
-        return value;
-      }
+    const value = this._round(input).toString();
+    if (value.indexOf('.') === -1) {
+      return value + '.0';
+    } else {
+      return value;
+    }
   }
 
 
@@ -438,10 +308,25 @@ class ImageComparison {
    * @private
    */
   _imageFromDataUrl(dataUrl){
-      const image = new Image();
-      image.src = dataUrl;
-      return image;
+    const image = new Image();
+    image.src = dataUrl;
+    return image;
   }
+
+  _createGrabData(dataUrl){
+    const grab = {
+      data: new Buffer(dataUrl.split(",")[1], 'base64'),
+      image: this._imageFromDataUrl(dataUrl),
+      time: this._currentTime,
+      rotation: this.testEffect.rotation,
+      position: this._getPosition(this.testEffect),
+      scale: this._getScale(this.testEffect),
+      subfolder: this._getSubfolder(this.effectName)
+    };
+    grab.name = this._createFileName(grab);
+    return grab;
+  }
+
 
   _getStep(a, b){
     return (b - a) / this.intervals;
@@ -470,7 +355,6 @@ class ImageComparison {
   get rotationPerInterval(){
     return this._getStep(this.startrot, this.endrot);
   }
-
 }
 
 class CompareQueue {
@@ -580,9 +464,9 @@ class ImageLoader {
     //Must include subfolder!
     let targetFolder;
     if(grab.subfolder){
-        targetFolder = this.folderPath + grab.subfolder;
+      targetFolder = this.folderPath + grab.subfolder;
     } else {
-        targetFolder = this.folderPath;
+      targetFolder = this.folderPath;
     }
     image.src = targetFolder + grab.name;
   }
@@ -596,4 +480,3 @@ class ImageLoader {
   }
 
 }
-

@@ -2,13 +2,13 @@ const electron = require('electron');
 const colors = require('colors');
 const glob = require("glob")
 // Module to control application life.
-const app = electron.app
-const ipcMain = electron.ipcMain
+const app = electron.app;
+const ipcMain = electron.ipcMain;
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
 
-const path = require('path')
-const url = require('url')
+const path = require('path');
+const url = require('url');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
