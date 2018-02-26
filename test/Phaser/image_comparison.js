@@ -105,7 +105,7 @@ class ImageComparison {
    * @private
    */
   _setDefaults(){
-    this.effect = 'water_stream.js';
+    this.effect = '**/*';
     this.webgl = 1;
     this.time_interval = 0.1;//secs
     this.intervals = 10;
@@ -176,9 +176,12 @@ class ImageComparison {
 
   _create(){
 
+    //effect path is one folder up
+    const effectsBasePath = '../effects/';
+
     //always call init first
     game.neutrino.init({
-      effects: 'effects/'
+      effects: effectsBasePath
     });
 
     // - only generate turbulence if specified in arguments!
@@ -325,9 +328,8 @@ class ImageComparison {
           // - after the last one, close down the app
           if(++counter === screenGrabs.length){
             ipc.send('reference_complete', {effect: this.effect});
-          };
+          }
         }
-
       })
     });
   }

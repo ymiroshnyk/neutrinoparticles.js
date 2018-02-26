@@ -20,7 +20,7 @@ function getTestQueue(){
   //parse query strings
   const settings = getSettings();
 
-  const effectsDir = __dirname + '/effects/'
+  const effectsDir = parentFolder(__dirname) + '/effects/'
   const config = { cwd: effectsDir, ignore: [], nodir: true}
   //allow glob for settings.effect
   let files;
@@ -32,11 +32,17 @@ function getTestQueue(){
     files = glob.sync(settings.effect,config)
   }
 
+  console.log('effectsDir:',effectsDir)
   console.log('effect:',settings.effect)
   console.log('files:',files)
   
   return files.map(effect => Object.assign({}, settings, {effect}));
 }
+
+function parentFolder(targetPath){
+  return targetPath.substr(0, targetPath.lastIndexOf('/'));
+}
+
 
 function next(){
     mainWindow.close();
