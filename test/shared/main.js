@@ -14,11 +14,11 @@ const url = require('url');
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow, holderWindow;
 
-const _testQueue = getTestQueue();
+const settings = getSettings();
+const _testQueue = getTestQueue(settings);
 
 function getTestQueue(){
   //parse query strings
-  const settings = getSettings();
 
   const effectsDir = parentFolder(__dirname) + '/effects/'
   const config = { cwd: effectsDir, ignore: [], nodir: true}
@@ -32,7 +32,6 @@ function getTestQueue(){
     files = glob.sync(settings.effect,config)
   }
 
-  console.log('effectsDir:',effectsDir)
   console.log('effect:',settings.effect)
   console.log('files:',files)
   
@@ -42,7 +41,6 @@ function getTestQueue(){
 function parentFolder(targetPath){
   return targetPath.substr(0, targetPath.lastIndexOf('/'));
 }
-
 
 function next(){
     mainWindow.close();
@@ -54,7 +52,7 @@ function next(){
 
 function activateTest(){
   if(_testQueue.length > 0){
-    createWindow();
+    createTestWindow();
   } else {
     shutdown();
   }
@@ -109,14 +107,15 @@ function createHolderWindow () {
     });
     return holder;
 }
-function createWindow () {
+
+function createTestWindow () {
 
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 800, height: 600})
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'index.html'),
+    pathname: getTestPath(settings.test),//path.join(__dirname, 'index.html'),
     protocol: 'file:',
     slashes: true
   }));
@@ -132,6 +131,10 @@ function createWindow () {
     mainWindow = null
   })
 
+}
+
+function getTestPath(testDir){
+  return path.join(parentFolder(__dirname), testDir ,'index.html');
 }
 
 function logOutput(data){

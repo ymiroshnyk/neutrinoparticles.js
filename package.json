@@ -2,9 +2,10 @@
   "name": "neutrinoparticles.js",
   "version": "1.0.0",
   "description": "Javascript runtimes for neutrinoparticles",
-  "main": "./test/Phaser/main.js",
+  "main": "./test/shared/main.js",
   "scripts": {
-    "test-phaser": "./node_modules/.bin/electron ."
+    "test-phaser": "./node_modules/.bin/electron . test=Phaser",
+    "test-pixi": "./node_modules/.bin/electron . test=PIXI"
   },
   "repository": {
     "type": "git",

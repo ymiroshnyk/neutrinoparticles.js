@@ -2,7 +2,6 @@
 const fs = require('fs');
 const ipc = require('electron').ipcRenderer;
 
-var game;
 
 class ImageComparison extends TestBase{
 
@@ -24,12 +23,15 @@ class ImageComparison extends TestBase{
     super(config);
 
     if(this.webgl){
-      this.renderer = PIXI.WebGLRenderer(800, 600, { backgroundColor: 0x404040, preserveDrawingBuffer: true });
+      this.renderer = new PIXI.WebGLRenderer(800, 600, { backgroundColor: 0x404040, preserveDrawingBuffer: true });
     } else {
-      this.renderer = PIXI.CanvasRenderer(800, 600, { backgroundColor: 0x404040 });
+      this.renderer = new PIXI.CanvasRenderer(800, 600, { backgroundColor: 0x404040 });
     }
     document.body.appendChild(this.renderer.view);
     this.stage = new PIXI.Container();
+
+    //TODO - call preload and create
+
 
   }
 
