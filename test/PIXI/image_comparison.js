@@ -33,6 +33,8 @@ class ImageComparison extends TestBase{
     //TODO - call preload and create
 
 
+    this._create();
+
   }
 
   /**
@@ -57,7 +59,7 @@ class ImageComparison extends TestBase{
   _create(){
 
     //effect path is one folder up
-    var neutrinoContext = new PIXINeutrinoContext(renderer);
+    var neutrinoContext = new PIXINeutrinoContext(this.renderer);
     neutrinoContext.effectsBasePath = "../effects//";
     neutrinoContext.texturesBasePath = "textures/";
 
@@ -80,7 +82,7 @@ class ImageComparison extends TestBase{
     if (this.testEffect.ready()) {
       this._start();
     } else {
-      this.testEffect.testEffect.once('ready',() => this._start());
+      this.testEffect.once('ready',() => this._start());
     }
   }
 
