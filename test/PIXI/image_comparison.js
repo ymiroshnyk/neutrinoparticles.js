@@ -2,7 +2,6 @@
 const fs = require('fs');
 const ipc = require('electron').ipcRenderer;
 
-
 class ImageComparison extends TestBase{
 
   /**
@@ -58,13 +57,9 @@ class ImageComparison extends TestBase{
     const dataPath = atlas + '.json';
     PIXI.loader.add(dataPath).load(()=> {
       console.log('atlas loaded')
-      //TODO - now continue
-
       this._atlasLoaded();
 
     });
-    //TODO - handle load fail
-
   }
 
   _atlasLoaded(){
@@ -78,7 +73,6 @@ class ImageComparison extends TestBase{
   }
 
   _create(){
-    return;
     //effect path is one folder up
     var neutrinoContext = new PIXINeutrinoContext(this.renderer);
     neutrinoContext.effectsBasePath = "../effects//";
