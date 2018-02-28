@@ -30,10 +30,18 @@ class ImageComparison extends TestBase{
     document.body.appendChild(this.renderer.view);
     this.stage = new PIXI.Container();
 
-    //TODO - call preload and create
-
-
-    this._create();
+    this.numAtlasesLoaded = 0;
+    //atlas tests will preload
+    const willPreload = this._preload();
+    if(willPreload){
+      PIXI.loader.onError.add((error) => {
+        console.log('load error!', error)
+        // - send back the error to main process
+        ipc.send('error', error.toString())
+      })
+    } else {
+      this._create();
+    }
 
   }
 
@@ -51,13 +59,26 @@ class ImageComparison extends TestBase{
     PIXI.loader.add(dataPath).load(()=> {
       console.log('atlas loaded')
       //TODO - now continue
-    });
 
-    //game.load.atlas(this.atlas, imagePath, dataPath, Phaser.Loader.TEXTURE_ATLAS_JSON_HASH);
+      this._atlasLoaded();
+
+    });
+    //TODO - handle load fail
+
+  }
+
+  _atlasLoaded(){
+    if(Array.isArray(this.atlas)){
+      if(++this.numAtlasesLoaded === this.atlas.length) {
+        this._create();
+      }
+    } else {
+      this._create();
+    }
   }
 
   _create(){
-
+    return;
     //effect path is one folder up
     var neutrinoContext = new PIXINeutrinoContext(this.renderer);
     neutrinoContext.effectsBasePath = "../effects//";

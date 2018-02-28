@@ -20,6 +20,10 @@ class TestBase {
 
   }
 
+  /**
+   *
+   * @private
+   */
   _validate(){
     //allow passing in 1 rather than [1, 1, 1]
     this.startscale = this._validateArray(this.startscale);
@@ -101,15 +105,22 @@ class TestBase {
     return outputPath;
   }
 
+  /**
+   *
+   * @returns {boolean}
+   * @private
+   */
   _preload() {
+    const willPreload = !!this.atlas;
     //atlases get preloaded
-    if(this.atlas){
+    if(willPreload){
       if(Array.isArray(this.atlas)){
         this.atlas.forEach(p => this._loadAtlas(p));
       } else {
         this._loadAtlas(this.atlas);
       }
     }
+    return willPreload;
   }
 
 
