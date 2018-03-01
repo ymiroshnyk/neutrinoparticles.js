@@ -20,7 +20,7 @@ const _testQueue = getTestQueue(settings);
 function getTestQueue(){
   //parse query strings
 
-  const effectsDir = parentFolder(__dirname) + '/effects/'
+  const effectsDir = path.join(parentFolder(__dirname), 'effects');
   const config = { cwd: effectsDir, ignore: [], nodir: true}
   //allow glob for settings.effect
   let files;
@@ -39,7 +39,7 @@ function getTestQueue(){
 }
 
 function parentFolder(targetPath){
-  return targetPath.substr(0, targetPath.lastIndexOf('/'));
+  return path.dirname(targetPath);
 }
 
 function next(){
