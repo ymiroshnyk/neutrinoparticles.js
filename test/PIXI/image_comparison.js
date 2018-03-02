@@ -21,13 +21,7 @@ class ImageComparison extends TestBase{
   constructor(config){
     super(config);
 
-    if(this.webgl){
-      this.renderer = new PIXI.WebGLRenderer(800, 600, { backgroundColor: 0x404040, preserveDrawingBuffer: true });
-    } else {
-      this.renderer = new PIXI.CanvasRenderer(800, 600, { backgroundColor: 0x404040 });
-    }
-    document.body.appendChild(this.renderer.view);
-    this.stage = new PIXI.Container();
+    this._createRenderer(0x0);
 
     this.numAtlasesLoaded = 0;
     //atlas tests will preload
@@ -42,6 +36,21 @@ class ImageComparison extends TestBase{
       this._create();
     }
 
+  }
+
+  /**
+   *
+   * @param backgroundColor
+   * @private
+   */
+  _createRenderer(backgroundColor){
+    if(this.webgl){
+      this.renderer = new PIXI.WebGLRenderer(800, 600, { backgroundColor: backgroundColor, preserveDrawingBuffer: true });
+    } else {
+      this.renderer = new PIXI.CanvasRenderer(800, 600, { backgroundColor: backgroundColor });
+    }
+    document.body.appendChild(this.renderer.view);
+    this.stage = new PIXI.Container();
   }
 
   /**
