@@ -1,1 +1,1 @@
-effect=*.js startpos=[400,300,0] endpos=[400,300,0] time_interval=0.3 intervals=10
+effect=*.js startpos=[400,300,0] endpos=[400,300,0] time_interval=0.3 intervals=10 webgl=0

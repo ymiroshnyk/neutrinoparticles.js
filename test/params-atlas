@@ -1,1 +1,1 @@
-effect=atlas/*.js startpos=[400,300,0] endpos=[400,300,0] time_interval=0.3 intervals=10 atlas=./textures/atlas.json
+effect=atlas/*.js startpos=[400,300,0] endpos=[400,300,0] time_interval=0.3 intervals=10 atlas=./textures/atlas.json webgl=0
