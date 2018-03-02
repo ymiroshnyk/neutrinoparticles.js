@@ -110,6 +110,13 @@ class ImageComparison extends TestBase{
     }
   }
 
+  _start(){
+    // render the root container
+    this.renderer.render(this.stage);
+
+    super._start();
+  }
+
   _advance(){
     this.testEffect.update(this.time_interval);
     //rotate
