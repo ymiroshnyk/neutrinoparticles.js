@@ -245,6 +245,7 @@ class TestBase {
    * @private
    */
   _getSubfolder(effectName){
+    //TODO - is this windows friendly?!
     const index = effectName.lastIndexOf('/');
     if(index > -1){
       return effectName.substr(0, index + 1);

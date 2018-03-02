@@ -75,8 +75,8 @@ class ImageComparison extends TestBase{
   _create(){
     //effect path is one folder up
     var neutrinoContext = new PIXINeutrinoContext(this.renderer);
-    neutrinoContext.effectsBasePath = "../effects//";
-    neutrinoContext.texturesBasePath = "textures/";
+    neutrinoContext.effectsBasePath = "../shared/effects/";
+    neutrinoContext.texturesBasePath = "../shared/textures/";
 
 
     // - only generate turbulence if specified in arguments!

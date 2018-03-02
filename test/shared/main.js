@@ -20,7 +20,7 @@ const _testQueue = getTestQueue(settings);
 function getTestQueue(){
   //parse query strings
 
-  const effectsDir = path.join(parentFolder(__dirname), 'effects');
+  const effectsDir = path.join(parentFolder(__dirname), 'shared', 'effects');
   const config = { cwd: effectsDir, ignore: [], nodir: true}
   //allow glob for settings.effect
   let files;
@@ -32,6 +32,7 @@ function getTestQueue(){
     files = glob.sync(settings.effect,config)
   }
 
+  console.log('effectsDir:',effectsDir)
   console.log('effect:',settings.effect)
   console.log('files:',files)
   

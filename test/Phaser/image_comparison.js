@@ -55,11 +55,13 @@ class ImageComparison extends TestBase{
   _create(){
 
     //effect path is one folder up
-    const effectsBasePath = '../effects/';
+    const effectsBasePath = '../shared/effects/';
+    const texturePath = '../shared/textures/';
 
     //always call init first
     game.neutrino.init({
-      effects: effectsBasePath
+      effects: effectsBasePath,
+      textures: texturePath
     });
 
     // - only generate turbulence if specified in arguments!
