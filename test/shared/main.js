@@ -10,11 +10,24 @@ const BrowserWindow = electron.BrowserWindow
 const path = require('path');
 const url = require('url');
 
+class Logger {
+
+  constructor(verbose = false){ this.verbose = verbose; }
+
+  log(...msg){ console.log(...msg); }
+
+  logIfVerbose(...msg){ if(this.verbose) console.log(...msg); }
+
+}
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow, holderWindow;
 
 const settings = getSettings();
+
+const logger = new Logger(settings.verbose === 1);
+
 const _testQueue = getTestQueue(settings);
 
 function getTestQueue(){
@@ -31,10 +44,10 @@ function getTestQueue(){
   } else {
     files = glob.sync(settings.effect,config)
   }
-
-  console.log('effectsDir:',effectsDir)
-  console.log('effect:',settings.effect)
-  console.log('files:',files)
+  logger.logIfVerbose(settings.args);
+  logger.logIfVerbose('effectsDir:',effectsDir)
+  logger.logIfVerbose('effect:',settings.effect)
+  logger.logIfVerbose('files:',files)
   
   return files.map(effect => Object.assign({}, settings, {effect}));
 }
@@ -70,31 +83,31 @@ function start(){
   ipcMain.on('fetch-settings', (event, data) => {
     const config = _testQueue.shift();
     if(config.reference_pass === 1){
-      console.log(('Creating reference for: ' + config.effect).green.underline.bold)
+      logger.log(('Creating reference for: ' + config.effect).green.underline.bold)
     } else {
-      console.log(('TESTING EFFECT: ' + config.effect).green.underline.bold)
+      logger.log(('TESTING EFFECT: ' + config.effect).green.underline.bold)
     }
-    console.log('settings: ',config)
+    logger.logIfVerbose('settings: ',config)
 
     mainWindow.webContents.send('settings', config);
   });
 
   ipcMain.on('reference_complete', (event, data) => {
-    const msg = 'Reference Pass Completed for ' + data.effect;
-    console.log(msg.green.underline.bold);
+    const msg = 'Reference Pass Completed for ' + data.effect + '\n';
+    logger.log(msg.green.underline.bold);
     next();
   });
 
   ipcMain.on('error', (event, data) => {
-    console.log('ERROR!'.red.underline.bold)
-    console.log(data);
+    logger.log('ERROR!'.red.underline.bold)
+    logger.log(data);
     shutdown();
   });
 
   if(_testQueue.length > 0){
     activateTest();
   } else {
-    console.log('ERROR! tests not found'.red.underline.bold)
+    logger.log('ERROR! tests not found'.red.underline.bold)
   }
 }
 
@@ -142,23 +155,23 @@ function logOutput(data){
   data.results.forEach(result => {
     let msg = `* ${result.name} difference: ${result.difference} passed: ${result.passed}`;
     if(result.passed){
-      console.log(msg.green);
+      logger.logIfVerbose(msg.green);
     } else {
       if(result.error){
         msg = `* ${result.name} error: ${result.error} passed: ${result.passed}`;
       }
-      console.log(msg.red);
+      logger.log(msg.red);
     }
   });
   if(data.didPass){
-    console.log(('TEST PASSED! for ' + data.effect + '\n\n').green.underline.bold)
+    logger.log(('TEST PASSED! for ' + data.effect + '\n').green.underline.bold)
   } else {
-    console.log('TEST FAILED!'.red.underline.bold)
+    logger.log('TEST FAILED!'.red.underline.bold)
   }
 }
 
 function shutdown(){
-  console.log('shutdown');
+  logger.log('shutdown');
   if(mainWindow) mainWindow.close();
   if(holderWindow) holderWindow.close();
   app.quit();
@@ -179,11 +192,12 @@ function getSettings(){
     endscale: [1,1,1],
     startrot: 0,
     endrot: 0,
+    verbose: 0,
     reference_pass: 0
   };
 
   const args = process.argv.slice(2);
-  console.log('args:',args)
+  //logger.log('args:',args)
   //the first 2 args are to be ignored
   if(args.length > 0){
 
@@ -197,6 +211,8 @@ function getSettings(){
       }
     })
   }
+  //for logging:
+  settings.args = args;
   return settings;
 }
 
