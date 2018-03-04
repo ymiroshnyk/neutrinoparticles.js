@@ -2,7 +2,7 @@
 
 class TestBase {
   constructor(config) {
-    this._grabDelay = 250;
+    this._grabDelay = 50;
     this._setDefaults();
     Object.assign(this, config);
 
@@ -414,7 +414,7 @@ class CompareQueue {
         thresholdType: Rembrandt.THRESHOLD_PERCENT,
 
         // The maximum threshold (0...1 for THRESHOLD_PERCENT, pixel count for THRESHOLD_PIXELS
-        maxThreshold: 0.01,
+        maxThreshold: 0,//0.001
 
         // Maximum color delta (0...255):
         maxDelta: 20,
@@ -435,7 +435,7 @@ class CompareQueue {
           console.log('Pixel Difference:', result.differences, 'Percentage Difference', result.percentageDifference, '%')
           //console.log('Composition image buffer:', result.compositionImage)
 
-          //TODO - proceed on to the next image
+          // - proceed on to the next image
           grab.result = result;
           _self._next();
 
