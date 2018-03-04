@@ -20,6 +20,10 @@ class Logger {
 
 }
 
+const testResults = {
+  pass: 0, fail: 0, total: 0
+};
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow, holderWindow;
@@ -49,7 +53,9 @@ function getTestQueue(){
   logger.logIfVerbose('effect:',settings.effect)
   logger.logIfVerbose('files:',files)
   
-  return files.map(effect => Object.assign({}, settings, {effect}));
+  const tests = files.map(effect => Object.assign({}, settings, {effect}));
+  testResults.total = tests.length;
+  return tests;
 }
 
 function parentFolder(targetPath){
@@ -61,13 +67,15 @@ function next(){
     setTimeout(e => {
         activateTest();
     }, 500);
-    // if(_testQueue.length === 0) mainWindow.close();
 }
 
 function activateTest(){
   if(_testQueue.length > 0){
     createTestWindow();
   } else {
+    if(settings.reference_pass !== 1) {
+      logFinalResult();
+    }
     shutdown();
   }
 }
@@ -164,14 +172,25 @@ function logOutput(data){
     }
   });
   if(data.didPass){
+    testResults.pass++;
     logger.log(('TEST PASSED! for ' + data.effect + '\n').green.underline.bold)
   } else {
+    testResults.fail++;
     logger.log('TEST FAILED!'.red.underline.bold)
   }
 }
 
+function logFinalResult(){
+  if(testResults.fail > 0){
+    logger.log((`${testResults.fail}/${testResults.total} TESTS FAILED`).red.underline.bold)
+  } else {
+    logger.log((`ALL ${testResults.total} TESTS PASSED`).green.underline.bold)
+  }
+}
+
+
 function shutdown(){
-  logger.log('shutdown');
+  logger.logIfVerbose('shutdown');
   if(mainWindow) mainWindow.close();
   if(holderWindow) holderWindow.close();
   app.quit();
