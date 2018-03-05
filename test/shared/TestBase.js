@@ -1,4 +1,5 @@
-
+const NodeImageLoader = require('../shared/NodeImageLoader.js');
+const CompareQueue = require('../shared/CompareQueue.js');
 
 class TestBase {
   constructor(config) {
@@ -150,8 +151,10 @@ class TestBase {
     if(this.isReferencePass){
       this._writeImagesToDisk(this.screenGrabs);
     } else {
+
+
       //load the reference images then compare them
-      const loader = new ImageLoader(this.screenGrabs, this.outputPath, ()=> {
+      const loader = new NodeImageLoader(this.screenGrabs, this.outputPath, ()=> {
         this._compareImages();
       });
     }
@@ -162,7 +165,6 @@ class TestBase {
       this._result(this.screenGrabs)
     });
   }
-
 
   _result(screenGrabs){
 
@@ -176,7 +178,7 @@ class TestBase {
         name: grab.name,
         passed: r.passed,
         error: r.error,
-        difference: r.percentageDifference
+        difference: r.difference
       }
     });
 
@@ -367,128 +369,4 @@ class TestBase {
   get rotationPerInterval(){
     return this._getStep(this.startrot, this.endrot);
   }
-}
-
-class CompareQueue {
-  constructor(screenGrabs, folderPath, callback){
-    this.screenGrabs = screenGrabs;
-    this.folderPath = folderPath;
-    this.callback = callback;
-    this._current = -1;
-
-    this._next();
-  }
-
-  _next(){
-    this._current++;
-    if(this._current < this.screenGrabs.length){
-      this._test(this.screenGrabs[this._current])
-    } else {
-      //complete
-      this.callback();
-    }
-  }
-
-  /**
-   *
-   * @param grab
-   * @private
-   */
-  _test(grab){
-
-    if(!grab.comparison){
-      grab.result = {
-        passed: false,
-        error: 'Reference image not found'
-      }
-      this._next();
-    } else {
-
-      const rembrandt = new Rembrandt({
-        // `imageA` and `imageB` can be either Strings (file path on node.js,
-        // public url on Browsers) or Buffers
-        imageA: grab.image,
-        imageB: grab.comparison,//fs.readFileSync('/path/to/imageB'),
-
-        // Needs to be one of Rembrandt.THRESHOLD_PERCENT or Rembrandt.THRESHOLD_PIXELS
-        thresholdType: Rembrandt.THRESHOLD_PERCENT,
-
-        // The maximum threshold (0...1 for THRESHOLD_PERCENT, pixel count for THRESHOLD_PIXELS
-        maxThreshold: 0,//0.001
-
-        // Maximum color delta (0...255):
-        maxDelta: 20,
-
-        // Maximum surrounding pixel offset
-        maxOffset: 0,
-
-        renderComposition: false, // Should Rembrandt render a composition image?
-        compositionMaskColor: Rembrandt.Color.RED // Color of unmatched pixels
-      });
-
-      const _self = this;
-
-      // Run the comparison
-      rembrandt.compare()
-        .then(function (result) {
-          console.log(grab.name, 'Passed:', result.passed)
-          console.log('Pixel Difference:', result.differences, 'Percentage Difference', result.percentageDifference, '%')
-          //console.log('Composition image buffer:', result.compositionImage)
-
-          // - proceed on to the next image
-          grab.result = result;
-          _self._next();
-
-          // Note that `compositionImage` is an Image when Rembrandt.js is run in the browser environment
-        })
-        .catch((e) => {
-          console.error(e)
-          grab.result = e;
-          _self._next();
-        })
-
-    }
-  }
-}
-
-class ImageLoader {
-
-  constructor(screenGrabs, folderPath, callback){
-    this.counter = screenGrabs.length;
-    this.folderPath = folderPath;
-    this.callback = callback;
-    this.onImageLoaded = this._imageLoaded.bind(this);
-    screenGrabs.forEach(grab => {
-      this._loadImage(grab);
-    });
-  }
-
-  _loadImage(grab){
-    const image = new Image();
-    image.onload = event => {
-      this.onImageLoaded(grab);
-    };
-    image.onerror = event => {
-      grab.comparison = null;
-      this.onImageLoaded(grab);
-    };
-    grab.comparison = image;
-    //Must include subfolder!
-    let targetFolder;
-    if(grab.subfolder){
-      targetFolder = this.folderPath + grab.subfolder;
-    } else {
-      targetFolder = this.folderPath;
-    }
-    image.src = targetFolder + grab.name;
-  }
-
-  _imageLoaded(grab){
-    //console.log('image loaded', grab.name)
-    this.counter--;
-    if(this.counter === 0){
-      this.callback();
-    }
-  }
-
 }

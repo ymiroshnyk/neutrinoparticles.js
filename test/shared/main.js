@@ -10,6 +10,8 @@ const BrowserWindow = electron.BrowserWindow
 const path = require('path');
 const url = require('url');
 
+const closeOnError = false;
+
 class Logger {
 
   constructor(verbose = false){ this.verbose = verbose; }
@@ -109,7 +111,7 @@ function start(){
   ipcMain.on('error', (event, data) => {
     logger.log('ERROR!'.red.underline.bold)
     logger.log(data);
-    shutdown();
+    if(closeOnError) shutdown();
   });
 
   if(_testQueue.length > 0){
@@ -161,7 +163,7 @@ function getTestPath(testDir){
 
 function logOutput(data){
   data.results.forEach(result => {
-    let msg = `* ${result.name} difference: ${result.difference} passed: ${result.passed}`;
+    let msg = `* ${result.name} differences: ${result.difference} passed: ${result.passed}`;
     if(result.passed){
       logger.logIfVerbose(msg.green);
     } else {
@@ -187,7 +189,6 @@ function logFinalResult(){
     logger.log((`ALL ${testResults.total} TESTS PASSED`).green.underline.bold)
   }
 }
-
 
 function shutdown(){
   logger.logIfVerbose('shutdown');
