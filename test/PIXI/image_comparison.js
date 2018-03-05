@@ -137,15 +137,15 @@ class ImageComparison extends TestBase{
     // render the root container
     this.renderer.render(this.stage);
 
+    this.screenGrabs.push(this._screenGrab());
 
-    setTimeout(e => {
-      this.screenGrabs.push(this._screenGrab());
-      if(--this.iterations > 0){
+    if(--this.iterations > 0){
+      window.requestAnimationFrame(e => {
         this._advance();
-      } else {
-        this._complete();
-      }
-    }, this._grabDelay);
+      });
+    } else {
+      this._complete();
+    }
   }
 
   /**

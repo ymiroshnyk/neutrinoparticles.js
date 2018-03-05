@@ -3,7 +3,6 @@ const CompareQueue = require('../shared/CompareQueue.js');
 
 class TestBase {
   constructor(config) {
-    this._grabDelay = 50;
     this._setDefaults();
     Object.assign(this, config);
 
@@ -184,6 +183,7 @@ class TestBase {
 
     ipc.send('test-result', { didPass: didPass, results: results , effect: this.effectName});
   }
+
   /**
    *
    * @param screenGrabs
@@ -297,7 +297,6 @@ class TestBase {
       return value;
     }
   }
-
 
   _getPosition(target){
     return [

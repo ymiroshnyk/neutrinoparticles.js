@@ -106,14 +106,14 @@ class ImageComparison extends TestBase{
     this.testEffect.positionZ += positionPerInterval[2];
     //
     this._currentTime += this.time_interval;
-    setTimeout(e => {
-      this.screenGrabs.push(this._screenGrab());
-      if(--this.iterations > 0){
+    this.screenGrabs.push(this._screenGrab());
+    if(--this.iterations > 0){
+      window.requestAnimationFrame(e => {
         this._advance();
-      } else {
-        this._complete();
-      }
-    }, this._grabDelay);
+      });
+    } else {
+      this._complete();
+    }
   }
 
   /**
