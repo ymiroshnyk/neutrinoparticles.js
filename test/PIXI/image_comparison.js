@@ -27,10 +27,10 @@ class ImageComparison extends TestBase{
     //atlas tests will preload
     const willPreload = this._preload();
     if(willPreload){
-      PIXI.loader.onError.add((error) => {
+      PIXI.loader.onError.add((error, loader) => {
         console.log('load error!', error)
         // - send back the error to main process
-        ipc.send('error', error.toString())
+        ipc.send('error', 'Atlas load error '+ error.toString())
       })
     } else {
       this._create();
