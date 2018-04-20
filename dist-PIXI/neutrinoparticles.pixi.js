@@ -8,6 +8,307 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var PIXINeutrinoContext = function () {
+	function PIXINeutrinoContext(renderer) {
+		_classCallCheck(this, PIXINeutrinoContext);
+
+		var gl = renderer.gl;
+
+		this.renderer = renderer;
+		this.neutrino = new NeutrinoParticles();
+		this.effectsBasePath = "";
+		this.texturesBasePath = "";
+		this.trimmedExtensionLookupFirst = true;
+
+		if (!(renderer instanceof PIXI.CanvasRenderer)) {
+			this.materials = new PIXINeutrinoMaterials(gl);
+		}
+	}
+
+	_createClass(PIXINeutrinoContext, [{
+		key: "initializeNoise",
+		value: function initializeNoise(path, success, fail) {
+			this.neutrino.initializeNoise(path, success, fail);
+		}
+	}, {
+		key: "loadEffect",
+		value: function loadEffect(path, success, fail) {
+			this.neutrino.loadEffect(path, success, fail);
+		}
+	}]);
+
+	return PIXINeutrinoContext;
+}();
+
+var PIXINeutrinoEffect = function (_PIXI$Container) {
+	_inherits(PIXINeutrinoEffect, _PIXI$Container);
+
+	function PIXINeutrinoEffect(effectModel, position, rotation, scale) {
+		_classCallCheck(this, PIXINeutrinoEffect);
+
+		var _this = _possibleConstructorReturn(this, (PIXINeutrinoEffect.__proto__ || Object.getPrototypeOf(PIXINeutrinoEffect)).call(this));
+
+		_this.ctx = effectModel.ctx;
+		_this.effectModel = effectModel;
+		_this.effect = null;
+		_this.position.set(position[0], position[1]);
+		_this.positionZ = position[2];
+
+		if (rotation) _this.rotation = rotation;
+
+		if (scale) {
+			_this.scale.x = scale[0];
+			_this.scale.y = scale[1];
+			_this.scaleZ = scale[2];
+		} else _this.scaleZ = 1;
+
+		if (effectModel.ready()) {
+			_this._onEffectReady();
+		} else {
+			effectModel.once('ready', function () {
+				this._onEffectReady();
+			}, _this);
+		}
+		return _this;
+	}
+
+	_createClass(PIXINeutrinoEffect, [{
+		key: "ready",
+		value: function ready() {
+			return this.effect != null;
+		}
+	}, {
+		key: "update",
+		value: function update(dt) {
+			if (this.effect != null) {
+				this.effect.update(dt, [this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ], this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.rotation % 360));
+			}
+		}
+	}, {
+		key: "renderCanvas",
+		value: function renderCanvas(renderer) {
+			if (!this.ready()) return;
+
+			renderer.context.setTransform(this.scale.x, 0, 0, this.scale.y, 0, 0);
+			this.effect.draw(renderer.context);
+		}
+	}, {
+		key: "renderWebGL",
+		value: function renderWebGL(renderer) {
+			if (!this.ready()) return;
+
+			var gl = renderer.gl;
+
+			renderer.setObjectRenderer(renderer.emptyRenderer);
+			renderer.bindVao(null);
+			renderer.state.resetAttributes();
+
+			renderer.state.push();
+			renderer.state.setState(renderer.state.defaultState);
+
+			// hack! the only way to discard current shader for futher engine rendering
+			renderer._activeShader = null;
+
+			var target = renderer._activeRenderTarget;
+
+			this.ctx.materials.setup(target.projectionMatrix.toArray(true), [this.scale.x, this.scale.y]);
+
+			this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
+
+			this.renderBuffers.updateGlBuffers();
+			this.renderBuffers.bind();
+
+			for (var renderCallIdx = 0; renderCallIdx < this.renderBuffers.numRenderCalls; ++renderCallIdx) {
+				var renderCall = this.renderBuffers.renderCalls[renderCallIdx];
+				var texIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].textureIndices[0];
+
+				renderer.bindTexture(this.effectModel.textures[texIndex], 0, true);
+
+				var materialIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].materialIndex;
+				switch (this.effect.model.materials[materialIndex]) {
+					default:
+						this.ctx.materials.switchToNormal(renderer);break;
+					case 1:
+						this.ctx.materials.switchToAdd(renderer);break;
+					case 2:
+						this.ctx.materials.switchToMultiply(renderer);break;
+				}
+
+				gl.drawElements(gl.TRIANGLES, renderCall.numIndices, gl.UNSIGNED_SHORT, renderCall.startIndex * 2);
+			}
+
+			renderer.state.pop();
+		}
+	}, {
+		key: "restart",
+		value: function restart(position, rotation) {
+			if (position) {
+				this.position.x = position[0];
+				this.position.y = position[1];
+				this.positionZ = position[2];
+			}
+
+			if (rotation) {
+				this.rotation = rotation;
+			}
+
+			this.effect.restart([this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ], rotation ? this.ctx.neutrino.axisangle2quat_([0, 0, 1], rotation % 360) : null);
+		}
+	}, {
+		key: "resetPosition",
+		value: function resetPosition(position, rotation) {
+			if (position) {
+				this.position.x = position[0];
+				this.position.y = position[1];
+				this.positionZ = position[2];
+			}
+
+			if (rotation) {
+				this.rotation = rotation;
+			}
+
+			this.effect.resetPosition([this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ], rotation ? this.ctx.neutrino.axisangle2quat_([0, 0, 1], rotation % 360) : null);
+		}
+	}, {
+		key: "setPropertyInAllEmitters",
+		value: function setPropertyInAllEmitters(name, value) {
+			this.effect.setPropertyInAllEmitters(name, value);
+		}
+	}, {
+		key: "getNumParticles",
+		value: function getNumParticles() {
+			return this.effect.getNumParticles();
+		}
+	}, {
+		key: "_onEffectReady",
+		value: function _onEffectReady() {
+			var position = [this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ];
+			var rotation = this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.rotation % 360);
+
+			if (this.effectModel.ctx.renderer instanceof PIXI.CanvasRenderer) {
+				this.effect = this.effectModel.effectModel.createCanvas2DInstance(position, rotation);
+				this.effect.textureDescs = this.effectModel.textureImageDescs;
+			} else {
+				this.renderBuffers = new PIXINeutrinoRenderBuffers(this.ctx);
+				this.effect = this.effectModel.effectModel.createWGLInstance(position, rotation, this.renderBuffers);
+				this.effect.texturesRemap = this.effectModel.texturesRemap;
+			}
+
+			this.emit('ready', this);
+		}
+	}]);
+
+	return PIXINeutrinoEffect;
+}(PIXI.Container);
+
+var PIXINeutrinoEffectModel = function (_PIXI$DisplayObject) {
+	_inherits(PIXINeutrinoEffectModel, _PIXI$DisplayObject);
+
+	function PIXINeutrinoEffectModel(context, effectPath) {
+		_classCallCheck(this, PIXINeutrinoEffectModel);
+
+		var _this2 = _possibleConstructorReturn(this, (PIXINeutrinoEffectModel.__proto__ || Object.getPrototypeOf(PIXINeutrinoEffectModel)).call(this));
+
+		_this2.ctx = context;
+		_this2.effectPath = effectPath;
+		_this2.effectModel = null;
+		_this2.numTexturesToLoadLeft = -1;
+		_this2.texturesRemap = null;
+
+		var pixiNeutrinoEffect = _this2;
+		_this2.ctx.neutrino.loadEffect(_this2.ctx.effectsBasePath + effectPath, function (effectModel) {
+			pixiNeutrinoEffect._onEffectLoaded(effectModel);
+		});
+		return _this2;
+	}
+
+	_createClass(PIXINeutrinoEffectModel, [{
+		key: "ready",
+		value: function ready() {
+			return this.numTexturesToLoadLeft === 0;
+		}
+	}, {
+		key: "_onEffectLoaded",
+		value: function _onEffectLoaded(effectModel) {
+			this.effectModel = effectModel;
+			this.textures = [];
+			this.textureImageDescs = [];
+			var numTextures = effectModel.textures.length;
+			this.numTexturesToLoadLeft = numTextures;
+
+			for (var imageIndex = 0; imageIndex < numTextures; ++imageIndex) {
+				var texturePath = effectModel.textures[imageIndex];
+				var texture = null;
+
+				if (this.ctx.trimmedExtensionLookupFirst) {
+					var trimmedTexturePath = texturePath.replace(/\.[^/.]+$/, ""); // https://stackoverflow.com/a/4250408
+					texture = PIXI.utils.TextureCache[trimmedTexturePath];
+				}
+
+				if (!texture) texture = PIXI.utils.TextureCache[texturePath];
+
+				if (!texture) texture = PIXI.Texture.fromImage(this.ctx.texturesBasePath + texturePath);
+
+				if (texture.baseTexture.hasLoaded) {
+					this._onTextureLoaded(imageIndex, texture);
+				} else {
+					texture.once('update', function (self, imageIndex, texture) {
+						return function () {
+							self._onTextureLoaded(imageIndex, texture);
+						};
+					}(this, imageIndex, texture));
+				}
+			}
+		}
+	}, {
+		key: "_onTextureLoaded",
+		value: function _onTextureLoaded(index, texture) {
+			this.textures[index] = texture;
+
+			this.numTexturesToLoadLeft--;
+
+			if (this.ctx.renderer instanceof PIXI.CanvasRenderer) {
+				var image = texture.baseTexture.source;
+				this.textureImageDescs[index] = new this.ctx.neutrino.ImageDesc(image, texture.orig.x, texture.orig.y, texture.orig.width, texture.orig.height);
+			} else {}
+
+			if (this.numTexturesToLoadLeft === 0) {
+
+				if (this.ctx.renderer instanceof PIXI.CanvasRenderer) {} else {
+					this._initTexturesRemapIfNeeded();
+				}
+
+				this.emit('ready', this);
+			}
+		}
+	}, {
+		key: "_initTexturesRemapIfNeeded",
+		value: function _initTexturesRemapIfNeeded() {
+			var remapNeeded = false;
+
+			for (var texIdx = 0; texIdx < this.textures.length; ++texIdx) {
+				var texture = this.textures[texIdx];
+
+				if (texture.orig.x != 0 || texture.orig.y != 0 || texture.orig.width != texture.baseTexture.realWidth || texture.orig.height != texture.baseTexture.realHeight) {
+					remapNeeded = true;
+					break;
+				}
+			}
+
+			this.texturesRemap = [];
+			if (remapNeeded) {
+				for (var texIdx = 0; texIdx < this.textures.length; ++texIdx) {
+					var texture = this.textures[texIdx];
+
+					this.texturesRemap[texIdx] = new this.ctx.neutrino.SubRect(texture.orig.x / texture.baseTexture.realWidth, 1.0 - (texture.orig.y + texture.orig.height) / texture.baseTexture.realHeight, texture.orig.width / texture.baseTexture.realWidth, texture.orig.height / texture.baseTexture.realHeight);
+				}
+			}
+		}
+	}]);
+
+	return PIXINeutrinoEffectModel;
+}(PIXI.DisplayObject);
+
 var PIXINeutrinoMaterials = function () {
 	function PIXINeutrinoMaterials(gl) {
 		_classCallCheck(this, PIXINeutrinoMaterials);
@@ -15,49 +316,52 @@ var PIXINeutrinoMaterials = function () {
 		this.gl = gl;
 
 		var vertexShaderSource = "\
-			attribute vec3 aVertexPosition;\
-			attribute vec4 aColor; \
-			attribute vec2 aTextureCoord;\
-			\
-			uniform mat3 projectionMatrix;\
-			uniform vec2 scale;\
-			\
-			varying vec4 vColor;\
-			varying vec2 vTextureCoord;\
-			\
-			void main(void) {\
-				gl_Position = vec4((projectionMatrix * vec3(aVertexPosition.xy * scale, 1.0)).xy, 0, 1);\
-				vColor = vec4(aColor.rgb * aColor.a, aColor.a);\
-				vTextureCoord = vec2(aTextureCoord.x, 1.0 - aTextureCoord.y);\
-			}";
+/* NeutrinoParticles Vertex Shader */ \n\
+attribute vec3 aVertexPosition;\n\
+attribute vec4 aColor; \n\
+attribute vec2 aTextureCoord;\n\
+\n\
+uniform mat3 projectionMatrix;\n\
+uniform vec2 scale;\n\
+\n\
+varying vec4 vColor;\n\
+varying vec2 vTextureCoord;\n\
+\n\
+void main(void) {\n\
+	gl_Position = vec4((projectionMatrix * vec3(aVertexPosition.xy * scale, 1.0)).xy, 0, 1);\n\
+	vColor = vec4(aColor.rgb * aColor.a, aColor.a);\n\
+	vTextureCoord = vec2(aTextureCoord.x, 1.0 - aTextureCoord.y);\n\
+}";
 
 		var fragmentShaderSource = "\
-			precision mediump float;\
-			\
-			varying vec4 vColor;\
-			varying vec2 vTextureCoord;\
-		\
-			uniform sampler2D uSampler;\
-			\
-			void main(void) {\
-				gl_FragColor = vColor * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\
-			}";
+/* NeutrinoParticles Fragment Shader (Normal, Add materials) */ \n\
+precision mediump float;\n\
+\n\
+varying vec4 vColor;\n\
+varying vec2 vTextureCoord;\n\
+\n\
+uniform sampler2D uSampler;\n\
+\n\
+void main(void) {\n\
+	gl_FragColor = vColor * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\n\
+}";
 
 		var fragmentShaderMultiplySource = "\
-			precision mediump float;\
-			\
-			varying vec4 vColor;\
-			varying vec2 vTextureCoord;\
-			\
-			uniform sampler2D uSampler;\
-			\
-			void main(void)\
-			{\
-				vec4 texel = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\
-				vec3 rgb = vColor.rgb * texel.rgb;\
-				float alpha = vColor.a * texel.a;\
-				gl_FragColor = vec4(mix(vec3(1, 1, 1), rgb, alpha), 1);\
-			}";
+/* NeutrinoParticles Fragment Shader (Multiply material) */ \n\
+precision mediump float;\n\
+\n\
+varying vec4 vColor;\n\
+varying vec2 vTextureCoord;\n\
+\n\
+uniform sampler2D uSampler;\n\
+\n\
+void main(void)\n\
+{\n\
+	vec4 texel = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\n\
+	vec3 rgb = vColor.rgb * texel.rgb;\n\
+	float alpha = vColor.a * texel.a;\n\
+	gl_FragColor = vec4(mix(vec3(1, 1, 1), rgb, alpha), 1);\n\
+}";
 
 		this.shaderProgram = this._makeShaderProgram(vertexShaderSource, fragmentShaderSource);
 		this.shaderProgramMultiply = this._makeShaderProgram(vertexShaderSource, fragmentShaderMultiplySource);
@@ -178,38 +482,6 @@ var PIXINeutrinoMaterials = function () {
 	}]);
 
 	return PIXINeutrinoMaterials;
-}();
-
-var PIXINeutrinoContext = function () {
-	function PIXINeutrinoContext(renderer) {
-		_classCallCheck(this, PIXINeutrinoContext);
-
-		var gl = renderer.gl;
-
-		this.renderer = renderer;
-		this.neutrino = new NeutrinoParticles();
-		this.effectsBasePath = "";
-		this.texturesBasePath = "";
-		this.trimmedExtensionLookupFirst = true;
-
-		if (!(renderer instanceof PIXI.CanvasRenderer)) {
-			this.materials = new PIXINeutrinoMaterials(gl);
-		}
-	}
-
-	_createClass(PIXINeutrinoContext, [{
-		key: "initializeNoise",
-		value: function initializeNoise(path, success, fail) {
-			this.neutrino.initializeNoise(path, success, fail);
-		}
-	}, {
-		key: "loadEffect",
-		value: function loadEffect(path, success, fail) {
-			this.neutrino.loadEffect(path, success, fail);
-		}
-	}]);
-
-	return PIXINeutrinoContext;
 }();
 
 var PIXINeutrinoRenderBuffers = function () {
@@ -358,272 +630,4 @@ var PIXINeutrinoRenderBuffers = function () {
 
 	return PIXINeutrinoRenderBuffers;
 }();
-
-var PIXINeutrinoEffectModel = function (_PIXI$DisplayObject) {
-	_inherits(PIXINeutrinoEffectModel, _PIXI$DisplayObject);
-
-	function PIXINeutrinoEffectModel(context, effectPath) {
-		_classCallCheck(this, PIXINeutrinoEffectModel);
-
-		var _this = _possibleConstructorReturn(this, (PIXINeutrinoEffectModel.__proto__ || Object.getPrototypeOf(PIXINeutrinoEffectModel)).call(this));
-
-		_this.ctx = context;
-		_this.effectPath = effectPath;
-		_this.effectModel = null;
-		_this.numTexturesToLoadLeft = -1;
-		_this.texturesRemap = null;
-
-		var pixiNeutrinoEffect = _this;
-		_this.ctx.neutrino.loadEffect(_this.ctx.effectsBasePath + effectPath, function (effectModel) {
-			pixiNeutrinoEffect._onEffectLoaded(effectModel);
-		});
-		return _this;
-	}
-
-	_createClass(PIXINeutrinoEffectModel, [{
-		key: "ready",
-		value: function ready() {
-			return this.numTexturesToLoadLeft === 0;
-		}
-	}, {
-		key: "_onEffectLoaded",
-		value: function _onEffectLoaded(effectModel) {
-			this.effectModel = effectModel;
-			this.textures = [];
-			this.textureImageDescs = [];
-			var numTextures = effectModel.textures.length;
-			this.numTexturesToLoadLeft = numTextures;
-
-			for (var imageIndex = 0; imageIndex < numTextures; ++imageIndex) {
-				var texturePath = effectModel.textures[imageIndex];
-				var texture = null;
-
-				if (this.ctx.trimmedExtensionLookupFirst) {
-					var trimmedTexturePath = texturePath.replace(/\.[^/.]+$/, ""); // https://stackoverflow.com/a/4250408
-					texture = PIXI.utils.TextureCache[trimmedTexturePath];
-				}
-
-				if (!texture) texture = PIXI.utils.TextureCache[texturePath];
-
-				if (!texture) texture = PIXI.Texture.fromImage(this.ctx.texturesBasePath + texturePath);
-
-				if (texture.baseTexture.hasLoaded) {
-					this._onTextureLoaded(imageIndex, texture);
-				} else {
-					texture.once('update', function (self, imageIndex, texture) {
-						return function () {
-							self._onTextureLoaded(imageIndex, texture);
-						};
-					}(this, imageIndex, texture));
-				}
-			}
-		}
-	}, {
-		key: "_onTextureLoaded",
-		value: function _onTextureLoaded(index, texture) {
-			this.textures[index] = texture;
-
-			this.numTexturesToLoadLeft--;
-
-			if (this.ctx.renderer instanceof PIXI.CanvasRenderer) {
-				var image = texture.baseTexture.source;
-				this.textureImageDescs[index] = new this.ctx.neutrino.ImageDesc(image, texture.orig.x, texture.orig.y, texture.orig.width, texture.orig.height);
-			} else {}
-
-			if (this.numTexturesToLoadLeft === 0) {
-
-				if (this.ctx.renderer instanceof PIXI.CanvasRenderer) {} else {
-					this._initTexturesRemapIfNeeded();
-				}
-
-				this.emit('ready', this);
-			}
-		}
-	}, {
-		key: "_initTexturesRemapIfNeeded",
-		value: function _initTexturesRemapIfNeeded() {
-			var remapNeeded = false;
-
-			for (var texIdx = 0; texIdx < this.textures.length; ++texIdx) {
-				var texture = this.textures[texIdx];
-
-				if (texture.orig.x != 0 || texture.orig.y != 0 || texture.orig.width != texture.baseTexture.realWidth || texture.orig.height != texture.baseTexture.realHeight) {
-					remapNeeded = true;
-					break;
-				}
-			}
-
-			this.texturesRemap = [];
-			if (remapNeeded) {
-				for (var texIdx = 0; texIdx < this.textures.length; ++texIdx) {
-					var texture = this.textures[texIdx];
-
-					this.texturesRemap[texIdx] = new this.ctx.neutrino.SubRect(texture.orig.x / texture.baseTexture.realWidth, 1.0 - (texture.orig.y + texture.orig.height) / texture.baseTexture.realHeight, texture.orig.width / texture.baseTexture.realWidth, texture.orig.height / texture.baseTexture.realHeight);
-				}
-			}
-		}
-	}]);
-
-	return PIXINeutrinoEffectModel;
-}(PIXI.DisplayObject);
-
-var PIXINeutrinoEffect = function (_PIXI$Container) {
-	_inherits(PIXINeutrinoEffect, _PIXI$Container);
-
-	function PIXINeutrinoEffect(effectModel, position, rotation, scale) {
-		_classCallCheck(this, PIXINeutrinoEffect);
-
-		var _this2 = _possibleConstructorReturn(this, (PIXINeutrinoEffect.__proto__ || Object.getPrototypeOf(PIXINeutrinoEffect)).call(this));
-
-		_this2.ctx = effectModel.ctx;
-		_this2.effectModel = effectModel;
-		_this2.effect = null;
-		_this2.position.set(position[0], position[1]);
-		_this2.positionZ = position[2];
-
-		if (rotation) _this2.rotation = rotation;
-
-		if (scale) {
-			_this2.scale.x = scale[0];
-			_this2.scale.y = scale[1];
-			_this2.scaleZ = scale[2];
-		} else _this2.scaleZ = 1;
-
-		if (effectModel.ready()) {
-			_this2._onEffectReady();
-		} else {
-			effectModel.once('ready', function () {
-				this._onEffectReady();
-			}, _this2);
-		}
-		return _this2;
-	}
-
-	_createClass(PIXINeutrinoEffect, [{
-		key: "ready",
-		value: function ready() {
-			return this.effect != null;
-		}
-	}, {
-		key: "update",
-		value: function update(dt) {
-			if (this.effect != null) {
-        this.effect.update(dt, [this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ], this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.rotation % 360));
-			}
-		}
-	}, {
-		key: "renderCanvas",
-		value: function renderCanvas(renderer) {
-			if (!this.ready()) return;
-
-			renderer.context.setTransform(this.scale.x, 0, 0, this.scale.y, 0, 0);
-			this.effect.draw(renderer.context);
-		}
-	}, {
-		key: "renderWebGL",
-		value: function renderWebGL(renderer) {
-			if (!this.ready()) return;
-
-			var gl = renderer.gl;
-
-			renderer.setObjectRenderer(renderer.emptyRenderer);
-			renderer.bindVao(null);
-			renderer.state.resetAttributes();
-
-			renderer.state.push();
-			renderer.state.setState(renderer.state.defaultState);
-
-			// hack! the only way to discard current shader for futher engine rendering
-			renderer._activeShader = null;
-
-			var target = renderer._activeRenderTarget;
-
-			this.ctx.materials.setup(target.projectionMatrix.toArray(true), [this.scale.x, this.scale.y]);
-
-			this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
-
-			this.renderBuffers.updateGlBuffers();
-			this.renderBuffers.bind();
-
-			for (var renderCallIdx = 0; renderCallIdx < this.renderBuffers.numRenderCalls; ++renderCallIdx) {
-				var renderCall = this.renderBuffers.renderCalls[renderCallIdx];
-				var texIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].textureIndices[0];
-
-				renderer.bindTexture(this.effectModel.textures[texIndex], 0, true);
-
-				var materialIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].materialIndex;
-				switch (this.effect.model.materials[materialIndex]) {
-					default:
-						this.ctx.materials.switchToNormal(renderer);break;
-					case 1:
-						this.ctx.materials.switchToAdd(renderer);break;
-					case 2:
-						this.ctx.materials.switchToMultiply(renderer);break;
-				}
-
-				gl.drawElements(gl.TRIANGLES, renderCall.numIndices, gl.UNSIGNED_SHORT, renderCall.startIndex * 2);
-			}
-
-			renderer.state.pop();
-		}
-	}, {
-		key: "restart",
-		value: function restart(position, rotation) {
-			if (position) {
-				this.position.x = position[0];
-				this.position.y = position[1];
-				this.positionZ = position[2];
-			}
-
-			if (rotation) {
-				this.rotation = rotation;
-			}
-
-			this.effect.restart([this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ], rotation ? this.ctx.neutrino.axisangle2quat_([0, 0, 1], rotation % 360) : null);
-		}
-	}, {
-		key: "resetPosition",
-		value: function resetPosition(position, rotation) {
-			if (position) {
-				this.position.x = position[0];
-				this.position.y = position[1];
-				this.positionZ = position[2];
-			}
-
-			if (rotation) {
-				this.rotation = rotation;
-			}
-
-			this.effect.resetPosition([this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ], rotation ? this.ctx.neutrino.axisangle2quat_([0, 0, 1], rotation % 360) : null);
-		}
-	}, {
-		key: "setPropertyInAllEmitters",
-		value: function setPropertyInAllEmitters(name, value) {
-			this.effect.setPropertyInAllEmitters(name, value);
-		}
-	}, {
-		key: "getNumParticles",
-		value: function getNumParticles() {
-			return this.effect.getNumParticles();
-		}
-	}, {
-		key: "_onEffectReady",
-		value: function _onEffectReady() {
-			var position = [this.position.x / this.scale.x, this.position.y / this.scale.y, this.positionZ / this.scaleZ];
-			var rotation = this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.rotation % 360);
-
-			if (this.effectModel.ctx.renderer instanceof PIXI.CanvasRenderer) {
-				this.effect = this.effectModel.effectModel.createCanvas2DInstance(position, rotation);
-				this.effect.textureDescs = this.effectModel.textureImageDescs;
-			} else {
-				this.renderBuffers = new PIXINeutrinoRenderBuffers(this.ctx);
-				this.effect = this.effectModel.effectModel.createWGLInstance(position, rotation, this.renderBuffers);
-				this.effect.texturesRemap = this.effectModel.texturesRemap;
-			}
-
-			this.emit('ready', this);
-		}
-	}]);
-
-	return PIXINeutrinoEffect;
-}(PIXI.Container);
+//# sourceMappingURL=neutrinoparticles.pixi.js.map
