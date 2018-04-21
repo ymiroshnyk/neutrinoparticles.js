@@ -1,7 +1,9 @@
 class PIXINeutrinoMaterials {
 
-	constructor(gl) {
-		this.gl = gl;
+	constructor(ctx) {
+        this.ctx = ctx;
+		this.renderer = ctx.renderer;
+		var gl = this.renderer.gl;
 
 		var vertexShaderSource = "\
 /* NeutrinoParticles Vertex Shader */ \n\
@@ -51,110 +53,54 @@ void main(void)\n\
 	gl_FragColor = vec4(mix(vec3(1, 1, 1), rgb, alpha), 1);\n\
 }";
 
-		this.shaderProgram = this._makeShaderProgram(vertexShaderSource, fragmentShaderSource);
-		this.shaderProgramMultiply = this._makeShaderProgram(vertexShaderSource, fragmentShaderMultiplySource);
-
-		this.pMatrix = null;
-		this.currentProgram = null;
+		this.shader = new PIXI.Shader(gl, vertexShaderSource, fragmentShaderSource);
+		this.shaderMultiply = new PIXI.Shader(gl, vertexShaderSource, fragmentShaderSource);
+		this.currentShader = null;
 	}
 
 	shutdown() {
 	}
 
-	positionAttribLocation() {
-		return this.shaderProgram.vertexPositionAttribute;
+	positionAttrib() {
+		return this.shader.attributes.aVertexPosition;
 	}
 
-	colorAttribLocation() {
-		return this.shaderProgram.colorAttribute;
+	colorAttrib() {
+		return this.shader.attributes.aColor;
 	}
 
-	texAttribLocation(index) {
-		return this.shaderProgram.textureCoordAttribute[index];
+	texAttrib(index) {
+		return this.shader.attributes.aTextureCoord;
 	}
 
-	setup(pMatrix, scale) {
-		var gl = this.gl;
-
-		this.pMatrix = pMatrix;
+	setup(scale) {
 		this.scale = scale.slice();
-		this.currentProgram = null;
+		this.currentShader = null;
 	}
 
-	switchToNormal(renderer) {
-		var gl = this.gl;
-
-		this._setProgram(this.shaderProgram);
-		renderer.state.setBlendMode(0);
+	switchToNormal() {
+		this._setShader(this.shader);
+		this.renderer.state.setBlendMode(0);
 	}
 
-	switchToAdd(renderer) {
-		var gl = this.gl;
-
-		this._setProgram(this.shaderProgram);
-		renderer.state.setBlendMode(1);
+	switchToAdd() {
+		this._setShader(this.shader);
+		this.renderer.state.setBlendMode(1);
 	}
 
 	switchToMultiply(renderer) {
-		var gl = this.gl;
-
-		this._setProgram(this.shaderProgramMultiply);
-		renderer.state.setBlendMode(2);
+		this._setShader(this.shaderMultiply);
+		this.renderer.state.setBlendMode(2);
 	}
 
-	_setProgram(program) {
-		var gl = this.gl;
+	_setShader(shader) {
+		if (this.currentShader != shader)
+		{
+			this.renderer.bindShader(shader);
+			shader.uniforms.uSampler = 0;
+			shader.uniforms.scale = this.scale;
 
-		if (program != this.currentProgram) {
-			gl.useProgram(program);
-			gl.uniformMatrix3fv(program.pMatrixUniform, false, this.pMatrix);
-			gl.uniform1i(program.samplerUniform, 0);
-			gl.uniform2f(program.scaleUniform, this.scale[0], this.scale[1]);
-
-			this.currentProgram = program;
+			this.currentShader = shader;
 		}
-	}
-
-	_makeShaderProgram(vertexShaderSource, fragmentShaderSource) {
-		var gl = this.gl;
-
-		var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-		gl.shaderSource(vertexShader, vertexShaderSource);
-		gl.compileShader(vertexShader);
-
-		if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-			alert(gl.getShaderInfoLog(vertexShader));
-			return null;
-		}
-
-		var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-		gl.shaderSource(fragmentShader, fragmentShaderSource);
-		gl.compileShader(fragmentShader);
-
-		if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-			alert(gl.getShaderInfoLog(fragmentShader));
-			return null;
-		}
-
-		var shaderProgram = gl.createProgram();
-		gl.attachShader(shaderProgram, vertexShader);
-		gl.attachShader(shaderProgram, fragmentShader);
-		gl.linkProgram(shaderProgram);
-
-		if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-			alert("Could not initialise shaders");
-		}
-
-		gl.useProgram(shaderProgram);
-
-		shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-		shaderProgram.colorAttribute = gl.getAttribLocation(shaderProgram, "aColor");
-		shaderProgram.textureCoordAttribute = [gl.getAttribLocation(shaderProgram, "aTextureCoord")];
-
-		shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "projectionMatrix");
-		shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
-		shaderProgram.scaleUniform = gl.getUniformLocation(shaderProgram, "scale");
-
-		return shaderProgram;
 	}
 }

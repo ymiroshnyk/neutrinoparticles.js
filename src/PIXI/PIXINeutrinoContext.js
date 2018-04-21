@@ -10,7 +10,7 @@ class PIXINeutrinoContext {
 		this.trimmedExtensionLookupFirst = true;
 
 		if (!(renderer instanceof PIXI.CanvasRenderer)) {
-			this.materials = new PIXINeutrinoMaterials(gl);
+			this.materials = new PIXINeutrinoMaterials(this);
 		}
 	}
 

@@ -52,21 +52,9 @@ class PIXINeutrinoEffect extends PIXI.Container {
 		if (!this.ready())
 			return;
 
-		var gl = renderer.gl;
-
 		renderer.setObjectRenderer(renderer.emptyRenderer);
-		renderer.bindVao(null);
-		renderer.state.resetAttributes();
 
-		renderer.state.push();
-		renderer.state.setState(renderer.state.defaultState);
-		
-		// hack! the only way to discard current shader for futher engine rendering
-		renderer._activeShader = null;
-
-		var target = renderer._activeRenderTarget;
-
-		this.ctx.materials.setup(target.projectionMatrix.toArray(true), [this.scale.x, this.scale.y]);
+		this.ctx.materials.setup([this.scale.x, this.scale.y]);
 
 		this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
 
@@ -81,15 +69,13 @@ class PIXINeutrinoEffect extends PIXI.Container {
 
 			var materialIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].materialIndex;
 			switch (this.effect.model.materials[materialIndex]) {
-				default: this.ctx.materials.switchToNormal(renderer); break;
-				case 1: this.ctx.materials.switchToAdd(renderer); break;
-				case 2: this.ctx.materials.switchToMultiply(renderer); break;
+				default: this.ctx.materials.switchToNormal(); break;
+				case 1: this.ctx.materials.switchToAdd(); break;
+				case 2: this.ctx.materials.switchToMultiply(); break;
 			}
 
-			gl.drawElements(gl.TRIANGLES, renderCall.numIndices, gl.UNSIGNED_SHORT, renderCall.startIndex * 2);
+			this.renderBuffers.draw(renderCall.numIndices, renderCall.startIndex * 2)
 		}
-
-		renderer.state.pop();
 	}
 
 	restart(position, rotation) {

@@ -21,7 +21,7 @@ var PIXINeutrinoContext = function () {
 		this.trimmedExtensionLookupFirst = true;
 
 		if (!(renderer instanceof PIXI.CanvasRenderer)) {
-			this.materials = new PIXINeutrinoMaterials(gl);
+			this.materials = new PIXINeutrinoMaterials(this);
 		}
 	}
 
@@ -97,21 +97,9 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 		value: function renderWebGL(renderer) {
 			if (!this.ready()) return;
 
-			var gl = renderer.gl;
-
 			renderer.setObjectRenderer(renderer.emptyRenderer);
-			renderer.bindVao(null);
-			renderer.state.resetAttributes();
 
-			renderer.state.push();
-			renderer.state.setState(renderer.state.defaultState);
-
-			// hack! the only way to discard current shader for futher engine rendering
-			renderer._activeShader = null;
-
-			var target = renderer._activeRenderTarget;
-
-			this.ctx.materials.setup(target.projectionMatrix.toArray(true), [this.scale.x, this.scale.y]);
+			this.ctx.materials.setup([this.scale.x, this.scale.y]);
 
 			this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
 
@@ -127,17 +115,15 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 				var materialIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].materialIndex;
 				switch (this.effect.model.materials[materialIndex]) {
 					default:
-						this.ctx.materials.switchToNormal(renderer);break;
+						this.ctx.materials.switchToNormal();break;
 					case 1:
-						this.ctx.materials.switchToAdd(renderer);break;
+						this.ctx.materials.switchToAdd();break;
 					case 2:
-						this.ctx.materials.switchToMultiply(renderer);break;
+						this.ctx.materials.switchToMultiply();break;
 				}
 
-				gl.drawElements(gl.TRIANGLES, renderCall.numIndices, gl.UNSIGNED_SHORT, renderCall.startIndex * 2);
+				this.renderBuffers.draw(renderCall.numIndices, renderCall.startIndex * 2);
 			}
-
-			renderer.state.pop();
 		}
 	}, {
 		key: "restart",
@@ -310,10 +296,12 @@ var PIXINeutrinoEffectModel = function (_PIXI$DisplayObject) {
 }(PIXI.DisplayObject);
 
 var PIXINeutrinoMaterials = function () {
-	function PIXINeutrinoMaterials(gl) {
+	function PIXINeutrinoMaterials(ctx) {
 		_classCallCheck(this, PIXINeutrinoMaterials);
 
-		this.gl = gl;
+		this.ctx = ctx;
+		this.renderer = ctx.renderer;
+		var gl = this.renderer.gl;
 
 		var vertexShaderSource = "\
 /* NeutrinoParticles Vertex Shader */ \n\
@@ -363,121 +351,63 @@ void main(void)\n\
 	gl_FragColor = vec4(mix(vec3(1, 1, 1), rgb, alpha), 1);\n\
 }";
 
-		this.shaderProgram = this._makeShaderProgram(vertexShaderSource, fragmentShaderSource);
-		this.shaderProgramMultiply = this._makeShaderProgram(vertexShaderSource, fragmentShaderMultiplySource);
-
-		this.pMatrix = null;
-		this.currentProgram = null;
+		this.shader = new PIXI.Shader(gl, vertexShaderSource, fragmentShaderSource);
+		this.shaderMultiply = new PIXI.Shader(gl, vertexShaderSource, fragmentShaderSource);
+		this.currentShader = null;
 	}
 
 	_createClass(PIXINeutrinoMaterials, [{
 		key: "shutdown",
 		value: function shutdown() {}
 	}, {
-		key: "positionAttribLocation",
-		value: function positionAttribLocation() {
-			return this.shaderProgram.vertexPositionAttribute;
+		key: "positionAttrib",
+		value: function positionAttrib() {
+			return this.shader.attributes.aVertexPosition;
 		}
 	}, {
-		key: "colorAttribLocation",
-		value: function colorAttribLocation() {
-			return this.shaderProgram.colorAttribute;
+		key: "colorAttrib",
+		value: function colorAttrib() {
+			return this.shader.attributes.aColor;
 		}
 	}, {
-		key: "texAttribLocation",
-		value: function texAttribLocation(index) {
-			return this.shaderProgram.textureCoordAttribute[index];
+		key: "texAttrib",
+		value: function texAttrib(index) {
+			return this.shader.attributes.aTextureCoord;
 		}
 	}, {
 		key: "setup",
-		value: function setup(pMatrix, scale) {
-			var gl = this.gl;
-
-			this.pMatrix = pMatrix;
+		value: function setup(scale) {
 			this.scale = scale.slice();
-			this.currentProgram = null;
+			this.currentShader = null;
 		}
 	}, {
 		key: "switchToNormal",
-		value: function switchToNormal(renderer) {
-			var gl = this.gl;
-
-			this._setProgram(this.shaderProgram);
-			renderer.state.setBlendMode(0);
+		value: function switchToNormal() {
+			this._setShader(this.shader);
+			this.renderer.state.setBlendMode(0);
 		}
 	}, {
 		key: "switchToAdd",
-		value: function switchToAdd(renderer) {
-			var gl = this.gl;
-
-			this._setProgram(this.shaderProgram);
-			renderer.state.setBlendMode(1);
+		value: function switchToAdd() {
+			this._setShader(this.shader);
+			this.renderer.state.setBlendMode(1);
 		}
 	}, {
 		key: "switchToMultiply",
 		value: function switchToMultiply(renderer) {
-			var gl = this.gl;
-
-			this._setProgram(this.shaderProgramMultiply);
-			renderer.state.setBlendMode(2);
+			this._setShader(this.shaderMultiply);
+			this.renderer.state.setBlendMode(2);
 		}
 	}, {
-		key: "_setProgram",
-		value: function _setProgram(program) {
-			var gl = this.gl;
+		key: "_setShader",
+		value: function _setShader(shader) {
+			if (this.currentShader != shader) {
+				this.renderer.bindShader(shader);
+				shader.uniforms.uSampler = 0;
+				shader.uniforms.scale = this.scale;
 
-			if (program != this.currentProgram) {
-				gl.useProgram(program);
-				gl.uniformMatrix3fv(program.pMatrixUniform, false, this.pMatrix);
-				gl.uniform1i(program.samplerUniform, 0);
-				gl.uniform2f(program.scaleUniform, this.scale[0], this.scale[1]);
-
-				this.currentProgram = program;
+				this.currentShader = shader;
 			}
-		}
-	}, {
-		key: "_makeShaderProgram",
-		value: function _makeShaderProgram(vertexShaderSource, fragmentShaderSource) {
-			var gl = this.gl;
-
-			var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-			gl.shaderSource(vertexShader, vertexShaderSource);
-			gl.compileShader(vertexShader);
-
-			if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-				alert(gl.getShaderInfoLog(vertexShader));
-				return null;
-			}
-
-			var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-			gl.shaderSource(fragmentShader, fragmentShaderSource);
-			gl.compileShader(fragmentShader);
-
-			if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-				alert(gl.getShaderInfoLog(fragmentShader));
-				return null;
-			}
-
-			var shaderProgram = gl.createProgram();
-			gl.attachShader(shaderProgram, vertexShader);
-			gl.attachShader(shaderProgram, fragmentShader);
-			gl.linkProgram(shaderProgram);
-
-			if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-				alert("Could not initialise shaders");
-			}
-
-			gl.useProgram(shaderProgram);
-
-			shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-			shaderProgram.colorAttribute = gl.getAttribLocation(shaderProgram, "aColor");
-			shaderProgram.textureCoordAttribute = [gl.getAttribLocation(shaderProgram, "aTextureCoord")];
-
-			shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "projectionMatrix");
-			shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
-			shaderProgram.scaleUniform = gl.getUniformLocation(shaderProgram, "scale");
-
-			return shaderProgram;
 		}
 	}]);
 
@@ -522,25 +452,28 @@ var PIXINeutrinoRenderBuffers = function () {
 
 			this.maxNumRenderCalls = maxNumRenderCalls;
 
-			this.positionBuffer = gl.createBuffer();
-			gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-			gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.DYNAMIC_DRAW);
+			// set null vao to prevent overriding of it's buffers to next ones
+			this.ctx.renderer.bindVao(null);
 
-			this.colorBuffer = gl.createBuffer();
-			gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
-			gl.bufferData(gl.ARRAY_BUFFER, this.colors, gl.DYNAMIC_DRAW);
+			this.positionBuffer = PIXI.glCore.GLBuffer.createVertexBuffer(gl, this.positions, gl.DYNAMIC_DRAW);
+
+			this.colorBuffer = PIXI.glCore.GLBuffer.createVertexBuffer(gl, this.colors, gl.DYNAMIC_DRAW);
 
 			this.texBuffers = [];
 			for (var texIndex = 0; texIndex < this.texCoords.length; ++texIndex) {
-				var buffer = gl.createBuffer();
-				gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-				gl.bufferData(gl.ARRAY_BUFFER, this.texCoords[texIndex], gl.DYNAMIC_DRAW);
+				var buffer = PIXI.glCore.GLBuffer.createVertexBuffer(gl, this.texCoords[texIndex], gl.DYNAMIC_DRAW);
 				this.texBuffers.push(buffer);
 			}
 
-			this.indicesBuffer = gl.createBuffer();
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
-			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
+			this.indicesBuffer = PIXI.glCore.GLBuffer.createIndexBuffer(gl, this.indices, gl.STATIC_DRAW);
+
+			var materials = this.ctx.materials;
+
+			this.vao = this.ctx.renderer.createVao().addIndex(this.indicesBuffer).addAttribute(this.positionBuffer, materials.positionAttrib(), gl.FLOAT, false, 0, 0).addAttribute(this.colorBuffer, materials.colorAttrib(), gl.UNSIGNED_BYTE, true, 0, 0);
+
+			for (var texIndex = 0; texIndex < this.texCoords.length; ++texIndex) {
+				this.vao.addAttribute(this.texBuffers[texIndex], materials.texAttrib(texIndex), gl.FLOAT, false, 0, 0);
+			}
 		}
 	}, {
 		key: "pushVertex",
@@ -573,57 +506,33 @@ var PIXINeutrinoRenderBuffers = function () {
 		value: function updateGlBuffers() {
 			var gl = this.gl;
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-			gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.positions, 0, this.numVertices * 3);
-
-			gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
-			gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.colors, 0, this.numVertices * 4);
+			this.positionBuffer.upload(new DataView(this.positions.buffer, 0, 4 * this.numVertices * 3), 0);
+			this.colorBuffer.upload(new DataView(this.colors.buffer, 0, this.numVertices * 4), 0);
 
 			this.texBuffers.forEach(function (buffer, index) {
-				gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-				gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.texCoords[index], 0, this.numVertices * this.texCoords[index].numComponents);
+				buffer.upload(new DataView(this.texCoords[index].buffer, 0, 4 * this.numVertices * this.texCoords[index].numComponents), 0);
 			}, this);
 		}
 	}, {
 		key: "bind",
 		value: function bind() {
+			this.ctx.renderer.bindVao(this.vao);
+		}
+	}, {
+		key: "draw",
+		value: function draw(size, start) {
 			var gl = this.gl;
-			var materials = this.ctx.materials;
 
-			{
-				gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-
-				gl.enableVertexAttribArray(materials.positionAttribLocation());
-				gl.vertexAttribPointer(materials.positionAttribLocation(), 3, gl.FLOAT, false, 0, 0);
-			}
-
-			{
-				gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
-
-				gl.enableVertexAttribArray(materials.colorAttribLocation());
-				gl.vertexAttribPointer(materials.colorAttribLocation(), 4, gl.UNSIGNED_BYTE, true, 0, 0);
-			}
-
-			this.texBuffers.forEach(function (buffer, index) {
-
-				gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-
-				gl.enableVertexAttribArray(materials.texAttribLocation(index));
-				gl.vertexAttribPointer(materials.texAttribLocation(index), this.texCoords[index].numComponents, gl.FLOAT, false, 0, 0);
-			}, this);
-
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
+			this.vao.draw(gl.TRIANGLES, size, start);
 		}
 	}, {
 		key: "shutdown",
 		value: function shutdown() {
-			var gl = this.gl;
-
-			gl.deleteBuffer(this.positionBuffer);
-			gl.deleteBuffer(this.colorBuffer);
+			this.positionBuffer.destroy();
+			this.colorBuffer.destroy();
 
 			this.texBuffers.forEach(function (buffer) {
-				gl.deleteBuffer(buffer);
+				buffer.destroy();
 			}, this);
 		}
 	}]);

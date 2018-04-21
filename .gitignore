@@ -9,3 +9,5 @@ gen
 # Vendors
 node_modules/
 TODO.txt
+
+/.vscode

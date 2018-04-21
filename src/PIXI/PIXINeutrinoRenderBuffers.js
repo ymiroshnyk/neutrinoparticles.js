@@ -32,25 +32,35 @@ class PIXINeutrinoRenderBuffers {
 
 		this.maxNumRenderCalls = maxNumRenderCalls;
 
-		this.positionBuffer = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.DYNAMIC_DRAW);
+        // set null vao to prevent overriding of it's buffers to next ones
+		this.ctx.renderer.bindVao(null);
 
-		this.colorBuffer = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, this.colors, gl.DYNAMIC_DRAW);
+		this.positionBuffer = PIXI.glCore.GLBuffer.createVertexBuffer(gl,
+			 this.positions, gl.DYNAMIC_DRAW);
+
+		this.colorBuffer = PIXI.glCore.GLBuffer.createVertexBuffer(gl,
+			this.colors, gl.DYNAMIC_DRAW);
 
 		this.texBuffers = [];
 		for (var texIndex = 0; texIndex < this.texCoords.length; ++texIndex) {
-			var buffer = gl.createBuffer();
-			gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-			gl.bufferData(gl.ARRAY_BUFFER, this.texCoords[texIndex], gl.DYNAMIC_DRAW);
+			var buffer = PIXI.glCore.GLBuffer.createVertexBuffer(gl,
+				this.texCoords[texIndex], gl.DYNAMIC_DRAW);
 			this.texBuffers.push(buffer);
 		}
 
-		this.indicesBuffer = gl.createBuffer();
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
+		this.indicesBuffer = PIXI.glCore.GLBuffer.createIndexBuffer(gl,
+			this.indices, gl.STATIC_DRAW);
+
+		var materials = this.ctx.materials;
+
+		this.vao = this.ctx.renderer.createVao().addIndex(this.indicesBuffer).
+			addAttribute(this.positionBuffer, materials.positionAttrib(), gl.FLOAT, false, 0, 0).
+			addAttribute(this.colorBuffer, materials.colorAttrib(), gl.UNSIGNED_BYTE, true, 0, 0);
+
+			for (var texIndex = 0; texIndex < this.texCoords.length; ++texIndex) {
+				this.vao.addAttribute(this.texBuffers[texIndex], materials.texAttrib(texIndex),
+					gl.FLOAT, false, 0, 0);
+			}
 	}
 
 	pushVertex(vertex) {
@@ -83,58 +93,32 @@ class PIXINeutrinoRenderBuffers {
 	updateGlBuffers() {
 		var gl = this.gl;
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-		gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.positions, 0, this.numVertices * 3);
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
-		gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.colors, 0, this.numVertices * 4);
+		this.positionBuffer.upload(new DataView(this.positions.buffer, 0, 
+			4 * this.numVertices * 3), 0);
+		this.colorBuffer.upload(new DataView(this.colors.buffer, 0, this.numVertices * 4), 0);
 
 		this.texBuffers.forEach(function (buffer, index) {
-			gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-			gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.texCoords[index], 0, this.numVertices *
-				this.texCoords[index].numComponents);
+			buffer.upload(new DataView(this.texCoords[index].buffer, 0, 
+				4 * this.numVertices * this.texCoords[index].numComponents), 0);
 		}, this);
 	}
 
 	bind() {
+		this.ctx.renderer.bindVao(this.vao);
+	}
+
+	draw(size, start) {
 		var gl = this.gl;
-		var materials = this.ctx.materials;
-
-		{
-			gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-
-			gl.enableVertexAttribArray(materials.positionAttribLocation());
-			gl.vertexAttribPointer(materials.positionAttribLocation(), 3, gl.FLOAT, false, 0, 0);
-		}
-
-		{
-			gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
-
-			gl.enableVertexAttribArray(materials.colorAttribLocation());
-			gl.vertexAttribPointer(materials.colorAttribLocation(), 4, gl.UNSIGNED_BYTE, true, 0, 0);
-		}
-
-		this.texBuffers.forEach(function (buffer, index) {
-
-			gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-
-			gl.enableVertexAttribArray(materials.texAttribLocation(index));
-			gl.vertexAttribPointer(materials.texAttribLocation(index),
-				this.texCoords[index].numComponents, gl.FLOAT, false, 0, 0);
-
-		}, this);
-
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
+		
+		this.vao.draw(gl.TRIANGLES, size, start);
 	}
 
 	shutdown() {
-		var gl = this.gl;
-
-		gl.deleteBuffer(this.positionBuffer);
-		gl.deleteBuffer(this.colorBuffer);
+		this.positionBuffer.destroy();
+		this.colorBuffer.destroy();
 
 		this.texBuffers.forEach(function (buffer) {
-			gl.deleteBuffer(buffer);
+			buffer.destroy();
 		}, this);
 	}
 }

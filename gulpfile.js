@@ -7,13 +7,13 @@ const gulp = require("gulp"),
 const tasks = [
   {
     name: "phaser",
-    sourcePath: "./src/Phaser/",
+    sourcesMask: "./src/Phaser/**/*.js",
     distPath: "./dist-PHASER/",
     outputDistFile: "neutrinoparticles.phaser.js"
   },
   {
     name: "pixi",
-    sourcePath: "./src/PIXI/",
+    sourcesMask: "./src/PIXI/**/*.js",
     distPath: "./dist-PIXI/",
     outputDistFile: "neutrinoparticles.pixi.js"
   }
@@ -23,7 +23,7 @@ tasks.forEach(function (task) {
 
   // build task
   gulp.task("build-" + task.name, function() {
-    return gulp.src(task.sourcePath + "*.js")
+    return gulp.src(task.sourcesMask)
       .pipe(sourcemaps.init())
       .pipe(concat(task.outputDistFile))
       .pipe(babel())
