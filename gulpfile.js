@@ -34,7 +34,7 @@ tasks.forEach(function (task) {
 
   // watch task
   gulp.task("watch-" + task.name, function () {
-    return watch(task.sourcePath, function (data) {
+    return watch(task.sourcesMask, function (data) {
       gulp.run("build-" + task.name);
     })
   });
