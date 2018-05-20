@@ -23,7 +23,7 @@ tasks.forEach(function (task) {
 
   // build task
   gulp.task("build-" + task.name, function() {
-    return gulp.src(task.sourcesMask)
+    return gulp.src(task.sourcesMask, {base: task.distPath})
       .pipe(sourcemaps.init())
       .pipe(concat(task.outputDistFile))
       .pipe(babel())
