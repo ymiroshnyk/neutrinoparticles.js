@@ -65,7 +65,7 @@ function animate() {
 	var elapsedTime = (currentTime - lastUpdateTime) / 1000;
 	lastUpdateTime = currentTime;
 
-	testEffect.rotation += elapsedTime * 45.0;
+	testEffect.rotation += elapsedTime;
 
 	testEffect.update(elapsedTime > 1.0 ? 1.0 : elapsedTime);
 

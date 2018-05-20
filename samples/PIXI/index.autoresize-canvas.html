@@ -7,11 +7,19 @@
 <script src="../../dist-PIXI/neutrinoparticles.pixi.js"></script>
 <script>
 
+/*
+This sample shows how to make auto-resizable canvas and how to manage scaling in order to
+preserve ratio of all effects in the scene.
+*/
+
 //Test that Pixi is working
 console.log(PIXI);
 
-var renderer = PIXI.autoDetectRenderer(800, 600, { backgroundColor: 0x404040 }); // default renderer (usualy WebGL)
-//var renderer = new PIXI.CanvasRenderer(800, 600, { backgroundColor: 0x404040 });
+var baseSize = [1920, 1080];
+var baseRatio = baseSize[0] / baseSize[1];
+
+var renderer = PIXI.autoDetectRenderer(baseSize[0], baseSize[1], { backgroundColor: 0x404040 }); // default renderer (usualy WebGL)
+//var renderer = new PIXI.CanvasRenderer(baseSize[0], baseSize[1], { backgroundColor: 0x404040 });
 
 document.body.appendChild(renderer.view);
 
@@ -25,9 +33,9 @@ while (!noiseGenerator.step()) { // approx. 5,000 steps
 }
 
 var stage = new PIXI.Container();
-
 var testModel = new PIXINeutrinoEffectModel(neutrinoContext, "water_stream.js");
-var testEffect = new PIXINeutrinoEffect(testModel, [400, 300, 0], 0);
+// place our effect in the center of the screen
+var testEffect = new PIXINeutrinoEffect(testModel, [baseSize[0] * 0.5, baseSize[1] * 0.5, 0], 45);
 stage.addChild(testEffect);
 
 if (testEffect.ready()) {
@@ -56,6 +64,22 @@ function animate() {
 
     requestAnimationFrame(animate);
 }
+
+function resize() {
+    if (window.innerWidth / window.innerHeight >= baseRatio) {
+        var w = window.innerHeight * baseRatio;
+        var h = window.innerHeight;
+    } else {
+        var w = window.innerWidth;
+        var h = window.innerWidth / baseRatio;
+    }
+
+	stage.scale.x = w / baseSize[0];
+	stage.scale.y = h / baseSize[1];
+	renderer.resize(w, h);
+}
+window.onresize = resize;
+resize();
 
 </script>
 </body>

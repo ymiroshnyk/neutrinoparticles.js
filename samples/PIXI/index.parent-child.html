@@ -10,8 +10,8 @@
 //Test that Pixi is working
 console.log(PIXI);
 
-var renderer = PIXI.autoDetectRenderer(800, 600, { backgroundColor: 0x404040 }); // default renderer (usualy WebGL)
-//var renderer = new PIXI.CanvasRenderer(800, 600, { backgroundColor: 0x404040 });
+//var renderer = PIXI.autoDetectRenderer(800, 600, { backgroundColor: 0x404040 }); // default renderer (usualy WebGL)
+var renderer = new PIXI.CanvasRenderer(800, 600, { backgroundColor: 0x404040 });
 
 document.body.appendChild(renderer.view);
 
@@ -19,16 +19,28 @@ var neutrinoContext = new PIXINeutrinoContext(renderer);
 neutrinoContext.effectsBasePath = "export_js/";
 neutrinoContext.texturesBasePath = "textures/";
 
-var noiseGenerator = new neutrinoContext.neutrino.NoiseGenerator();
-while (!noiseGenerator.step()) { // approx. 5,000 steps
-	// you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
-}
-
 var stage = new PIXI.Container();
 
+function addStarTo(parent) {
+    var star = PIXI.Sprite.fromImage('textures/star_glow_white.png');
+    star.anchor.set(0.5);
+    parent.addChild(star);
+}
+
+var parent = new PIXI.Container();
+parent.position.x = 400;
+parent.position.y = 300;
+addStarTo(parent);
+stage.addChild(parent);
+
+var child = new PIXI.Container();
+child.position.x = 100;
+addStarTo(child);
+
 var testModel = new PIXINeutrinoEffectModel(neutrinoContext, "water_stream.js");
-var testEffect = new PIXINeutrinoEffect(testModel, [400, 300, 0], 0);
-stage.addChild(testEffect);
+var testEffect = new PIXINeutrinoEffect(testModel);
+child.addChild(testEffect);
+parent.addChild(child);
 
 if (testEffect.ready()) {
     animate();
@@ -37,6 +49,7 @@ if (testEffect.ready()) {
 }
 
 var lastUpdateTime = null;
+var totalTime = 0;
 
 function animate() {
 	if (lastUpdateTime == null) {
@@ -44,10 +57,13 @@ function animate() {
 	}
 
 	var currentTime = Date.now();
-	var elapsedTime = (currentTime - lastUpdateTime) / 1000;
+    var elapsedTime = (currentTime - lastUpdateTime) / 1000;
+    totalTime += elapsedTime;
 	lastUpdateTime = currentTime;
 
-	testEffect.rotation += elapsedTime;
+    parent.position.x = 400 + Math.sin(totalTime) * 300;
+
+	parent.rotation = totalTime;
 
 	testEffect.update(elapsedTime > 1.0 ? 1.0 : elapsedTime);
 
