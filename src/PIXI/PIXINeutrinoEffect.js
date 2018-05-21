@@ -86,7 +86,7 @@ class PIXINeutrinoEffect extends PIXI.Container {
 				case 2: this.ctx.materials.switchToMultiply(); break;
 			}
 
-			this.renderBuffers.draw(renderCall.numIndices, renderCall.startIndex * 2)
+			this.renderBuffers.draw(renderCall.numIndices, renderCall.startIndex);
 		}
 	}
 
