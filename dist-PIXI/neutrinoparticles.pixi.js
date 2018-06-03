@@ -98,7 +98,15 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 		value: function renderCanvas(renderer) {
 			if (!this.ready()) return;
 
-			renderer.context.setTransform(this.worldScale.x, 0, 0, this.worldScale.y, 0, 0);
+			if (this.baseParent) {
+				var sx = this.worldScale.x;
+				var sy = this.worldScale.y;
+				var m = this.baseParent.worldTransform;
+				renderer.context.setTransform(m.a * sx, m.b * sy, m.c * sx, m.d * sy, m.tx * sx, m.ty * sy);
+			} else {
+				renderer.context.setTransform(this.worldScale.x, 0, 0, this.worldScale.y, 0, 0);
+			}
+
 			this.effect.draw(renderer.context);
 		}
 	}, {
@@ -108,7 +116,14 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 
 			renderer.setObjectRenderer(renderer.emptyRenderer);
 
-			this.ctx.materials.setup([this.worldScale.x, this.worldScale.y]);
+			if (this.baseParent) {
+				var sx = this.worldScale.x;
+				var sy = this.worldScale.y;
+				var m = this.baseParent.worldTransform;
+				this.ctx.materials.setup([m.a * sx, m.b * sy, 0, m.c * sx, m.d * sy, 0, m.tx * sx, m.ty * sy, 1]);
+			} else {
+				this.ctx.materials.setup([this.worldScale.x, 0, 0, 0, this.worldScale.y, 0, 0, 0, 1]);
+			}
 
 			this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
 
@@ -190,9 +205,17 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 			var localXAxis = new PIXI.Point(1, 0);
 			var localYAxis = new PIXI.Point(0, 1);
 
-			this.worldPosition = this.toGlobal(localPosition);
-			var worldXAxis = this.toGlobal(localXAxis);
-			var worldYAxis = this.toGlobal(localYAxis);
+			var worldXAxis, worldYAxis;
+
+			if (this.baseParent) {
+				this.worldPosition = this.baseParent.toLocal(localPosition, this);
+				worldXAxis = this.baseParent.toLocal(localXAxis, this);
+				worldYAxis = this.baseParent.toLocal(localYAxis, this);
+			} else {
+				this.worldPosition = this.toGlobal(localPosition);
+				worldXAxis = this.toGlobal(localXAxis);
+				worldYAxis = this.toGlobal(localYAxis);
+			}
 
 			worldXAxis.x -= this.worldPosition.x;
 			worldXAxis.y -= this.worldPosition.y;
@@ -209,7 +232,7 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 	}, {
 		key: "_calcWorldRotation",
 		value: function _calcWorldRotation(obj) {
-			if (obj.parent) return obj.rotation + this._calcWorldRotation(obj.parent);else return obj.rotation;
+			if (obj.parent && obj.parent != this.baseParent) return obj.rotation + this._calcWorldRotation(obj.parent);else return obj.rotation;
 		}
 	}, {
 		key: "_onEffectReady",
@@ -358,13 +381,13 @@ attribute vec4 aColor; \n\
 attribute vec2 aTextureCoord;\n\
 \n\
 uniform mat3 projectionMatrix;\n\
-uniform vec2 scale;\n\
+uniform mat3 worldMatrix;\n\
 \n\
 varying vec4 vColor;\n\
 varying vec2 vTextureCoord;\n\
 \n\
 void main(void) {\n\
-	gl_Position = vec4((projectionMatrix * vec3(aVertexPosition.xy * scale, 1.0)).xy, 0, 1);\n\
+	gl_Position = vec4((projectionMatrix * worldMatrix * vec3(aVertexPosition.xy, 1)).xy, 0, 1);\n\
 	vColor = vec4(aColor.rgb * aColor.a, aColor.a);\n\
 	vTextureCoord = vec2(aTextureCoord.x, 1.0 - aTextureCoord.y);\n\
 }";
@@ -424,8 +447,8 @@ void main(void)\n\
 		}
 	}, {
 		key: "setup",
-		value: function setup(scale) {
-			this.scale = scale.slice();
+		value: function setup(worldMatrixArray) {
+			this.worldMatrix = worldMatrixArray;
 			this.currentShader = null;
 		}
 	}, {
@@ -452,7 +475,7 @@ void main(void)\n\
 			if (this.currentShader != shader) {
 				this.renderer.bindShader(shader);
 				shader.uniforms.uSampler = 0;
-				shader.uniforms.scale = this.scale;
+				shader.uniforms.worldMatrix = this.worldMatrix;
 
 				this.currentShader = shader;
 			}

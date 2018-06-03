@@ -12,13 +12,13 @@ attribute vec4 aColor; \n\
 attribute vec2 aTextureCoord;\n\
 \n\
 uniform mat3 projectionMatrix;\n\
-uniform vec2 scale;\n\
+uniform mat3 worldMatrix;\n\
 \n\
 varying vec4 vColor;\n\
 varying vec2 vTextureCoord;\n\
 \n\
 void main(void) {\n\
-	gl_Position = vec4((projectionMatrix * vec3(aVertexPosition.xy * scale, 1.0)).xy, 0, 1);\n\
+	gl_Position = vec4((projectionMatrix * worldMatrix * vec3(aVertexPosition.xy, 1)).xy, 0, 1);\n\
 	vColor = vec4(aColor.rgb * aColor.a, aColor.a);\n\
 	vTextureCoord = vec2(aTextureCoord.x, 1.0 - aTextureCoord.y);\n\
 }";
@@ -73,8 +73,8 @@ void main(void)\n\
 		return this.shader.attributes.aTextureCoord;
 	}
 
-	setup(scale) {
-		this.scale = scale.slice();
+	setup(worldMatrixArray) {
+		this.worldMatrix = worldMatrixArray;
 		this.currentShader = null;
 	}
 
@@ -98,7 +98,7 @@ void main(void)\n\
 		{
 			this.renderer.bindShader(shader);
 			shader.uniforms.uSampler = 0;
-			shader.uniforms.scale = this.scale;
+			shader.uniforms.worldMatrix = this.worldMatrix;
 
 			this.currentShader = shader;
 		}
