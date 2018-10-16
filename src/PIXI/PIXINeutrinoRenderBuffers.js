@@ -95,13 +95,11 @@ class PIXINeutrinoRenderBuffers {
 
 		if (this.numVertices > 0)
 		{
-			this.positionBuffer.upload(new DataView(this.positions.buffer, 0, 
-				4 * this.numVertices * 3), 0);
-			this.colorBuffer.upload(new DataView(this.colors.buffer, 0, this.numVertices * 4), 0);
+			this.positionBuffer.upload(this.positions.buffer, 0);
+			this.colorBuffer.upload(this.colors.buffer, 0);
 
 			this.texBuffers.forEach(function (buffer, index) {
-				buffer.upload(new DataView(this.texCoords[index].buffer, 0, 
-					4 * this.numVertices * this.texCoords[index].numComponents), 0);
+				buffer.upload(this.texCoords[index].buffer, 0);
 			}, this);
 		}
 	}
