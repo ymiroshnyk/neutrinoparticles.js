@@ -1,0 +1,68 @@
+'use strict';
+
+import { Generator } from './Generator'
+
+export class GeneratorPeriodic extends Generator {
+
+    constructor(emitterInterface) {
+        super(emitterInterface);
+
+        this.emitterInterface = emitterInterface;
+        this.initiate();
+    }
+
+    initiate() {
+        super.initiate();
+
+        this.startPhase = 1;
+        this.fixedTime = null;
+        this.fixedShots = null;
+        this.burstSize = 1;
+        this.rate = 0;
+        //this.spentParticle;
+        //this.shotsMade
+
+        this.emitterInterface.initGenerator(this);
+
+        this.spentParticle = this.startPhase;
+        this.shotsMade = 0;
+    }
+
+    update(dt, frameInterp) {
+        this.emitterInterface.updateGenerator(dt, this);
+
+        if (this.rate < 0.0001)
+            return;
+
+        let frameTimeLeft = dt;
+        let particlesShot = 0;
+        let shotsToMake = this.spentParticle + dt * this.rate;
+
+        while (shotsToMake >= 1.0) {
+            let spentTime = (1.0 - this.spentParticle) / this.rate;
+            frameTimeLeft -= spentTime;
+
+            if (dt > 0.0001)
+                frameInterp.set(1 - frameTimeLeft / dt);
+
+            if (this.fixedTime != null && frameInterp.emitterTime > this.fixedTime) {
+                this.emitterInterface.disactivateEmitter();
+                break;
+            }
+
+            particlesShot += this.burstParticles(frameTimeLeft);
+
+            this.spentParticle = 0.0;
+            shotsToMake -= 1.0;
+
+            if (this.fixedShots != null && ++this.shotsMade >= this.fixedShots) {
+                this.emitterInterface.disactivateEmitter();
+                break;
+            }
+        }
+
+        this.spentParticle = shotsToMake;
+
+        return particlesShot;
+    }
+}
