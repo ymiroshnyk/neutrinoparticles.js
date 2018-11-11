@@ -18,6 +18,7 @@ beforeEach(function(){
     }
 });
 
+require('./Math');
 require('./FrameInterpolator');
 require('./Generator');
 require('./GeneratorPeriodic');

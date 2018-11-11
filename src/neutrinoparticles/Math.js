@@ -366,7 +366,7 @@ export function cos_(a) {
 }
 
 export function negv2 (r, a) {
-	setv2(-a[0], -a[1]);
+	setv2(r, -a[0], -a[1]);
 }
 
 export function negv2_ (a) {
@@ -374,7 +374,7 @@ export function negv2_ (a) {
 }
 
 export function negv3 (r, a) {
-	setv3(-a[0], -a[1], -a[2]);
+	setv3(r, -a[0], -a[1], -a[2]);
 }
 
 export function negv3_ (a) {
