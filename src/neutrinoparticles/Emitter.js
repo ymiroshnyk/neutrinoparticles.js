@@ -1,6 +1,7 @@
 'use strict';
 
 import * as math from './Math'
+import { FrameInterpolator } from './FrameInterpolator';
 
 export class Emitter {
 	constructor(effect, particlesPool, model) {
@@ -21,6 +22,8 @@ export class Emitter {
 		this.terminator = null;
 		//this.attachedEmitterImpls = [];
 		this.velocity = [];
+
+		this.frameInterp = new FrameInterpolator(this);
 
 		this.model.initEmitter(this);
 
@@ -77,12 +80,14 @@ export class Emitter {
 			math.copyq(this.prevRotation, this.rotation);
 		}
 
-		if (paused) return;
+		if (this.paused) return;
 
 		var particlesShot;
 
 		if (this.active && !this.generatorsPaused) {
+			this.frameInterp.begin(dt, position, rotation);
 			particlesShot = this.generator.update(dt, position, rotation);
+			this.frameInterp.end();
 		}
 		else {
 			if (position)
