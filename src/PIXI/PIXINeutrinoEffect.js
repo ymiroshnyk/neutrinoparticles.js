@@ -1,11 +1,13 @@
 class PIXINeutrinoEffect extends PIXI.Container {
 
-	constructor(effectModel, position, rotation, scale) {
+	constructor(effectModel, position, rotation, scale, baseParent) {
 		super();
 
 		this.ctx = effectModel.ctx;
 		this.effectModel = effectModel;
 		this.effect = null;
+		this.baseParent = baseParent;
+		
 		if (position)
 		{
 			this.position.set(position[0], position[1]);

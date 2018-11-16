@@ -43,7 +43,7 @@ var PIXINeutrinoContext = function () {
 var PIXINeutrinoEffect = function (_PIXI$Container) {
 	_inherits(PIXINeutrinoEffect, _PIXI$Container);
 
-	function PIXINeutrinoEffect(effectModel, position, rotation, scale) {
+	function PIXINeutrinoEffect(effectModel, position, rotation, scale, baseParent) {
 		_classCallCheck(this, PIXINeutrinoEffect);
 
 		var _this = _possibleConstructorReturn(this, (PIXINeutrinoEffect.__proto__ || Object.getPrototypeOf(PIXINeutrinoEffect)).call(this));
@@ -51,6 +51,8 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 		_this.ctx = effectModel.ctx;
 		_this.effectModel = effectModel;
 		_this.effect = null;
+		_this.baseParent = baseParent;
+
 		if (position) {
 			_this.position.set(position[0], position[1]);
 			_this.positionZ = position[2];
