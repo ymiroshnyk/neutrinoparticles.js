@@ -578,11 +578,11 @@ var PIXINeutrinoRenderBuffers = function () {
 			var gl = this.gl;
 
 			if (this.numVertices > 0) {
-				this.positionBuffer.upload(this.positions.buffer, 0);
-				this.colorBuffer.upload(this.colors.buffer, 0);
+				this.positionBuffer.upload(new Float32Array(this.positions.buffer, 0, this.numVertices * 3), 0);
+				this.colorBuffer.upload(new Int32Array(this.colors.buffer, 0, this.numVertices), 0);
 
 				this.texBuffers.forEach(function (buffer, index) {
-					buffer.upload(this.texCoords[index].buffer, 0);
+					buffer.upload(new Float32Array(this.texCoords[index].buffer, 0, this.numVertices * this.texCoords[index].numComponents), 0);
 				}, this);
 			}
 		}
