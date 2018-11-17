@@ -124,13 +124,13 @@ export class Emitter {
 		}
 	};
 
-	createGeneratorEmitterInterface() {
-		return {
+	_setupGenerator(GeneratorClass) {
+		this.generator = new GeneratorClass({
 			initGenerator: function(generator) { this.model.initGenerator(generator); },
 			updateGenerator: function(dt, generator) { this.model.updateGenerator(dt, emitter, generator); },
 			shootParticle: function() { return this.particlesPool.aquireParticle(); },
 			disactivateEmitter: function() { this.active = false; }
-		}
+		});
 	}
 
 	//draw(context, camera) {
