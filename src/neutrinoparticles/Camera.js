@@ -1,22 +1,29 @@
-this.Camera2D = function () {
+'use strict'
+
+import * as math from './Math'
+
+
+export class Camera2D {
+	transform(pos, size) {
+		return true;
+	}
+}
+
+export class Camera3D extends Camera2D {
+	constructor(screenSize, horizontalAngle) {
+		super()
+		this.screenPos = math.mulv2scalar_(screenSize, 0.5);
+	    this.z = -(screenSize[0] * 0.5) / Math.tan(math.deg2rad_(horizontalAngle * 0.5));
 	}
 
-	this.Camera2D.prototype.transform = function (pos, size) {
-	    return true;
+	transform(pos, size) {
+		if (pos[2] < this.z)
+			return false;
+
+		let scale = -this.z / (pos[2] - this.z);
+		math.addv2(pos, math.mulv2scalar_(math.subv2_(pos, this.screenPos), scale), this.screenPos);
+		math.mulv2scalar(size, size, scale);
+
+		return true;
 	}
-
-	this.Camera3D = function (/**/screenSize, /**/horizAngle) {
-	    this.screenPos = ctx.mulv2scalar_(/**/screenSize, 0.5);
-	    this.z = -(/**/screenSize[0] * 0.5) / Math.tan(ctx.deg2rad_(/**/horizAngle * 0.5));
-	}
-
-	this.Camera3D.prototype./**/transform = function (/**/pos, /**/size) {
-	    if (/**/pos[2] < this.z)
-	        return false;
-
-	    var scale = -this.z / (/**/pos[2] - this.z);
-	    ctx.addv2(/**/pos, ctx.mulv2scalar_(ctx.subv2_(/**/pos, this.screenPos), scale), this.screenPos);
-	    ctx.mulv2scalar(/**/size, /**/size, scale);
-
-	    return true;
-	}
+}
