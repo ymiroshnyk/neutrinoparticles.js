@@ -1,0 +1,102 @@
+﻿<!doctype html>
+<meta charset="utf-8">
+<title>Hello World</title>
+<body>
+<script src="pixi/pixi.js"></script>
+<script src="../../dist/neutrinoparticles.js"></script>
+<script src="../../dist-PIXI/neutrinoparticles.pixi.js"></script>
+<script>
+
+/*
+This sample shows how to render effect into texture and the use the texture for rendering sprites
+multiple times. It significantly increases performance if you need to render the save effects
+multiple times. Beware all sprites look the same, so rotation applied to sprites in this demo 
+to add some kind of randomness effect.
+*/
+
+//Test that Pixi is working
+console.log(PIXI);
+
+//var renderer = PIXI.autoDetectRenderer(800, 600, { backgroundColor: 0x404040 }); // default renderer (usualy WebGL)
+var renderer = new PIXI.CanvasRenderer(800, 600, { backgroundColor: 0x404040 });
+
+document.body.appendChild(renderer.view);
+
+var neutrinoContext = new PIXINeutrinoContext(renderer);
+neutrinoContext.effectsBasePath = "export_js/";
+neutrinoContext.texturesBasePath = "textures/";
+
+var noiseGenerator = new neutrinoContext.neutrino.NoiseGenerator();
+while (!noiseGenerator.step()) { // approx. 5,000 steps
+	// you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
+}
+
+var stage = new PIXI.Container();
+
+var effectContainer = new PIXI.Container();
+
+// Set black background with alpha = 1. You need this only for effects with ADD blend modes.
+var background = new PIXI.Graphics();
+background.beginFill(0x0);
+background.drawRect(0, 0, 300, 300);
+background.endFill();
+effectContainer.addChild(background);
+
+var testModel = new PIXINeutrinoEffectModel(neutrinoContext, "win_box.js");
+var testEffect = new PIXINeutrinoEffect(testModel, [50, 50, 0], 0);
+effectContainer.addChild(testEffect);
+
+var brt = new PIXI.BaseRenderTexture(300, 300, PIXI.SCALE_MODES.LINEAR, 1);
+brt.premultipliedAlpha = false;
+var rt = new PIXI.RenderTexture(brt);
+{
+	var rotation = 0;
+	for (var x = 0; x < 3; ++x) {
+		for (var y = 0; y < 2; ++y) {
+			var sprite = new PIXI.Sprite(rt);
+			sprite.x = 300 * x + 150;
+			sprite.y = 300 * y + 150;
+			sprite.pivot.x = 150;
+			sprite.pivot.y = 150;
+			sprite.rotation = rotation;
+			
+			// Set sprite blend mode to ADD, as it should be for effects with ADD blend mode.
+			// You need this only for effects with ADD blend modes.
+			sprite.blendMode = PIXI.utils.correctBlendMode(1, false);
+
+			stage.addChild(sprite);
+
+			rotation += 3.1415 / 2;
+		}
+	}
+}
+
+
+if (testEffect.ready()) {
+    animate();
+} else {
+    testEffect.once('ready', animate);
+}
+
+var lastUpdateTime = null;
+
+function animate() {
+	if (lastUpdateTime == null) {
+	  lastUpdateTime = Date.now();
+	}
+
+	var currentTime = Date.now();
+	var elapsedTime = (currentTime - lastUpdateTime) / 1000;
+	lastUpdateTime = currentTime;
+
+	testEffect.update(elapsedTime > 1.0 ? 1.0 : elapsedTime);
+	renderer.render(effectContainer, rt);
+
+    // render the root container
+    renderer.render(stage);
+
+    requestAnimationFrame(animate);
+}
+
+</script>
+</body>
