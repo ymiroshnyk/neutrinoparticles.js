@@ -134,16 +134,18 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 				var renderCall = this.renderBuffers.renderCalls[renderCallIdx];
 				var texIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].textureIndices[0];
 
-				renderer.bindTexture(this.effectModel.textures[texIndex], 0, true);
+				var texture = this.effectModel.textures[texIndex];
+				renderer.bindTexture(texture, 0, true);
 
+				var premultiplied = texture.baseTexture.premultipliedAlpha;
 				var materialIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].materialIndex;
 				switch (this.effect.model.materials[materialIndex]) {
 					default:
-						this.ctx.materials.switchToNormal();break;
+						this.ctx.materials.switchToNormal(premultiplied);break;
 					case 1:
-						this.ctx.materials.switchToAdd();break;
+						this.ctx.materials.switchToAdd(premultiplied);break;
 					case 2:
-						this.ctx.materials.switchToMultiply();break;
+						this.ctx.materials.switchToMultiply(premultiplied);break;
 				}
 
 				this.renderBuffers.draw(renderCall.numIndices, renderCall.startIndex);
@@ -453,21 +455,21 @@ void main(void)\n\
 		}
 	}, {
 		key: "switchToNormal",
-		value: function switchToNormal() {
+		value: function switchToNormal(premultiplied) {
 			this._setShader(this.shader);
-			this.renderer.state.setBlendMode(0);
+			this.renderer.state.setBlendMode(PIXI.utils.correctBlendMode(0, premultiplied));
 		}
 	}, {
 		key: "switchToAdd",
-		value: function switchToAdd() {
+		value: function switchToAdd(premultiplied) {
 			this._setShader(this.shader);
-			this.renderer.state.setBlendMode(1);
+			this.renderer.state.setBlendMode(PIXI.utils.correctBlendMode(1, premultiplied));
 		}
 	}, {
 		key: "switchToMultiply",
-		value: function switchToMultiply(renderer) {
+		value: function switchToMultiply(premultiplied) {
 			this._setShader(this.shaderMultiply);
-			this.renderer.state.setBlendMode(2);
+			this.renderer.state.setBlendMode(PIXI.utils.correctBlendMode(2, premultiplied));
 		}
 	}, {
 		key: "_setShader",

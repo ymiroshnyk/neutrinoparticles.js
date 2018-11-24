@@ -78,19 +78,19 @@ void main(void)\n\
 		this.currentShader = null;
 	}
 
-	switchToNormal() {
+	switchToNormal(premultiplied) {
 		this._setShader(this.shader);
-		this.renderer.state.setBlendMode(0);
+		this.renderer.state.setBlendMode(PIXI.utils.correctBlendMode(0, premultiplied));
 	}
 
-	switchToAdd() {
+	switchToAdd(premultiplied) {
 		this._setShader(this.shader);
-		this.renderer.state.setBlendMode(1);
+		this.renderer.state.setBlendMode(PIXI.utils.correctBlendMode(1, premultiplied));
 	}
 
-	switchToMultiply(renderer) {
+	switchToMultiply(premultiplied) {
 		this._setShader(this.shaderMultiply);
-		this.renderer.state.setBlendMode(2);
+		this.renderer.state.setBlendMode(PIXI.utils.correctBlendMode(2, premultiplied));
 	}
 
 	_setShader(shader) {

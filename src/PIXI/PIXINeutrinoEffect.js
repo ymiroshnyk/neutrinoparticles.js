@@ -96,13 +96,15 @@ class PIXINeutrinoEffect extends PIXI.Container {
 			var renderCall = this.renderBuffers.renderCalls[renderCallIdx];
 			var texIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].textureIndices[0];
 
-			renderer.bindTexture(this.effectModel.textures[texIndex], 0, true);
+			let texture = this.effectModel.textures[texIndex];
+			renderer.bindTexture(texture, 0, true);
 
+			let premultiplied = texture.baseTexture.premultipliedAlpha;
 			var materialIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].materialIndex;
 			switch (this.effect.model.materials[materialIndex]) {
-				default: this.ctx.materials.switchToNormal(); break;
-				case 1: this.ctx.materials.switchToAdd(); break;
-				case 2: this.ctx.materials.switchToMultiply(); break;
+				default: this.ctx.materials.switchToNormal(premultiplied); break;
+				case 1: this.ctx.materials.switchToAdd(premultiplied); break;
+				case 2: this.ctx.materials.switchToMultiply(premultiplied); break;
 			}
 
 			this.renderBuffers.draw(renderCall.numIndices, renderCall.startIndex);
