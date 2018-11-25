@@ -3,9 +3,9 @@
 import { Generator } from './Generator'
 
 export class GeneratorDist extends Generator {
-    constructor(emitterInterface) {
-        super(emitterInterface);
-        this.emitterInterface = emitterInterface;
+    constructor(emitter, model) {
+        super(emitter);
+        this.model = model;
 
         this.initiate();
     }
@@ -17,13 +17,13 @@ export class GeneratorDist extends Generator {
         this.burstSize = 1;
         this.segment = 0;
 
-        this.emitterInterface.initGenerator(this);
+        this.model.init(this);
 
         this.spentSegment = this.startPhase;
     }
 
     update(dt, frameInterp) {
-        this.emitterInterface.updateGenerator(dt, this);
+        this.model.update(this, dt);
 
         let distFromPrevFrame = frameInterp.positionDisplaceLength;
         let particlesShot = 0;

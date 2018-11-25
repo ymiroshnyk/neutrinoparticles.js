@@ -8,35 +8,40 @@ describe('GeneratorDist', function()
 {
     beforeEach(function() {
 
-        class MockGeneratorEmitterInterface {
+        class MockGeneratorModel {
             constructor(initProps) {
                 this.initProps = initProps;
-                this.initGeneratorCount = 0;
-                this.updateGeneratorCount = 0;
-                this.shootParticleCount = 0;
-                this.disactivateEmitterCount = 0;
-
+                this.initCount = 0;
+                this.updateCount = 0;
             }
 
-            initGenerator(generator) {
-                ++this.initGeneratorCount;
+            init(generator) {
+                ++this.initCount;
                 if (this.initProps)
                     Object.assign(generator, this.initProps);
             }
 
-            updateGenerator() {
-                ++this.updateGeneratorCount;
+            update() {
+                ++this.updateCount;
+            }
+        }
+        this.MockGeneratorModel = MockGeneratorModel;
+
+        class MockEmitter {
+            constructor() {
+                this.shootParticleCount = 0;
+                this.disactivateCount = 0;
             }
 
             shootParticle() {
                 ++this.shootParticleCount;
             }
 
-            disactivateEmitter() {
-                ++this.disactivateEmitterCount;
+            disactivate() {
+                ++this.disactivateCount;
             }
         }
-        this.MockGeneratorEmitterInterface = MockGeneratorEmitterInterface;
+        this.MockEmitter = MockEmitter;
 
         class MockFrameInterpolator {
             constructor(disp) {
@@ -64,94 +69,102 @@ describe('GeneratorDist', function()
     describe('constructor()', function()
     {
         it('should call initGenerator exactly once', function() {
-            let emitterInterface = new this.MockGeneratorEmitterInterface();
-            let generator = new NP.GeneratorPeriodic(emitterInterface);
-            assert.equal(emitterInterface.initGeneratorCount, 1);
+            let emitter = new this.MockEmitter();
+            let generatorModel = new this.MockGeneratorModel();
+            let generator = new NP.GeneratorDist(emitter, generatorModel);
+            assert.equal(generatorModel.initCount, 1);
         });
     });
 
     describe('update()', function()
     {
         it('zero disp, zero segment', function() {
-            let emitterInterface = new this.MockGeneratorEmitterInterface();
-            let generator = new NP.GeneratorDist(emitterInterface);
+            let emitter = new this.MockEmitter();
+            let generatorModel = new this.MockGeneratorModel();
+            let generator = new NP.GeneratorDist(emitter, generatorModel);
             let frameInterp = new this.MockFrameInterpolator(0); 
             generator.update(0, frameInterp);
             assert.equal(generator.segment, 0);
-            assert.equal(emitterInterface.updateGeneratorCount, 1);
-            assert.equal(emitterInterface.shootParticleCount, 0);
-            assert.equal(emitterInterface.disactivateEmitterCount, 0);
+            assert.equal(generatorModel.updateCount, 1);
+            assert.equal(emitter.shootParticleCount, 0);
+            assert.equal(emitter.disactivateCount, 0);
         });
 
         it('non-zero disp, zero segment', function() {
-            let emitterInterface = new this.MockGeneratorEmitterInterface();
-            let generator = new NP.GeneratorDist(emitterInterface);
+            let emitter = new this.MockEmitter();
+            let generatorModel = new this.MockGeneratorModel();
+            let generator = new NP.GeneratorDist(emitter, generatorModel);
             let frameInterp = new this.MockFrameInterpolator(10); 
             generator.update(0, frameInterp);
             assert.equal(generator.segment, 0);
-            assert.equal(emitterInterface.updateGeneratorCount, 1);
-            assert.equal(emitterInterface.shootParticleCount, 0);
-            assert.equal(emitterInterface.disactivateEmitterCount, 0);
+            assert.equal(generatorModel.updateCount, 1);
+            assert.equal(emitter.shootParticleCount, 0);
+            assert.equal(emitter.disactivateCount, 0);
         });
 
         it('zero disp, non-zero segment', function() {
-            let emitterInterface = new this.MockGeneratorEmitterInterface({
+            let emitter = new this.MockEmitter();
+            let generatorModel = new this.MockGeneratorModel({
                 segment: 1
             });
-            let generator = new NP.GeneratorDist(emitterInterface);
+            let generator = new NP.GeneratorDist(emitter, generatorModel);
             let frameInterp = new this.MockFrameInterpolator(0);
             generator.update(0, frameInterp);
-            assert.equal(emitterInterface.updateGeneratorCount, 1);
-            assert.equal(emitterInterface.shootParticleCount, 1);
-            assert.equal(emitterInterface.disactivateEmitterCount, 0);
+            assert.equal(generatorModel.updateCount, 1);
+            assert.equal(emitter.shootParticleCount, 1);
+            assert.equal(emitter.disactivateCount, 0);
         });
 
         it('non-zero disp, non-zero segment', function() {
-            let emitterInterface = new this.MockGeneratorEmitterInterface({
+            let emitter = new this.MockEmitter();
+            let generatorModel = new this.MockGeneratorModel({
                 segment: 1
             });
-            let generator = new NP.GeneratorDist(emitterInterface);
+            let generator = new NP.GeneratorDist(emitter, generatorModel);
             let frameInterp = new this.MockFrameInterpolator(10); 
             frameInterp.setValues = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
             generator.update(0, frameInterp);
-            assert.equal(emitterInterface.updateGeneratorCount, 1);
-            assert.equal(emitterInterface.shootParticleCount, 11);
-            assert.equal(emitterInterface.disactivateEmitterCount, 0);
+            assert.equal(generatorModel.updateCount, 1);
+            assert.equal(emitter.shootParticleCount, 11);
+            assert.equal(emitter.disactivateCount, 0);
         });
 
         it('startPhase == 0', function() {
-            let emitterInterface = new this.MockGeneratorEmitterInterface({
+            let emitter = new this.MockEmitter();
+            let generatorModel = new this.MockGeneratorModel({
                 segment: 1,
                 startPhase: 0
             });
-            let generator = new NP.GeneratorDist(emitterInterface);
+            let generator = new NP.GeneratorDist(emitter, generatorModel);
             let frameInterp = new this.MockFrameInterpolator(10); 
             frameInterp.setValues = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
             generator.update(0, frameInterp);
-            assert.equal(emitterInterface.updateGeneratorCount, 1);
-            assert.equal(emitterInterface.shootParticleCount, 10);
-            assert.equal(emitterInterface.disactivateEmitterCount, 0);
+            assert.equal(generatorModel.updateCount, 1);
+            assert.equal(emitter.shootParticleCount, 10);
+            assert.equal(emitter.disactivateCount, 0);
         });
 
         it('startPhase == 0.3', function() {
-            let emitterInterface = new this.MockGeneratorEmitterInterface({
+            let emitter = new this.MockEmitter();
+            let generatorModel = new this.MockGeneratorModel({
                 segment: 1,
                 startPhase: 0.3
             });
-            let generator = new NP.GeneratorDist(emitterInterface);
+            let generator = new NP.GeneratorDist(emitter, generatorModel);
             let frameInterp = new this.MockFrameInterpolator(10); 
             frameInterp.setValues = [0.07, 0.17, 0.27, 0.37, 0.47, 0.57, 0.67, 0.77, 0.87, 0.97];
             generator.update(0, frameInterp);
-            assert.equal(emitterInterface.updateGeneratorCount, 1);
-            assert.equal(emitterInterface.shootParticleCount, 10);
-            assert.equal(emitterInterface.disactivateEmitterCount, 0);
+            assert.equal(generatorModel.updateCount, 1);
+            assert.equal(emitter.shootParticleCount, 10);
+            assert.equal(emitter.disactivateCount, 0);
         });
 
         function testMultipleFrames(numFrames) {
-            let emitterInterface = new this.MockGeneratorEmitterInterface({
-                segment: 1,
+            let emitter = new this.MockEmitter();
+            let generatorModel = new this.MockGeneratorModel({
+                segment: 1
             });
-            let generator = new NP.GeneratorDist(emitterInterface);
+            let generator = new NP.GeneratorDist(emitter, generatorModel);
             let frameInterp = new this.MockFrameInterpolator(2); 
 
             frameInterp.setValues = [0];
@@ -161,9 +174,9 @@ describe('GeneratorDist', function()
             for (let i = 0; i < numFrames; ++i)
                 generator.update(0, frameInterp);
 
-            assert.equal(emitterInterface.updateGeneratorCount, numFrames);
-            assert.equal(emitterInterface.shootParticleCount, 1 + numFrames * 2);
-            assert.equal(emitterInterface.disactivateEmitterCount, 0);
+            assert.equal(generatorModel.updateCount, numFrames);
+            assert.equal(emitter.shootParticleCount, 1 + numFrames * 2);
+            assert.equal(emitter.disactivateCount, 0);
         }
 
         it('2 frames', function() {

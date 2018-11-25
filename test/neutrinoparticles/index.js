@@ -25,3 +25,4 @@ require('./GeneratorPeriodic');
 require('./GeneratorDist');
 require('./Emitter');
 require('./Effect');
+require('./Functional_Emitter');

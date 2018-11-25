@@ -4,10 +4,11 @@ import { Generator } from './Generator'
 
 export class GeneratorPeriodic extends Generator {
 
-    constructor(emitterInterface) {
-        super(emitterInterface);
+    constructor(emitter, model) {
+        super(emitter);
 
-        this.emitterInterface = emitterInterface;
+        this.model = model;
+        this.emitter = emitter;
         this.initiate();
     }
 
@@ -22,14 +23,14 @@ export class GeneratorPeriodic extends Generator {
         //this.spentParticle;
         //this.shotsMade
 
-        this.emitterInterface.initGenerator(this);
+        this.model.init(this);
 
         this.spentParticle = this.startPhase;
         this.shotsMade = 0;
     }
 
     update(dt, frameInterp) {
-        this.emitterInterface.updateGenerator(dt, this);
+        this.model.update(this, dt);
 
         if (this.rate < 0.0001)
             return;
@@ -44,9 +45,11 @@ export class GeneratorPeriodic extends Generator {
 
             if (dt > 0.0001)
                 frameInterp.set(1 - frameTimeLeft / dt);
+            else
+                frameInterp.set(0);
 
             if (this.fixedTime != null && frameInterp.emitterTime > this.fixedTime) {
-                this.emitterInterface.disactivateEmitter();
+                this.emitter.disactivate();
                 break;
             }
 
@@ -56,7 +59,7 @@ export class GeneratorPeriodic extends Generator {
             shotsToMake -= 1.0;
 
             if (this.fixedShots != null && ++this.shotsMade >= this.fixedShots) {
-                this.emitterInterface.disactivateEmitter();
+                this.emitter.disactivate();
                 break;
             }
         }

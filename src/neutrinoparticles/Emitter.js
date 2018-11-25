@@ -18,10 +18,12 @@ export class Emitter {
 		this.activeParticles = [];
 		this.inactiveParticles = [];
 
-		this.generator = null;
-		this.terminator = null;
+		this.generators = [];
+		this.terminators = [];
 		//this.attachedEmitterImpls = [];
 		this.velocity = [];
+
+		this.generatorsPaused = false;
 
 		this.frameInterp = new FrameInterpolator(this);
 
@@ -39,7 +41,15 @@ export class Emitter {
 		}*/
 	}
 
-	initiate(position, rotation) {
+	addGeneratorModel(GeneratorClass, generatorModel) {
+		this.generators.push(new GeneratorClass(this, generatorModel));
+	}
+
+	addTerminatorModel(TerminatorClass, terminatorModel) {
+		this.terminators.push(new TerminatorClass(this, terminatorModel));
+	}
+
+	initiate(position, rotation, options) {
 		this._release();
 
 		math.copyv3(this.position, position ? position : [0, 0, 0]);
@@ -54,7 +64,19 @@ export class Emitter {
 		this.generatorsPaused = false;
 		math.setv3(this.velocity, 0, 0, 0);
 
-		this.generator.initiate();
+		if (options) {
+			Object.assign(this, options);
+		}
+
+		this.generators.forEach(function(generator) {
+			generator.initiate();
+		});
+
+		this.terminators.forEach(function(terminator) {
+			terminator.initiate();
+		});
+
+		this.update(0);
 	}
 	
 	update(dt, position, rotation) {
@@ -85,9 +107,12 @@ export class Emitter {
 		var particlesShot;
 
 		if (this.active && !this.generatorsPaused) {
-			this.frameInterp.begin(dt, position, rotation);
-			particlesShot = this.generator.update(dt, position, rotation);
-			this.frameInterp.end();
+			let frameInterp = this.frameInterp;
+			frameInterp.begin(dt, position, rotation);
+			this.generators.forEach(function(generator) {
+				particlesShot += generator.update(dt, frameInterp);
+			})
+			frameInterp.end();
 		}
 		else {
 			if (position)
@@ -106,7 +131,15 @@ export class Emitter {
 			if (!particle.waitingForDelete) {
 				particle.update(dt);
 
-				if (this.terminator.checkParticle(this.activeParticles[partIndex])) {
+				let terminate = false;
+				for (let termIndex = 0; termIndex < this.terminators.length; ++termIndex) {
+					if (this.terminators[termIndex].checkParticle(this.activeParticles[partIndex])) {
+						terminate = true;
+						break;
+					}
+				}
+
+				if (terminate) {
 					particle.onTerminated();
 
 					if (this._killParticleIfReady(partIndex))
@@ -124,13 +157,27 @@ export class Emitter {
 		}
 	};
 
-	_setupGenerator(GeneratorClass) {
-		this.generator = new GeneratorClass({
-			initGenerator: function(generator) { this.model.initGenerator(generator); },
-			updateGenerator: function(dt, generator) { this.model.updateGenerator(dt, emitter, generator); },
-			shootParticle: function() { return this.particlesPool.aquireParticle(); },
-			disactivateEmitter: function() { this.active = false; }
-		});
+	shootParticle(firstInBurst, simulateTime) {
+		let particle = this.particlesPool.aquireParticle();
+
+		if (!particle)
+			return null;
+
+		this.activeParticles.unshift(particle);
+
+		if (firstInBurst) {
+			this.model.initParticle(this, particle);
+		} else {
+			this.model.burstInitParticle(this, particle);
+		}
+
+		this.model.updateParticle(this, particle, simulateTime);
+
+		return particle;
+	}
+
+	disactivate() {
+		this.active = false;
 	}
 
 	//draw(context, camera) {

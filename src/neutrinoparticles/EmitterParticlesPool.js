@@ -2,7 +2,7 @@
 
 import * as assert from 'assert'
 
-class EmitterParticlesPool {
+export class EmitterParticlesPool {
     constructor(maxParticlesCount, createParticle) {
         this.maxParticlesCount = maxParticlesCount;
         this.createParticle = createParticle;

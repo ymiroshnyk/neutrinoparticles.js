@@ -11,19 +11,11 @@ describe('Generator', function()
         class EmptyEmitter {
             constructor() {
                 this.shootParticleCount = 0;
-                this.particleInitCount = 0;
-                this.particleInitBurstCount = 0;
-                this.lastParticleUpdateTime = undefined;
             }
 
-            shootParticle(frameTimeToSimulate) {
+            shootParticle(firstInBurst, frameTimeToSimulate) {
                 ++this.shootParticleCount;
-                var thisEmitter = this;
-                return {
-                    init: function() { ++thisEmitter.particleInitCount; },
-                    initBurst: function() { ++thisEmitter.particleInitBurstCount; },
-                    update: function(time) { thisEmitter.lastParticleUpdateTime = time; }
-                };          
+                return {};          
             }
         };
         this.EmptyEmitter = EmptyEmitter;
@@ -44,18 +36,12 @@ describe('Generator', function()
             this.generator.burstCount = 1;
             this.generator.burstParticles(2);
             assert.equal(this.emitter.shootParticleCount, 1);
-            assert.equal(this.emitter.particleInitCount, 1);
-            assert.equal(this.emitter.particleInitBurstCount, 0);
-            assert.equal(this.emitter.lastParticleUpdateTime, 2);
         });
 
         it('burstCount == 10', function() {
             this.generator.burstCount = 10;
             this.generator.burstParticles(2);
             assert.equal(this.emitter.shootParticleCount, 10);
-            assert.equal(this.emitter.particleInitCount, 1);
-            assert.equal(this.emitter.particleInitBurstCount, 9);
-            assert.equal(this.emitter.lastParticleUpdateTime, 2);
         });
     });
 });

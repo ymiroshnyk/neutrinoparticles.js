@@ -18,8 +18,8 @@
 };*/
 
 export class Generator {
-    constructor(emitterInterface) {
-        this.emitterInterface = emitterInterface;
+    constructor(emitter) {
+        this.emitter = emitter;
     }
 
     initiate() {
@@ -38,17 +38,11 @@ export class Generator {
             else
                 this.burstPos = partIndex / (intBurstCount - 1);
 
-            var particle = this.emitterInterface.shootParticle();
+            let particle = this.emitter.shootParticle(partIndex == 0, frameTimeToSimulate);
 
             if (!particle)
                 break;
 
-            if (partIndex == 0)
-                particle.init();
-            else
-                particle.initBurst();
-
-            particle.update(frameTimeToSimulate);
             ++particlesShot;
         }
 
