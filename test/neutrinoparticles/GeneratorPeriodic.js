@@ -93,6 +93,20 @@ describe('GeneratorPeriodic', function()
             assert.equal(emitter.disactivateCount, 0);
         });
 
+        it('non-zero time, zero rate', function() {
+            let emitter = new this.MockEmitter();
+            let generatorModel = new this.MockGeneratorModel({
+                startPhase: 1,
+                rate: 0
+            });
+            let generator = new NP.GeneratorPeriodic(emitter, generatorModel);
+            let dt = 1;
+            let frameInterp = new this.MockFrameInterpolator(dt); 
+            generator.update(dt, frameInterp);
+            assert.equal(generatorModel.updateCount, 1);
+            assert.equal(emitter.shootParticleCount, 0);
+        });
+
         it('0+1 particle to shoot withing 1 frame', function() {
             let emitter = new this.MockEmitter();
             let generatorModel = new this.MockGeneratorModel({

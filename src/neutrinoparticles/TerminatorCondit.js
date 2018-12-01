@@ -7,13 +7,15 @@ export class TerminatorCondit {
     }
 
     initiate() {
-        if (this.model.init)
+        if (this.model.init) {
             this.model.init(this);
+        }
     }
 
     update(dt) {
-        if (this.modelupdate)
+        if (this.modelupdate) {
             this.model.update(this, dt);
+        }
     }
 
     checkParticle(particle) {

@@ -17,13 +17,17 @@ export class GeneratorDist extends Generator {
         this.burstSize = 1;
         this.segment = 0;
 
-        this.model.init(this);
+        if (this.model.init) {
+            this.model.init(this);
+        }
 
         this.spentSegment = this.startPhase;
     }
 
     update(dt, frameInterp) {
-        this.model.update(this, dt);
+        if (this.model.update) {
+            this.model.update(this, dt);
+        }
 
         let distFromPrevFrame = frameInterp.positionDisplaceLength;
         let particlesShot = 0;

@@ -23,14 +23,18 @@ export class GeneratorPeriodic extends Generator {
         //this.spentParticle;
         //this.shotsMade
 
-        this.model.init(this);
+        if (this.model.init) {
+            this.model.init(this);
+        }
 
         this.spentParticle = this.startPhase;
         this.shotsMade = 0;
     }
 
     update(dt, frameInterp) {
-        this.model.update(this, dt);
+        if (this.model.update) {
+            this.model.update(this, dt);
+        }
 
         if (this.rate < 0.0001)
             return;

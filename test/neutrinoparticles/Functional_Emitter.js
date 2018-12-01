@@ -18,7 +18,9 @@ describe('Emitter functional', function()
        
         
         this.SampleEmitterModel = class SampleEmitterModel {
-            constructor() {
+            constructor(generatorModel, terminatorModel) {
+                this.generatorModel = generatorModel;
+                this.terminatorModel = terminatorModel;
                 this.initEmitterCount = 0;
                 this.initParticleCount = 0;
                 this.burstInitParticleCount = 0;
@@ -35,35 +37,8 @@ describe('Emitter functional', function()
 
                 var thisEmitterModel = this;
 
-                emitter.addGeneratorModel(NP.GeneratorPeriodic, {
-                    init: function(generator) {
-                        ++thisEmitterModel.generatorModelInitCount;
-                        // inits generator only once after emitter created
-                        generator.rate = 1;
-                        
-                    },
-                    update: function(generator, dt) {
-                        ++thisEmitterModel.generatorModelUpdateCount;
-                        // updates generator every emitter update when generator is active
-                        //generator.rate = 1 + dt;
-                    }
-                });
-
-                emitter.addTerminatorModel(NP.TerminatorCondit, {
-                    init: function(terminator) {
-                        ++thisEmitterModel.terminatorModelInitCount;
-                        // inits terminator only once after emitter created
-                    },
-                    update: function(terminator, dt) {
-                        ++thisEmitterModel.terminatorModelUpdateCount;
-                        // works once per frame for emitter update.
-                    },
-                    checkParticle: function(terminator, particle) {
-                        ++thisEmitterModel.terminatorModelCheckParticleCount;
-                        // this works as part of update particle process, right after updateParticle.
-                        return particle.time >= 10;
-                    }
-                });
+                emitter.addGeneratorModel(NP.GeneratorPeriodic, this.generatorModel);
+                emitter.addTerminatorModel(NP.TerminatorCondit, this.terminatorModel);
 
                 /*emitter.addConstructorModel(NP.ConstructQuads, {
                     init: function(constr) {
@@ -102,15 +77,86 @@ describe('Emitter functional', function()
         }
     });
 
-    it('should call initEmitter exactly once', function() {
-        let effect = new this.MockEffect();
-        let pool = new NP.EmitterParticlesPool(10, function() { return {}; });
-        let model = new this.SampleEmitterModel();
-        let emitter = new NP.Emitter(effect, pool, model);
-        assert.equal(pool.maxParticlesCount, 10);
-        assert.equal(pool.numParticles, 0);
-        emitter.initiate();
-        assert.equal(pool.numParticles, 1);
-        assert.equal(emitter.activeParticles.length, 1);
-    });
+    describe('Emitter.initiate()', function() {
+        it('With generator.rate == 1 should generate particle right after Emitter.initiate()', function() {
+            let generatorModel = {
+                init: function(generator) {
+                    generator.rate = 1;
+                    generator.startPhase = 1;
+                }
+            };
+
+            let terminatorModel = {
+                checkParticle: function(terminator, particle) {
+                    return particle.time >= 10;
+                }
+            };
+            
+            let effect = new this.MockEffect();
+            let pool = new NP.EmitterParticlesPool(10, function() { return {}; });
+            let model = new this.SampleEmitterModel(generatorModel, terminatorModel);
+            let emitter = new NP.Emitter(effect, pool, model);
+            assert.equal(pool.maxParticlesCount, 10);
+            assert.equal(pool.numParticles, 0);
+            emitter.initiate();
+            assert.equal(pool.numParticles, 1);
+            assert.equal(emitter.activeParticles.length, 1);
+        });
+
+        it('With generator.rate != 1 should not generate particle right after Emitter.initiate()', function() {
+            function makeTest(rate) {
+                let generatorModel = {
+                    init: function(generator) {
+                        generator.rate = 1;
+                        generator.startPhase = 0.99;
+                    }
+                };
+    
+                let terminatorModel = {
+                    checkParticle: function(terminator, particle) {
+                        return particle.time >= 10;
+                    }
+                };
+                
+                let effect = new this.MockEffect();
+                let pool = new NP.EmitterParticlesPool(10, function() { return {}; });
+                let model = new this.SampleEmitterModel(generatorModel, terminatorModel);
+                let emitter = new NP.Emitter(effect, pool, model);
+                assert.equal(pool.maxParticlesCount, 10);
+                assert.equal(pool.numParticles, 0);
+                emitter.initiate();
+                assert.equal(pool.numParticles, 0);
+                assert.equal(emitter.activeParticles.length, 0);
+            }
+            
+            makeTest.call(this, 0.99);
+            makeTest.call(this, 0.5);
+            makeTest.call(this, 0);
+        });
+
+        it('With generator.rate == 1 and generators paused should not generate particle right after Emitter.initiate()', function() {
+            let generatorModel = {
+                init: function(generator) {
+                    generator.rate = 1;
+                    generator.startPhase = 1;
+                }
+            };
+
+            let terminatorModel = {
+                checkParticle: function(terminator, particle) {
+                    return particle.time >= 10;
+                }
+            };
+            
+            let effect = new this.MockEffect();
+            let pool = new NP.EmitterParticlesPool(10, function() { return {}; });
+            let model = new this.SampleEmitterModel(generatorModel, terminatorModel);
+            let emitter = new NP.Emitter(effect, pool, model);
+            assert.equal(pool.maxParticlesCount, 10);
+            assert.equal(pool.numParticles, 0);
+            emitter.initiate(null, null, { generatorsPaused: true });
+            assert.equal(pool.numParticles, 0);
+            assert.equal(emitter.activeParticles.length, 0);
+        });
+    })
 })
