@@ -29,13 +29,31 @@ neutrinoContext.texturesBasePath = "textures/";
 var stage = new PIXI.Container();
 
 var testModel = new PIXINeutrinoEffectModel(neutrinoContext, "water_stream.js");
-var testEffect = new PIXINeutrinoEffect(testModel, [400, 300, 0], 0);
-stage.addChild(testEffect);
 
-if (testEffect.ready()) {
+let testEffects = [];
+let numEffects = 100;
+let numEffectsToLoadLeft = 0;
+
+let onEffectLoaded = function() {
+	if (--numEffectsToLoadLeft == 0) {
+		animate();
+	}
+}
+
+for (let i = 0; i < numEffects; ++i) {
+	let effect = new PIXINeutrinoEffect(testModel, [Math.random() * 800, Math.random() * 600, 0], 0);
+	testEffects[i] = effect
+	stage.addChild(effect);
+
+	if (!effect.ready()) {
+		++numEffectsToLoadLeft;
+		effect.once('ready', onEffectLoaded);
+	}
+}
+
+
+if (numEffectsToLoadLeft == 0) {
     animate();
-} else {
-    testEffect.once('ready', animate);
 }
 
 var lastUpdateTime = null;
@@ -49,9 +67,11 @@ function animate() {
 	var elapsedTime = (currentTime - lastUpdateTime) / 1000;
 	lastUpdateTime = currentTime;
 
-	testEffect.rotation += elapsedTime;
-
-	testEffect.update(elapsedTime > 1.0 ? 1.0 : elapsedTime);
+	for (let i = 0; i < numEffects; ++i) {
+		let effect = testEffects[i];
+		effect.rotation += elapsedTime;
+		effect.update(elapsedTime > 1.0 ? 1.0 : elapsedTime);
+	}
 
     // render the root container
     renderer.render(stage);
