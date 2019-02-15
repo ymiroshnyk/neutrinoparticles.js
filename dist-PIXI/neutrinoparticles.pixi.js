@@ -22,6 +22,25 @@ var PIXINeutrinoContext = function () {
 
 		if (!(renderer instanceof PIXI.CanvasRenderer)) {
 			this.materials = new PIXINeutrinoMaterials(this);
+			this.renderBuffers = new PIXINeutrinoRenderBuffers(this);
+
+			var indices = [];
+			var maxNumVertices = 65536;
+			var maxNumParticles = maxNumVertices / 4;
+			var maxNumIndices = maxNumParticles * 6;
+
+			for (var particleIdx = 0; particleIdx < maxNumParticles; ++particleIdx) {
+				var startVer = particleIdx * 4;
+				var startIdx = particleIdx * 6;
+				indices[startIdx + 0] = startVer + 0;
+				indices[startIdx + 1] = startVer + 3;
+				indices[startIdx + 2] = startVer + 1;
+				indices[startIdx + 3] = startVer + 1;
+				indices[startIdx + 4] = startVer + 3;
+				indices[startIdx + 5] = startVer + 2;
+			}
+
+			this.renderBuffers.initialize(65536, [2], indices, maxNumParticles);
 		}
 	}
 
@@ -129,11 +148,11 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 
 			this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
 
-			this.renderBuffers.updateGlBuffers();
-			this.renderBuffers.bind();
+			this.ctx.renderBuffers.updateGlBuffers();
+			this.ctx.renderBuffers.bind();
 
-			for (var renderCallIdx = 0; renderCallIdx < this.renderBuffers.numRenderCalls; ++renderCallIdx) {
-				var renderCall = this.renderBuffers.renderCalls[renderCallIdx];
+			for (var renderCallIdx = 0; renderCallIdx < this.ctx.renderBuffers.numRenderCalls; ++renderCallIdx) {
+				var renderCall = this.ctx.renderBuffers.renderCalls[renderCallIdx];
 				var texIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].textureIndices[0];
 
 				var texture = this.effectModel.textures[texIndex];
@@ -150,7 +169,7 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 						this.ctx.materials.switchToMultiply(premultiplied);break;
 				}
 
-				this.renderBuffers.draw(renderCall.numIndices, renderCall.startIndex);
+				this.ctx.renderBuffers.draw(renderCall.numIndices, renderCall.startIndex);
 			}
 		}
 	}, {
@@ -250,8 +269,20 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 				this.effect = this.effectModel.effectModel.createCanvas2DInstance(position, rotation);
 				this.effect.textureDescs = this.effectModel.textureImageDescs;
 			} else {
-				this.renderBuffers = new PIXINeutrinoRenderBuffers(this.ctx);
-				this.effect = this.effectModel.effectModel.createWGLInstance(position, rotation, this.renderBuffers);
+				var ctx = this.ctx;
+				var contextRenderBufferWrap = {
+					initialize: function initialize() {}, // Buffer already initialized. Avoid this call.
+					pushVertex: function pushVertex(vertex) {
+						ctx.renderBuffers.pushVertex(vertex);
+					},
+					pushRenderCall: function pushRenderCall(rc) {
+						ctx.renderBuffers.pushRenderCall(rc);
+					},
+					cleanup: function cleanup() {
+						ctx.renderBuffers.cleanup();
+					}
+				};
+				this.effect = this.effectModel.effectModel.createWGLInstance(position, rotation, contextRenderBufferWrap);
 				this.effect.texturesRemap = this.effectModel.texturesRemap;
 			}
 
@@ -490,7 +521,7 @@ void main(void)\n\
 }();
 
 var PIXINeutrinoRenderBuffers = function () {
-	function PIXINeutrinoRenderBuffers(context, geometryBuffers) {
+	function PIXINeutrinoRenderBuffers(context) {
 		_classCallCheck(this, PIXINeutrinoRenderBuffers);
 
 		this.ctx = context;
@@ -565,7 +596,6 @@ var PIXINeutrinoRenderBuffers = function () {
 	}, {
 		key: "pushRenderCall",
 		value: function pushRenderCall(rc) {
-
 			if (this.numRenderCalls >= this.renderCalls.length) this.renderCalls.push(Object.assign({}, rc));else Object.assign(this.renderCalls[this.numRenderCalls], rc);
 
 			++this.numRenderCalls;

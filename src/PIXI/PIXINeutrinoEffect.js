@@ -91,11 +91,11 @@ class PIXINeutrinoEffect extends PIXI.Container {
 
 		this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
 
-		this.renderBuffers.updateGlBuffers();
-		this.renderBuffers.bind();
+		this.ctx.renderBuffers.updateGlBuffers();
+		this.ctx.renderBuffers.bind();
 
-		for (var renderCallIdx = 0; renderCallIdx < this.renderBuffers.numRenderCalls; ++renderCallIdx) {
-			var renderCall = this.renderBuffers.renderCalls[renderCallIdx];
+		for (var renderCallIdx = 0; renderCallIdx < this.ctx.renderBuffers.numRenderCalls; ++renderCallIdx) {
+			var renderCall = this.ctx.renderBuffers.renderCalls[renderCallIdx];
 			var texIndex = this.effect.model.renderStyles[renderCall.renderStyleIndex].textureIndices[0];
 
 			let texture = this.effectModel.textures[texIndex];
@@ -109,7 +109,7 @@ class PIXINeutrinoEffect extends PIXI.Container {
 				case 2: this.ctx.materials.switchToMultiply(premultiplied); break;
 			}
 
-			this.renderBuffers.draw(renderCall.numIndices, renderCall.startIndex);
+			this.ctx.renderBuffers.draw(renderCall.numIndices, renderCall.startIndex);
 		}
 	}
 
@@ -209,8 +209,14 @@ class PIXINeutrinoEffect extends PIXI.Container {
 			this.effect = this.effectModel.effectModel.createCanvas2DInstance(position, rotation);
 			this.effect.textureDescs = this.effectModel.textureImageDescs;
 		} else {
-			this.renderBuffers = new PIXINeutrinoRenderBuffers(this.ctx);
-			this.effect = this.effectModel.effectModel.createWGLInstance(position, rotation, this.renderBuffers);
+			var ctx = this.ctx;
+			let contextRenderBufferWrap = { 
+				initialize: function() {}, // Buffer already initialized. Avoid this call.
+				pushVertex: function(vertex) { ctx.renderBuffers.pushVertex(vertex); },
+				pushRenderCall: function(rc) { ctx.renderBuffers.pushRenderCall(rc); },
+				cleanup: function() { ctx.renderBuffers.cleanup(); }
+			};
+			this.effect = this.effectModel.effectModel.createWGLInstance(position, rotation, contextRenderBufferWrap);
 			this.effect.texturesRemap = this.effectModel.texturesRemap;
 		}
 

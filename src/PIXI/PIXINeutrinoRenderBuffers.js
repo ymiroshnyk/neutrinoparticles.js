@@ -1,5 +1,5 @@
 class PIXINeutrinoRenderBuffers {
-	constructor(context, geometryBuffers) {
+	constructor(context) {
 		this.ctx = context;
 		this.gl = this.ctx.renderer.gl;
 
@@ -76,7 +76,6 @@ class PIXINeutrinoRenderBuffers {
 	}
 
 	pushRenderCall(rc) {
-
 		if (this.numRenderCalls >= this.renderCalls.length)
 			this.renderCalls.push(Object.assign({}, rc));
 		else
@@ -96,11 +95,11 @@ class PIXINeutrinoRenderBuffers {
 		if (this.numVertices > 0)
 		{
 			this.positionBuffer.upload(new Float32Array(this.positions.buffer, 0, this.numVertices * 3), 0);
-				this.colorBuffer.upload(new Int32Array(this.colors.buffer, 0, this.numVertices), 0);
+			this.colorBuffer.upload(new Int32Array(this.colors.buffer, 0, this.numVertices), 0);
 
-				this.texBuffers.forEach(function (buffer, index) {
-					buffer.upload(new Float32Array(this.texCoords[index].buffer, 0, this.numVertices * this.texCoords[index].numComponents), 0);
-				}, this);
+			this.texBuffers.forEach(function (buffer, index) {
+				buffer.upload(new Float32Array(this.texCoords[index].buffer, 0, this.numVertices * this.texCoords[index].numComponents), 0);
+			}, this);
 		}
 	}
 
