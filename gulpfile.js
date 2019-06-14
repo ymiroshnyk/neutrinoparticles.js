@@ -54,8 +54,10 @@ tasks.forEach(function (task) {
             .pipe(gulp.dest(task.distPath));
     });
 
-    gulp.task("wrap-umd-" + task.name, ["build-" + task.name], function () {
-        return gulp.src(task.distPath + getDistFileName(task))
+    gulp.task("wrap-umd-" + task.name, function () {
+        return gulp.src(task.sourcesMask, {base: task.distPath})
+            .pipe(sourcemaps.init())
+            .pipe(babel())
             .pipe(wrapper(
                 {
                     type: 'umd'

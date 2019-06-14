@@ -35,7 +35,7 @@ if(200<=d.status&&300>d.status||304==d.status){var c=eval("(function(ctx) {\n"+d
         i, len = required.length;
 
     if (typeof define === "function" && define.amd) {
-        define("neutrinoparticles.pixi",["require","exports","module"], factory);
+        define("PIXINeutrinoContext",["require","exports","module"], factory);
     } else if (typeof exports === "object") {
         for (i = 0; i < len; i += 1) {
             resolved.push(require(required[i]));
@@ -47,17 +47,13 @@ if(200<=d.status&&300>d.status||304==d.status){var c=eval("(function(ctx) {\n"+d
             resolved.push(root[required[i]]);
         }
 
-        root["neutrinoparticles.pixi"] = factory.apply({}, resolved);
+        root["PIXINeutrinoContext"] = factory.apply({}, resolved);
     }
 }(this, function (require,exports,module) {
     
     return "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -92,6 +88,39 @@ var PIXINeutrinoContext = function () {
 
 	return PIXINeutrinoContext;
 }();
+    
+}));
+(function (root, factory) {
+    var resolved = [],
+        required = ["require","exports","module"],
+        i, len = required.length;
+
+    if (typeof define === "function" && define.amd) {
+        define("PIXINeutrinoEffect",["require","exports","module"], factory);
+    } else if (typeof exports === "object") {
+        for (i = 0; i < len; i += 1) {
+            resolved.push(require(required[i]));
+        }
+
+        module.exports = factory.apply({}, resolved);
+    } else {
+        for (i = 0; i < len; i += 1) {
+            resolved.push(root[required[i]]);
+        }
+
+        root["PIXINeutrinoEffect"] = factory.apply({}, resolved);
+    }
+}(this, function (require,exports,module) {
+    
+    return 'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var PIXINeutrinoEffect = function (_PIXI$Container) {
 	_inherits(PIXINeutrinoEffect, _PIXI$Container);
@@ -135,12 +164,12 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 	}
 
 	_createClass(PIXINeutrinoEffect, [{
-		key: "ready",
+		key: 'ready',
 		value: function ready() {
 			return this.effect != null;
 		}
 	}, {
-		key: "update",
+		key: 'update',
 		value: function update(dt) {
 			this._updateWorldTransform();
 
@@ -149,7 +178,7 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 			}
 		}
 	}, {
-		key: "renderCanvas",
+		key: 'renderCanvas',
 		value: function renderCanvas(renderer) {
 			if (!this.ready()) return;
 
@@ -165,7 +194,7 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 			this.effect.draw(renderer.context);
 		}
 	}, {
-		key: "renderWebGL",
+		key: 'renderWebGL',
 		value: function renderWebGL(renderer) {
 			if (!this.ready()) return;
 
@@ -207,7 +236,7 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 			}
 		}
 	}, {
-		key: "restart",
+		key: 'restart',
 		value: function restart(position, rotation) {
 			if (position) {
 				this.position.x = position[0];
@@ -224,7 +253,7 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 			this.effect.restart(this._scaledPosition(), rotation ? this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.worldRotationDegree) : null);
 		}
 	}, {
-		key: "resetPosition",
+		key: 'resetPosition',
 		value: function resetPosition(position, rotation) {
 			if (position) {
 				this.position.x = position[0];
@@ -241,22 +270,22 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 			this.effect.resetPosition(this._scaledPosition(), rotation ? this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.worldRotationDegree) : null);
 		}
 	}, {
-		key: "setPropertyInAllEmitters",
+		key: 'setPropertyInAllEmitters',
 		value: function setPropertyInAllEmitters(name, value) {
 			this.effect.setPropertyInAllEmitters(name, value);
 		}
 	}, {
-		key: "getNumParticles",
+		key: 'getNumParticles',
 		value: function getNumParticles() {
 			return this.effect.getNumParticles();
 		}
 	}, {
-		key: "_scaledPosition",
+		key: '_scaledPosition',
 		value: function _scaledPosition() {
 			return [this.worldPosition.x / this.worldScale.x, this.worldPosition.y / this.worldScale.y, this.positionZ / this.scaleZ];
 		}
 	}, {
-		key: "_updateWorldTransform",
+		key: '_updateWorldTransform',
 		value: function _updateWorldTransform() {
 			var localPosition = new PIXI.Point(0, 0);
 			var localXAxis = new PIXI.Point(1, 0);
@@ -287,12 +316,12 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 			this.worldRotationDegree = this._calcWorldRotation(this) / Math.PI * 180 % 360;
 		}
 	}, {
-		key: "_calcWorldRotation",
+		key: '_calcWorldRotation',
 		value: function _calcWorldRotation(obj) {
 			if (obj.parent && obj.parent != this.baseParent) return obj.rotation + this._calcWorldRotation(obj.parent);else return obj.rotation;
 		}
 	}, {
-		key: "_onEffectReady",
+		key: '_onEffectReady',
 		value: function _onEffectReady() {
 			this._updateWorldTransform();
 
@@ -314,6 +343,39 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 
 	return PIXINeutrinoEffect;
 }(PIXI.Container);
+    
+}));
+(function (root, factory) {
+    var resolved = [],
+        required = ["require","exports","module"],
+        i, len = required.length;
+
+    if (typeof define === "function" && define.amd) {
+        define("PIXINeutrinoEffectModel",["require","exports","module"], factory);
+    } else if (typeof exports === "object") {
+        for (i = 0; i < len; i += 1) {
+            resolved.push(require(required[i]));
+        }
+
+        module.exports = factory.apply({}, resolved);
+    } else {
+        for (i = 0; i < len; i += 1) {
+            resolved.push(root[required[i]]);
+        }
+
+        root["PIXINeutrinoEffectModel"] = factory.apply({}, resolved);
+    }
+}(this, function (require,exports,module) {
+    
+    return 'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var PIXINeutrinoEffectModel = function (_PIXI$DisplayObject) {
 	_inherits(PIXINeutrinoEffectModel, _PIXI$DisplayObject);
@@ -321,28 +383,28 @@ var PIXINeutrinoEffectModel = function (_PIXI$DisplayObject) {
 	function PIXINeutrinoEffectModel(context, effectPath) {
 		_classCallCheck(this, PIXINeutrinoEffectModel);
 
-		var _this2 = _possibleConstructorReturn(this, (PIXINeutrinoEffectModel.__proto__ || Object.getPrototypeOf(PIXINeutrinoEffectModel)).call(this));
+		var _this = _possibleConstructorReturn(this, (PIXINeutrinoEffectModel.__proto__ || Object.getPrototypeOf(PIXINeutrinoEffectModel)).call(this));
 
-		_this2.ctx = context;
-		_this2.effectPath = effectPath;
-		_this2.effectModel = null;
-		_this2.numTexturesToLoadLeft = -1;
-		_this2.texturesRemap = null;
+		_this.ctx = context;
+		_this.effectPath = effectPath;
+		_this.effectModel = null;
+		_this.numTexturesToLoadLeft = -1;
+		_this.texturesRemap = null;
 
-		var pixiNeutrinoEffect = _this2;
-		_this2.ctx.neutrino.loadEffect(_this2.ctx.effectsBasePath + effectPath, function (effectModel) {
+		var pixiNeutrinoEffect = _this;
+		_this.ctx.neutrino.loadEffect(_this.ctx.effectsBasePath + effectPath, function (effectModel) {
 			pixiNeutrinoEffect._onEffectLoaded(effectModel);
 		});
-		return _this2;
+		return _this;
 	}
 
 	_createClass(PIXINeutrinoEffectModel, [{
-		key: "ready",
+		key: 'ready',
 		value: function ready() {
 			return this.numTexturesToLoadLeft === 0;
 		}
 	}, {
-		key: "_onEffectLoaded",
+		key: '_onEffectLoaded',
 		value: function _onEffectLoaded(effectModel) {
 			this.effectModel = effectModel;
 			this.textures = [];
@@ -375,7 +437,7 @@ var PIXINeutrinoEffectModel = function (_PIXI$DisplayObject) {
 			}
 		}
 	}, {
-		key: "_onTextureLoaded",
+		key: '_onTextureLoaded',
 		value: function _onTextureLoaded(index, texture) {
 			this.textures[index] = texture;
 
@@ -396,7 +458,7 @@ var PIXINeutrinoEffectModel = function (_PIXI$DisplayObject) {
 			}
 		}
 	}, {
-		key: "_initTexturesRemapIfNeeded",
+		key: '_initTexturesRemapIfNeeded',
 		value: function _initTexturesRemapIfNeeded() {
 			var remapNeeded = false;
 
@@ -422,6 +484,35 @@ var PIXINeutrinoEffectModel = function (_PIXI$DisplayObject) {
 
 	return PIXINeutrinoEffectModel;
 }(PIXI.DisplayObject);
+    
+}));
+(function (root, factory) {
+    var resolved = [],
+        required = ["require","exports","module"],
+        i, len = required.length;
+
+    if (typeof define === "function" && define.amd) {
+        define("PIXINeutrinoMaterials",["require","exports","module"], factory);
+    } else if (typeof exports === "object") {
+        for (i = 0; i < len; i += 1) {
+            resolved.push(require(required[i]));
+        }
+
+        module.exports = factory.apply({}, resolved);
+    } else {
+        for (i = 0; i < len; i += 1) {
+            resolved.push(root[required[i]]);
+        }
+
+        root["PIXINeutrinoMaterials"] = factory.apply({}, resolved);
+    }
+}(this, function (require,exports,module) {
+    
+    return "use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var PIXINeutrinoMaterials = function () {
 	function PIXINeutrinoMaterials(ctx) {
@@ -541,6 +632,35 @@ void main(void)\n\
 
 	return PIXINeutrinoMaterials;
 }();
+    
+}));
+(function (root, factory) {
+    var resolved = [],
+        required = ["require","exports","module"],
+        i, len = required.length;
+
+    if (typeof define === "function" && define.amd) {
+        define("PIXINeutrinoRenderBuffers",["require","exports","module"], factory);
+    } else if (typeof exports === "object") {
+        for (i = 0; i < len; i += 1) {
+            resolved.push(require(required[i]));
+        }
+
+        module.exports = factory.apply({}, resolved);
+    } else {
+        for (i = 0; i < len; i += 1) {
+            resolved.push(root[required[i]]);
+        }
+
+        root["PIXINeutrinoRenderBuffers"] = factory.apply({}, resolved);
+    }
+}(this, function (require,exports,module) {
+    
+    return "use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var PIXINeutrinoRenderBuffers = function () {
 	function PIXINeutrinoRenderBuffers(context, geometryBuffers) {
@@ -669,7 +789,5 @@ var PIXINeutrinoRenderBuffers = function () {
 
 	return PIXINeutrinoRenderBuffers;
 }();
-//# sourceMappingURL=neutrinoparticles.pixi.js.map
-;
     
 }));
