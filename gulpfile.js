@@ -11,19 +11,19 @@ const gulp = require("gulp"),
     umdSuffix = ".umd",
     jsFileExtension = ".js";
 
+const pixiTaskConf = {
+    name: "pixi",
+    sourcesMask: "./src/PIXI/**/*.js",
+    distPath: "./dist-PIXI/"
+};
 
-const tasks = [
-    {
-        name: "phaser",
-        sourcesMask: "./src/Phaser/**/*.js",
-        distPath: "./dist-PHASER/"
-    },
-    {
-        name: "pixi",
-        sourcesMask: "./src/PIXI/**/*.js",
-        distPath: "./dist-PIXI/"
-    }
-];
+const phaserTaskConf = {
+    name: "phaser",
+    sourcesMask: "./src/Phaser/**/*.js",
+    distPath: "./dist-PHASER/"
+};
+
+const tasks = [pixiTaskConf, phaserTaskConf];
 
 const getDistFileName = function({name}){
     return  outputDistFile +"."+ name + jsFileExtension;
@@ -41,6 +41,65 @@ const getDistUmdBundleFileName = function({name}){
     return  outputDistFile +"."+ name + umdSuffix + bundleSuffix + jsFileExtension;
 };
 
+gulp.task("wrap-umd-pixi", function () {
+    return gulp.src(pixiTaskConf.sourcesMask, {base: pixiTaskConf.distPath})
+        .pipe(sourcemaps.init())
+        .pipe(wrapper(
+            {
+                type: 'commonjs',
+                "PIXINeutrinoContext.js": {
+                    exports: "Object.assign(module.exports, {PIXINeutrinoContext})"
+                },
+                "PIXINeutrinoMaterials.js": {
+                    exports: "Object.assign(module.exports, {PIXINeutrinoMaterials})"
+                },
+                "PIXINeutrinoEffect.js": {
+                    exports: "Object.assign(module.exports, {PIXINeutrinoEffect})"
+                },
+                "PIXINeutrinoEffectModel.js": {
+                    exports: "Object.assign(module.exports, {PIXINeutrinoEffectModel})"
+                },
+                "PIXINeutrinoRenderBuffers.js": {
+                    exports: "Object.assign(module.exports, {PIXINeutrinoRenderBuffers})"
+                }
+            }
+        ))
+        .pipe(babel())
+        .pipe(concat(getDistUmdFileName(pixiTaskConf)))
+        .pipe(gulp.dest(pixiTaskConf.distPath));
+});
+
+gulp.task("wrap-umd-phaser", function () {
+    return gulp.src(phaserTaskConf.sourcesMask, {base: phaserTaskConf.distPath})
+        .pipe(sourcemaps.init())
+        .pipe(wrapper(
+            {
+                type: 'commonjs',
+                "PhaserNeutrino.js": {
+                    exports: "Object.assign(module.exports, {PhaserNeutrino})"
+                },
+                "PhaserNeutrinoContext.js": {
+                    exports: "Object.assign(module.exports, {PhaserNeutrinoContext})"
+                },
+                "PhaserNeutrinoMaterials.js": {
+                    exports: "Object.assign(module.exports, {PhaserNeutrinoMaterials})"
+                },
+                "PhaserNeutrinoEffect.js": {
+                    exports: "Object.assign(module.exports, {PhaserNeutrinoEffect})"
+                },
+                "PhaserNeutrinoEffectModel.js": {
+                    exports: "Object.assign(module.exports, {PhaserNeutrinoEffectModel})"
+                },
+                "PhaserNeutrinoRenderBuffers.js": {
+                    exports: "Object.assign(module.exports, {PhaserNeutrinoRenderBuffers})"
+                }
+            }
+        ))
+        .pipe(babel())
+        .pipe(concat(getDistUmdFileName(phaserTaskConf)))
+        .pipe(gulp.dest(phaserTaskConf.distPath));
+});
+
 tasks.forEach(function (task) {
 
     // build task
@@ -51,19 +110,6 @@ tasks.forEach(function (task) {
             .pipe(babel())
             .pipe(sourcemaps.write("."))
             // .pipe(watch(task.sourcePath + "*.js"))
-            .pipe(gulp.dest(task.distPath));
-    });
-
-    gulp.task("wrap-umd-" + task.name, function () {
-        return gulp.src(task.sourcesMask, {base: task.distPath})
-            .pipe(sourcemaps.init())
-            .pipe(wrapper(
-                {
-                    type: 'umd'
-                }
-            ))
-            .pipe(babel())
-            .pipe(concat(getDistUmdFileName(task)))
             .pipe(gulp.dest(task.distPath));
     });
 
