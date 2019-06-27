@@ -12,11 +12,18 @@ neutrinoparticles.pixi.js is a plugin library for [PIXI](http://www.pixijs.com/)
 _You can find source codes in /samples/PIXI/ directory of the repository._
 
 ### Add neccessary includes
+
 ```javascript
-<script src="/neutrinoparticles.js/dist/neutrinoparticles.js"></script>
-<script src="/neutrinoparticles.js/dist-PIXI/neutrinoparticles.pixi.js"></script>
+<script src="/neutrinoparticles.js/dist-PIXI/neutrinoparticles.pixi.bundle.js"></script>
 ```
-To work correctly you need to include all scripts above. You can do that in HTML as shown here, or by any other way, like load .js file as text string and call eval().
+For umd import use:
+```javascript
+import {
+    PIXINeutrinoContext,
+    PIXINeutrinoEffect,
+    PIXINeutrinoEffectModel
+} from "neutrinoparticles.js/dist-PIXI/neutrinoparticles.pixi.umd.bundle";
+```
 
 ### Create PIXINeutrinoContext object
 ```javascript
@@ -148,7 +155,6 @@ You can use "Trim sprite names" in Texture Packer (so all filenames are exported
 ```javascript
 neutrinoContext.trimmedExtensionLookupFirst = false;
 ```
-
 
 
 
