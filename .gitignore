@@ -11,3 +11,5 @@ node_modules/
 TODO.txt
 
 /.vscode
+
+/packages

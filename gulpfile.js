@@ -17,13 +17,19 @@ const pixiTaskConf = {
     distPath: "./dist-PIXI/"
 };
 
+const pixi5TaskConf = {
+    name: "pixi5",
+    sourcesMask: "./src/PIXI5/**/*.js",
+    distPath: "./dist-PIXI/"
+};
+
 const phaserTaskConf = {
     name: "phaser",
     sourcesMask: "./src/Phaser/**/*.js",
     distPath: "./dist-PHASER/"
 };
 
-const tasks = [pixiTaskConf, phaserTaskConf];
+const tasks = [pixiTaskConf, pixi5TaskConf, phaserTaskConf];
 
 const getDistFileName = function({name}){
     return  outputDistFile +"."+ name + jsFileExtension;
