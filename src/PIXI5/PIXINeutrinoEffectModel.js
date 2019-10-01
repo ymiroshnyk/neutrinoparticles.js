@@ -13,7 +13,7 @@ class PIXINeutrinoEffectModel extends PIXI.DisplayObject
 
 		let pixiNeutrinoEffect = this;
 
-		this.ctx.neutrino.loadEffect(this.ctx.effectsBasePath + effectPath, function (effectModel)
+		this.ctx.neutrino.loadEffect(this.ctx.options.effectsBasePath + effectPath, function (effectModel)
 		{
 			pixiNeutrinoEffect._onEffectLoaded(effectModel);
 		});
@@ -37,7 +37,7 @@ class PIXINeutrinoEffectModel extends PIXI.DisplayObject
 			let texturePath = effectModel.textures[imageIndex];
 			let texture = null;
 			
-			if (this.ctx.trimmedExtensionLookupFirst) 
+			if (this.ctx.options.trimmedExtensionLookupFirst) 
 			{
 				let trimmedTexturePath = texturePath.replace(/\.[^/.]+$/, ""); // https://stackoverflow.com/a/4250408
 				texture = PIXI.utils.TextureCache[trimmedTexturePath];
@@ -47,7 +47,7 @@ class PIXINeutrinoEffectModel extends PIXI.DisplayObject
 				texture = PIXI.utils.TextureCache[texturePath];
 
 			if (!texture)
-				texture = PIXI.Texture.from(this.ctx.texturesBasePath + texturePath);
+				texture = PIXI.Texture.from(this.ctx.options.texturesBasePath + texturePath);
 
 			if (texture.baseTexture.valid) 
 			{
@@ -96,7 +96,7 @@ class PIXINeutrinoEffectModel extends PIXI.DisplayObject
 		}
 
 		this.texturesRemap = [];
-		
+
 		if (!remapNeeded) 
 			return;
 

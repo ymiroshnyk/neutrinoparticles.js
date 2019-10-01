@@ -47,7 +47,12 @@ class PIXINeutrinoRenderBuffers {
 			// Copy only first channel of texture coordinates.
 			// Texture coordinates from Neutrino must be at least 2-dimensional.
 			this.texCoords[startIndex2] = vertex.texCoords[0][0];
-			this.texCoords[startIndex2 + 1] = vertex.texCoords[0][1];
+			this.texCoords[startIndex2 + 1] = 1.0 - vertex.texCoords[0][1];
+		}
+		else
+		{
+			this.texCoords[startIndex2] = 0.0;
+			this.texCoords[startIndex2 + 1] = 0.0;
 		}
 
 		++this.numVertices;

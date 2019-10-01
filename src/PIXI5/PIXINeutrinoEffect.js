@@ -5,7 +5,7 @@ class PIXINeutrinoEffect extends PIXI.Container
         super();
 
 		this.ctx = effectModel.ctx;
-		this.pluginName = 'batch';
+		this.pluginName = 'neutrino';
 		this.effectModel = effectModel;
 		this.effect = null;
 		this.baseParent = baseParent;
@@ -212,6 +212,8 @@ class PIXINeutrinoEffect extends PIXI.Container
 
 			element.vertexData = new Float32Array(rb.positions.buffer,
 				startVertexIndex8, numVertices2);
+			element.colors = new Uint32Array(rb.colors.buffer,
+				rc.startVertexIndex * 4, rc.numVertices)
 			element.uvs = new Float32Array(rb.texCoords.buffer,
 				startVertexIndex8, numVertices2);
 			element.indices = new Uint16Array(rb.indices.buffer,
@@ -225,8 +227,7 @@ class PIXINeutrinoEffect extends PIXI.Container
 				case 2: element.blendMode = PIXI.BLEND_MODES.MULTIPLY; break;
 			}
 
-			element.worldAlpha = 1;
-			element._tintRGB = 0xffffff;
+			//element.worldAlpha = 1;
 
 			this._renderElements[i] = element;
 		}
