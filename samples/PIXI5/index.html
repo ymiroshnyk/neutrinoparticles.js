@@ -10,13 +10,24 @@
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
 // and the root stage PIXI.Container
-const app = new PIXI.Application();
+const app = new PIXI.Application({
+    forceCanvas: true
+});
 
 // The application will create a canvas element for you that you
 // can then insert into the DOM
 document.body.appendChild(app.view);
 
 const neutrinoCtx = new PIXINeutrinoContext(app.renderer);
+neutrinoCtx.effectsBasePath = "export_js/";
+neutrinoCtx.texturesBasePath = "textures/";
+
+/*{
+	let noiseGenerator = new neutrinoCtx.neutrino.NoiseGenerator();
+	while (!noiseGenerator.step()) { // approx. 5,000 steps
+		// you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
+	}
+}*/
 
 // load the texture we need
 app.loader.add('star', 'textures/star_glow_white.png').load((loader, resources) => {
@@ -35,13 +46,27 @@ app.loader.add('star', 'textures/star_glow_white.png').load((loader, resources) 
     // Add the bunny to the scene we are building
     app.stage.addChild(bunny);
 
-    const effect = new PIXINeutrinoEffect(neutrinoCtx);
+    let effectModel = new PIXINeutrinoEffectModel(neutrinoCtx, "water_stream.js");
+    let effect = new PIXINeutrinoEffect(effectModel, [400, 300, 0], 0);
     app.stage.addChild(effect);
+
+    let lastUpdateTime = null;
 
     // Listen for frame updates
     app.ticker.add(() => {
+
+        if (lastUpdateTime == null) {
+            lastUpdateTime = Date.now();
+        }
+
+        var currentTime = Date.now();
+        var elapsedTime = (currentTime - lastUpdateTime) / 1000;
+        lastUpdateTime = currentTime;
+
          // each frame we spin the bunny around a bit
         bunny.rotation += 0.01;
+
+        effect.update(elapsedTime > 1.0 ? 1.0 : elapsedTime);
     });
 });
 
