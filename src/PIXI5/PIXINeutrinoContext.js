@@ -68,8 +68,11 @@ class PIXINeutrinoContext
         return { done: result, progress: _progress };
     }
 
-    loadEffect(path, success, fail) 
+    loaded(loader)
     {
-		this.neutrino.loadEffect(path, success, fail);
-	}
+        return function(resource)
+        {
+            resource.effectModel = new PIXINeutrinoEffectModel(this, loader, resource);
+        }.bind(this);
+    }
 }

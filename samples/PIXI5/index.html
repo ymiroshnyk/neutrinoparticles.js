@@ -26,7 +26,10 @@ document.body.appendChild(app.view);
 let effects = [];
 
 // load the texture we need
-app.loader.add('star', 'textures/star_glow_white.png').load((loader, resources) => {
+app.loader
+    .add('water_stream', 'export_js/water_stream.js', neutrino.loaded(app.loader))
+    .add('star', 'textures/star_glow_white.png')
+    .load((loader, resources) => {
 
     // This creates a texture from a 'bunny.png' image
     const bunny = new PIXI.Sprite(resources.star.texture);
@@ -42,13 +45,11 @@ app.loader.add('star', 'textures/star_glow_white.png').load((loader, resources) 
     // Add the bunny to the scene we are building
     app.stage.addChild(bunny);
 
-    let effectModel = new PIXINeutrinoEffectModel(neutrino, "water_stream.js");
-
     for (let x = 100; x < 800; x += 100)
     {
         for (let y = 100; y < 600; y += 100)
         {
-            let effect = new PIXINeutrinoEffect(effectModel, [x, y, 0], 0);
+            let effect = new PIXINeutrinoEffect(resources.water_stream.effectModel, [x, y, 0], 0);
             app.stage.addChild(effect);
             effects.push(effect);
         }

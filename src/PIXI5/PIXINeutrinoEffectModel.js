@@ -1,43 +1,29 @@
-class PIXINeutrinoEffectModel extends PIXI.DisplayObject 
+class PIXINeutrinoEffectModel extends PIXI.utils.EventEmitter 
 {
 
-	constructor(context, effectPath) 
+	constructor(context, loader, resource) 
 	{
 		super();
 
 		this.ctx = context;
-		this.effectPath = effectPath;
-		this.effectModel = null;
-		this._numTexturesToLoadLeft = -1;
+
+		let evalScript = "(function(ctx) {\n" + resource.data + 
+                "\nreturn new NeutrinoEffect(ctx);\n})(context.neutrino);";
+		this.effectModel = eval(evalScript);
+
 		this.texturesRemap = null;
-
-		let pixiNeutrinoEffect = this;
-
-		this.ctx.neutrino.loadEffect(this.ctx.options.effectsBasePath + effectPath, function (effectModel)
-		{
-			pixiNeutrinoEffect._onEffectLoaded(effectModel);
-		});
-	}
-
-	ready() 
-	{
-		return this._numTexturesToLoadLeft === 0;
-	}
-
-	_onEffectLoaded(effectModel) 
-	{
-		this.effectModel = effectModel;
 		this.textures = [];
 		this.textureImageDescs = [];
-		let numTextures = effectModel.textures.length;
+
+		let numTextures = this.effectModel.textures.length;
 		this._numTexturesToLoadLeft = numTextures;
 
 		for (let imageIndex = 0; imageIndex < numTextures; ++imageIndex) 
 		{
-			let texturePath = effectModel.textures[imageIndex];
+			let texturePath = this.effectModel.textures[imageIndex];
 			let texture = null;
 			
-			if (this.ctx.options.trimmedExtensionLookupFirst) 
+			if (this.ctx.options.trimmedExtensionsLookupFirst) 
 			{
 				let trimmedTexturePath = texturePath.replace(/\.[^/.]+$/, ""); // https://stackoverflow.com/a/4250408
 				texture = PIXI.utils.TextureCache[trimmedTexturePath];
@@ -46,23 +32,40 @@ class PIXINeutrinoEffectModel extends PIXI.DisplayObject
 			if (!texture)
 				texture = PIXI.utils.TextureCache[texturePath];
 
-			if (!texture)
-				texture = PIXI.Texture.from(this.ctx.options.texturesBasePath + texturePath);
-
-			if (texture.baseTexture.valid) 
+			if (texture)
 			{
-				this._onTextureLoaded(imageIndex, texture);
-			} else 
-			{
-				texture.once('update', function (self, imageIndex, texture) 
+				if (texture.baseTexture.valid) 
 				{
-					return function () 
+					this._onTextureLoaded(imageIndex, texture);
+				} else 
+				{
+					texture.once('update', function (self, imageIndex, texture) 
 					{
-						self._onTextureLoaded(imageIndex, texture);
-					}
-				} (this, imageIndex, texture));
+						return function () 
+						{
+							self._onTextureLoaded(imageIndex, texture);
+						}
+					} (this, imageIndex, texture));
+				}
 			}
+			else
+			{
+				loader.add(this.ctx.options.texturesBasePath + texturePath, 
+					{ parentResource: resource }, 
+					function (self, imageIndex) 
+					{
+						return function (resource) 
+						{
+							self._onTextureLoaded(imageIndex, resource.texture);
+						}
+					} (this, imageIndex));
+			}			
 		}
+	}
+
+	ready() 
+	{
+		return this._numTexturesToLoadLeft === 0;
 	}
 
 	_onTextureLoaded(index, texture) 
