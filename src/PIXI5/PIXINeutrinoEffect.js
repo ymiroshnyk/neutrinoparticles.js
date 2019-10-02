@@ -217,7 +217,7 @@ class PIXINeutrinoEffect extends PIXI.Container
 			element.uvs = new Float32Array(rb.texCoords.buffer,
 				startVertexIndex8, numVertices2);
 			element.indices = new Uint16Array(rb.indices.buffer,
-				rc.startVertexIndex * 2, rc.numIndices);
+				rc.startIndex * 2, rc.numIndices);
 
 			const materialIndex = this.effect.model.renderStyles[rc.renderStyleIndex].materialIndex;
 			switch (this.effect.model.materials[materialIndex]) 

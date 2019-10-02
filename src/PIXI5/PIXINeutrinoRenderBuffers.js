@@ -11,8 +11,6 @@ class PIXINeutrinoRenderBuffers {
 		this.renderCalls = [];
 		this.maxNumRenderCalls = 0;
 		this.numRenderCalls = 0;
-
-		this._renderCallStartVertexIndex = 0;
 	}
 
 	initialize(maxNumVertices, texChannels, indices, maxNumRenderCalls) {
@@ -59,6 +57,8 @@ class PIXINeutrinoRenderBuffers {
 	}
 
 	pushRenderCall(rc) {
+		// In case we're out of render calls array (which shouldn't be normally),
+		// expand the array.
 		if (this.numRenderCalls >= this.renderCalls.length)
 			this.renderCalls.push(Object.assign({}, rc));
 		else
@@ -66,22 +66,33 @@ class PIXINeutrinoRenderBuffers {
 
 		const thisRenderCall = this.renderCalls[this.numRenderCalls];
 
-		thisRenderCall.startVertexIndex = this._renderCallStartVertexIndex;
-		thisRenderCall.numVertices = this.numVertices - this._renderCallStartVertexIndex;
-
 		const endIndex = thisRenderCall.startIndex + thisRenderCall.numIndices;
+
+		let startVertexIndex = this.globalIndices[thisRenderCall.startIndex];
+		let endVertexIndex = startVertexIndex;
+
 		for (let i = thisRenderCall.startIndex; i < endIndex; ++i)
 		{
-			this.indices[i] = this.globalIndices[i] - this._renderCallStartVertexIndex;
+			const index = this.globalIndices[i];
+			if (index < startVertexIndex)
+				startVertexIndex = index;
+			if (index > endVertexIndex)
+				endVertexIndex = index;
 		}
 
-		this._renderCallStartVertexIndex = this.numVertices;
+		thisRenderCall.startVertexIndex = startVertexIndex;
+		thisRenderCall.numVertices = endVertexIndex - startVertexIndex + 1;
+
+		for (let i = thisRenderCall.startIndex; i < endIndex; ++i)
+		{
+			this.indices[i] = this.globalIndices[i] - startVertexIndex;
+		}
+
 		++this.numRenderCalls;
 	}
 
 	cleanup() {
 		this.numVertices = 0;
 		this.numRenderCalls = 0;
-		this._renderCallStartVertexIndex = 0;
 	}
 }

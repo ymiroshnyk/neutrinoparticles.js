@@ -4,7 +4,8 @@ class PIXINeutrinoLoader
     {
         if (resource.extension === 'js' 
             && resource.metadata
-            && resource.metadata.neutrino)
+            && resource.metadata.neutrino
+            && resource.data)
         {
             resource.effectModel = new PIXINeutrinoEffectModel(resource.metadata.neutrino, this, resource);
         }
