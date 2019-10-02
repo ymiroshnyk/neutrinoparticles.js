@@ -7,49 +7,42 @@
 <script src="../../dist-PIXI/neutrinoparticles.pixi5.js"></script>
 <script>
 
+// Create Neutrino context (!)before Application.
 const neutrino = new PIXINeutrinoContext({
-    effectsBasePath: "export_js/",
-    texturesBasePath: "textures/"
+    texturesBasePath: "textures/" // base path for textures stored in effects
 });
 
-// The application will create a renderer using WebGL, if possible,
-// with a fallback to a canvas render. It will also setup the ticker
-// and the root stage PIXI.Container
 const app = new PIXI.Application();
-
-// The application will create a canvas element for you that you
-// can then insert into the DOM
 document.body.appendChild(app.view);
 
+// Generate noise if necessary.
 //neutrino.generateNoise();
 
+// Array of effect to play
 let effects = [];
 
-// load the texture we need
+// Load resources
 app.loader
+    .add('background', 'textures/background.png')
+    // you need to specify loadOptions from neutrino context when loading effects
     .add('water_stream', 'export_js/water_stream.js', neutrino.loadOptions)
-    .add('star', 'textures/star_glow_white.png')
     .load((loader, resources) => {
 
-    // This creates a texture from a 'bunny.png' image
-    const bunny = new PIXI.Sprite(resources.star.texture);
+    // Create background sprite
+    const back = new PIXI.Sprite(resources.background.texture);
+    app.stage.addChild(back);
 
-    // Setup the position of the bunny
-    bunny.x = app.renderer.width / 2;
-    bunny.y = app.renderer.height / 2;
-
-    // Rotate around the center
-    bunny.anchor.x = 0.5;
-    bunny.anchor.y = 0.5;
-
-    // Add the bunny to the scene we are building
-    app.stage.addChild(bunny);
-
+    // Add grid of effects
     for (let x = 100; x < 800; x += 100)
     {
         for (let y = 100; y < 600; y += 100)
         {
-            let effect = new PIXINeutrinoEffect(resources.water_stream.effectModel, [x, y, 0], 0);
+            // Create effect
+            let effect = new PIXINeutrinoEffect(
+                resources.water_stream.effectModel, // Effect's model accessed from resources by 'water_stream' key.
+                [x, y, 0], // Position.
+                0 // Rotation.
+                );
             app.stage.addChild(effect);
             effects.push(effect);
         }
@@ -68,12 +61,12 @@ app.loader
         var elapsedTime = (currentTime - lastUpdateTime) / 1000;
         lastUpdateTime = currentTime;
 
-         // each frame we spin the bunny around a bit
-        bunny.rotation += elapsedTime;
-
+        // Update all effects every frame
         for (let i = 0; i < effects.length; ++i)
         {
-            effects[i].rotation += elapsedTime;
+            // rotate
+            effects[i].rotation += elapsedTime + i * 0.0001;
+            // update
             effects[i].update(elapsedTime > 1.0 ? 1.0 : elapsedTime);
         }
     });
