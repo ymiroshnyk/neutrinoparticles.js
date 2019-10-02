@@ -1,0 +1,85 @@
+﻿<!doctype html>
+<meta charset="utf-8">
+<title>Hello World</title>
+<body>
+<script src="pixi/pixi.js"></script>
+<script src="../../dist/neutrinoparticles.js"></script>
+<script src="../../dist-PIXI/neutrinoparticles.pixi5.js"></script>
+<script>
+
+// Create Neutrino context (!)before Application.
+const neutrino = new PIXINeutrinoContext({
+    texturesBasePath: "textures/" // base path for textures stored in effects
+});
+
+const app = new PIXI.Application();
+document.body.appendChild(app.view);
+
+// Generate noise if necessary.
+//neutrino.generateNoise();
+
+// Load resources
+app.loader
+    .add('background', 'textures/background.png')
+    // you need to specify loadOptions from neutrino context when loading effects
+    .add('water_stream', 'export_js/water_stream.js', neutrino.loadOptions)
+    .load((loader, resources) => {
+
+    // Create background sprite
+    const back = new PIXI.Sprite(resources.background.texture);
+    app.stage.addChild(back);
+
+    // Create effect
+    let effect = new PIXINeutrinoEffect(
+        resources.water_stream.effectModel, // Effect's model accessed from resources by 'water_stream' key.
+        [400, 300, 0], // Position.
+        0 // Rotation.
+        );
+    app.stage.addChild(effect);
+
+    let lastUpdateTime = null;
+
+    var onKeyPressed = function(e) 
+    {
+        if (e.keyCode == 112) //'p'
+        { 
+            if (effect.effect.areAllEmittersPaused())
+                effect.effect.unpauseAllEmitters();
+            else
+                effect.effect.pauseAllEmitters();
+        } 
+        else if (e.keyCode == 103) //'g'
+        { 
+            if (effect.effect.areGeneratorsInAllEmittersPaused())
+                effect.effect.unpauseGeneratorsInAllEmitters();
+            else
+                effect.effect.pauseGeneratorsInAllEmitters();
+        } 
+        else if (e.keyCode == 114) //'r'
+        { 
+            effect.effect.restart();
+        }
+    }
+
+    window.addEventListener("keypress", onKeyPressed);
+
+    // Listen for frame updates
+    app.ticker.add(() => {
+
+        if (lastUpdateTime == null) {
+            lastUpdateTime = Date.now();
+        }
+
+        var currentTime = Date.now();
+        var elapsedTime = (currentTime - lastUpdateTime) / 1000;
+        lastUpdateTime = currentTime;
+
+        // rotate
+        effect.rotation += elapsedTime;
+        // update
+        effect.update(elapsedTime > 1.0 ? 1.0 : elapsedTime);
+    });
+});
+
+</script>
+</body>

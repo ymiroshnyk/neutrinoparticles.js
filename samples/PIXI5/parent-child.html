@@ -1,0 +1,78 @@
+﻿<!doctype html>
+<meta charset="utf-8">
+<title>Hello World</title>
+<body>
+<script src="pixi/pixi.js"></script>
+<script src="../../dist/neutrinoparticles.js"></script>
+<script src="../../dist-PIXI/neutrinoparticles.pixi5.js"></script>
+<script>
+
+// Create Neutrino context (!)before Application.
+const neutrino = new PIXINeutrinoContext({
+    texturesBasePath: "textures/" // base path for textures stored in effects
+});
+
+const app = new PIXI.Application();
+document.body.appendChild(app.view);
+
+// Generate noise if necessary.
+//neutrino.generateNoise();
+
+// Load resources
+app.loader
+    .add('background', 'textures/background.png')
+    .add('star', 'textures/star_glow_white.png')
+    // you need to specify loadOptions from neutrino context when loading effects
+    .add('water_stream', 'export_js/water_stream.js', neutrino.loadOptions)
+    .load((loader, resources) => {
+
+    // Create background sprite
+    const back = new PIXI.Sprite(resources.background.texture);
+    app.stage.addChild(back);
+
+    function addStarTo(parent) {
+        let star = new PIXI.Sprite(resources.star.texture);
+        star.anchor.set(0.5);
+        parent.addChild(star);
+    }
+
+    let parent = new PIXI.Container();
+    parent.position.x = 400;
+    parent.position.y = 300;
+    addStarTo(parent);
+    app.stage.addChild(parent);
+
+    let child = new PIXI.Container();
+    child.position.x = 100;
+    addStarTo(child);
+    parent.addChild(child);
+
+    // Create effect
+    let effect = new PIXINeutrinoEffect(resources.water_stream.effectModel);
+    child.addChild(effect);
+
+    let lastUpdateTime = null;
+    let totalTime = 0;
+
+    // Listen for frame updates
+    app.ticker.add(() => {
+
+        if (lastUpdateTime == null) {
+            lastUpdateTime = Date.now();
+        }
+
+        let currentTime = Date.now();
+        let elapsedTime = (currentTime - lastUpdateTime) / 1000;
+        totalTime += elapsedTime;
+        lastUpdateTime = currentTime;
+
+        parent.position.x = 400 + Math.sin(totalTime) * 300;
+        parent.rotation = totalTime;
+    
+        // update
+        effect.update(elapsedTime > 1.0 ? 1.0 : elapsedTime);
+    });
+});
+
+</script>
+</body>
