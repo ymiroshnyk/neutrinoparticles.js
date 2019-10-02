@@ -34,8 +34,12 @@ class PIXINeutrinoRenderBuffers {
 
 		// Copy only XY components of the position
 		{
-			this.positions[startIndex2] = vertex.position[0];
-			this.positions[startIndex2 + 1] = vertex.position[1];
+			const wt = this.worldTransform;
+			const x = vertex.position[0];
+			const y = vertex.position[1];
+
+			this.positions[startIndex2] = wt[0] * x + wt[2] * y + wt[4];
+			this.positions[startIndex2 + 1] = wt[1] * x + wt[3] * y + wt[5];
 		}
 
 		this.colors.set(vertex.color, this.numVertices * 4);

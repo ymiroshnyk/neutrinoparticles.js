@@ -9,7 +9,6 @@ class PIXINeutrinoEffect extends PIXI.Container
 		this.effectModel = effectModel;
 		this.effect = null;
 		this.baseParent = baseParent;
-		this._renderBuffersDirty = true;
 		this._renderElements = [];
 		
 		if (position)
@@ -63,8 +62,6 @@ class PIXINeutrinoEffect extends PIXI.Container
 
 		this.effect.update(dt, this._scaledPosition(),
 			this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.worldRotationDegree));
-
-		this._renderBuffersDirty = true;
 	}
 
 	restart(position, rotation) 
@@ -147,9 +144,9 @@ class PIXINeutrinoEffect extends PIXI.Container
 
 	_updateWorldTransform() 
 	{
-		var localPosition = new PIXI.Point(0, 0);
-		var localXAxis = new PIXI.Point(1, 0);
-		var localYAxis = new PIXI.Point(0, 1);
+		const localPosition = new PIXI.Point(0, 0);
+		const localXAxis = new PIXI.Point(1, 0);
+		const localYAxis = new PIXI.Point(0, 1);
 
 		var worldXAxis, worldYAxis;
 
@@ -188,13 +185,20 @@ class PIXINeutrinoEffect extends PIXI.Container
 
 	_updateRenderElements()
 	{
-		if (!this._renderBuffersDirty)
-			return;
+		const rb = this.renderBuffers;
+
+		if (this.baseParent)
+		{
+			const sx = this.worldScale.x;
+			const sy = this.worldScale.y;
+			const m = this.baseParent.worldTransform;
+			rb.worldTransform = [m.a * sx, m.b * sy, m.c * sx, m.d * sy, m.tx * sx, m.ty * sy];
+		} else {
+			rb.worldTransform = [this.worldScale.x, 0, 0, this.worldScale.y, 0, 0];
+		}
 
 		this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
-		this._renderBuffersDirty = false;
-
-		const rb = this.renderBuffers;
+		
 		this._renderElements.length = rb.renderCalls.length;
 
 		for (let i = 0; i < rb.renderCalls.length; ++i)
