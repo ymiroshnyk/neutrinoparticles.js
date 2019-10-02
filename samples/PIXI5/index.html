@@ -27,7 +27,7 @@ let effects = [];
 
 // load the texture we need
 app.loader
-    .add('water_stream', 'export_js/water_stream.js', neutrino.loaded(app.loader))
+    .add('water_stream', 'export_js/water_stream.js', neutrino.loadOptions)
     .add('star', 'textures/star_glow_white.png')
     .load((loader, resources) => {
 

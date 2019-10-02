@@ -3,12 +3,12 @@ class PIXINeutrinoContext
     constructor(options)
     {
         this.options = Object.assign({
-            effectsBasePath: "",
             texturesBasePath: "",
             trimmedExtensionsLookupFirst: true
         }, options);
 
         PIXI.Renderer.registerPlugin('neutrino', PIXINeutrinoPlugin);
+        PIXI.Loader.registerPlugin(PIXINeutrinoLoader);
 
         this.neutrino = new NeutrinoParticles();
 
@@ -68,11 +68,8 @@ class PIXINeutrinoContext
         return { done: result, progress: _progress };
     }
 
-    loaded(loader)
+    get loadOptions()
     {
-        return function(resource)
-        {
-            resource.effectModel = new PIXINeutrinoEffectModel(this, loader, resource);
-        }.bind(this);
+        return { metadata: { neutrino: this } };
     }
 }
