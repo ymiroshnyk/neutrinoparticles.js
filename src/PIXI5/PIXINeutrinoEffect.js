@@ -199,9 +199,9 @@ class PIXINeutrinoEffect extends PIXI.Container
 
 		this.effect.fillGeometryBuffers([1, 0, 0], [0, -1, 0], [0, 0, -1]);
 		
-		this._renderElements.length = rb.renderCalls.length;
+		this._renderElements.length = rb.numRenderCalls;
 
-		for (let i = 0; i < rb.renderCalls.length; ++i)
+		for (let i = 0; i < rb.numRenderCalls; ++i)
 		{
 			const rc = rb.renderCalls[i];
 			const element = {};
