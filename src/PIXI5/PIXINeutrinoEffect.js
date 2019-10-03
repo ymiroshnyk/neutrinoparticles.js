@@ -5,7 +5,6 @@ class PIXINeutrinoEffect extends PIXI.Container
         super();
 
 		this.ctx = effectModel.ctx;
-		this.pluginName = 'neutrino';
 		this.effectModel = effectModel;
 		this.effect = null;
 		this.baseParent = baseParent;
@@ -128,13 +127,33 @@ class PIXINeutrinoEffect extends PIXI.Container
 			
 		this._updateRenderElements();
             
-		renderer.batch.setObjectRenderer(renderer.plugins[this.pluginName]);
+		renderer.batch.setObjectRenderer(renderer.plugins.neutrino);
 
 		for (let i = 0; i < this._renderElements.length; ++i)
 		{
-			renderer.plugins[this.pluginName].render(this._renderElements[i]);
+			renderer.plugins.neutrino.render(this._renderElements[i]);
 		}
     }
+
+	_renderCanvas(renderer)
+	{
+		if (!this.ready())
+			return;
+
+		if (this.baseParent)
+		{
+			let sx = this.worldScale.x;
+			let sy = this.worldScale.y;
+			let m = this.baseParent.worldTransform;
+			renderer.context.setTransform(m.a * sx, m.b * sy, m.c * sx, m.d * sy, m.tx * sx, m.ty * sy);
+		} 
+		else 
+		{
+			renderer.context.setTransform(this.worldScale.x, 0, 0, this.worldScale.y, 0, 0);
+		}
+		
+		this.effect.draw(renderer.context);
+	}
 
 	_scaledPosition() 
 	{
@@ -244,11 +263,18 @@ class PIXINeutrinoEffect extends PIXI.Container
 		var position = this._scaledPosition();
 		var rotation = this.ctx.neutrino.axisangle2quat_([0, 0, 1], this.worldRotationDegree);
 
-		// TODO: rename to "geometryBuffers"
-		this.renderBuffers = new PIXINeutrinoRenderBuffers();
-		this.effect = this.effectModel.effectModel.createWGLInstance(position, rotation, this.renderBuffers);
-		this.effect.texturesRemap = this.effectModel.texturesRemap;
-		this._updateRenderElements();
+		if (this.effectModel.ctx.canvasRenderer)
+		{
+			this.effect = this.effectModel.effectModel.createCanvas2DInstance(position, rotation);
+			this.effect.textureDescs = this.effectModel.textureImageDescs;
+		}
+		else
+		{
+			this.renderBuffers = new PIXINeutrinoRenderBuffers();
+			this.effect = this.effectModel.effectModel.createWGLInstance(position, rotation, this.renderBuffers);
+			this.effect.texturesRemap = this.effectModel.texturesRemap;
+			this._updateRenderElements();
+		}
 
 		this.emit('ready', this);
 	}

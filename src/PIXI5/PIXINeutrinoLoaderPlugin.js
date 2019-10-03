@@ -1,4 +1,4 @@
-class PIXINeutrinoLoader
+class PIXINeutrinoLoaderPlugin
 {
     static use(resource, next)
     {

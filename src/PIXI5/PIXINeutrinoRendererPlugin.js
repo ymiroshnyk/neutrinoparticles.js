@@ -1,4 +1,4 @@
-class PIXINeutrinoPlugin extends PIXI.AbstractBatchRenderer
+class PIXINeutrinoRendererPlugin extends PIXI.AbstractBatchRenderer
 {
     constructor(renderer)
     {

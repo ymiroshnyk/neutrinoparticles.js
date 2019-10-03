@@ -74,9 +74,20 @@ class PIXINeutrinoEffectModel extends PIXI.utils.EventEmitter
 
 		this._numTexturesToLoadLeft--;
 
+		if (this.ctx.canvasRenderer)
+		{
+			let image = texture.baseTexture.resource.source;
+			this.textureImageDescs[index] = new this.ctx.neutrino.ImageDesc(image, texture.orig.x, texture.orig.y,
+				texture.orig.width, texture.orig.height);
+		}
+
 		if (this._numTexturesToLoadLeft === 0) 
 		{
-			this._initTexturesRemapIfNeeded();
+			if (!this.ctx.canvasRenderer)
+			{
+				this._initTexturesRemapIfNeeded();
+			}
+
 			this.emit('ready', this);
 		}
 	}

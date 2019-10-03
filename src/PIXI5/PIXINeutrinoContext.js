@@ -1,17 +1,16 @@
 class PIXINeutrinoContext
 {
-    constructor(options)
+    constructor(application, options)
     {
         this.options = Object.assign({
             texturesBasePath: "",
             trimmedExtensionsLookupFirst: true
         }, options);
 
-        PIXI.Renderer.registerPlugin('neutrino', PIXINeutrinoPlugin);
-        PIXI.Loader.registerPlugin(PIXINeutrinoLoader);
-
         this.neutrino = new NeutrinoParticles();
 
+        this.canvasRenderer = PIXI.CanvasRenderer ? 
+            (application.renderer instanceof PIXI.CanvasRenderer) : false;
         this._noiseInitialized = false;
         this._noiseGenerator = null;
     }

@@ -3,26 +3,31 @@
 <title>Hello World</title>
 <body>
 <script src="pixi/pixi.js"></script>
+<script src="pixi/pixi-legacy.js"></script>
 <script src="../../dist/neutrinoparticles.js"></script>
 <script src="../../dist-PIXI/neutrinoparticles.pixi5.js"></script>
 <script>
 
-// Create Neutrino context (!)before Application.
-const neutrino = new PIXINeutrinoContext({
-    texturesBasePath: "textures/" // base path for textures stored in effects
-});
+// Register NeutrinoParticles plugins (!)before application created.
+PIXINeutrino.registerPlugins();
 
-const app = new PIXI.Application();
+// Create application and pass additional options for neutrino if necessary
+const app = new PIXI.Application({
+    forceCanvas: false, // Set to true if you want to force use legacy canvas renderer
+    neutrino: {
+        texturesBasePath: "textures/" // base path for textures stored in effects
+    }
+});
 document.body.appendChild(app.view);
 
 // Generate noise if necessary.
-//neutrino.generateNoise();
+//app.neutrino.generateNoise();
 
 // Load resources
 app.loader
     .add('background', 'textures/background.png')
     // you need to specify loadOptions from neutrino context when loading effects
-    .add('sample_effect', 'export_js/physics_drag_test.js', neutrino.loadOptions)
+    .add('sample_effect', 'export_js/physics_drag_test.js', app.neutrino.loadOptions)
     .load((loader, resources) => {
 
     // Create background sprite
