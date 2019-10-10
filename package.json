@@ -1,6 +1,6 @@
 {
   "name": "neutrinoparticles.js",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Javascript runtimes for neutrinoparticles",
   "main": "dist/neutrinoparticles.js",
   "module": "dist/neutrinoparticles.js",
