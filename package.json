@@ -28,8 +28,7 @@
     "gulp-concat": "^2.6.1",
     "gulp-sourcemaps": "^2.6.5",
     "gulp-watch": "^5.0.1",
-    "mocha": "^6.2.1",
-    "nyc": "^14.1.1"
+    "mocha": "^6.2.1"
   },
   "dependencies": {},
   "babel": {
