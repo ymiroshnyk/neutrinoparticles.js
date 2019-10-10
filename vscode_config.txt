@@ -1,0 +1,35 @@
+{
+	"name": "Mocha tests",
+	"type": "node",
+	"request": "launch",
+	"cwd": "${workspaceRoot}",
+	"program": "${workspaceRoot}/node_modules/mocha/bin/mocha",
+	"args": [
+		"--require", "@babel/register",
+		"--no-timeouts",
+		"--colors"
+	],
+	"runtimeArgs": [
+		"--nolazy"
+	],
+	"sourceMaps": true,
+	"stopOnEntry": false
+},
+{
+	"name": "Mocha tests (current file)",
+	"type": "node",
+	"request": "launch",
+	"cwd": "${workspaceRoot}",
+	"program": "${workspaceRoot}/node_modules/mocha/bin/mocha",
+	"args": [
+		"${relativeFile}",
+		"--require", "@babel/register",
+		"--no-timeouts",
+		"--colors"
+	],
+	"runtimeArgs": [
+		"--nolazy"
+	],
+	"sourceMaps": true,
+	"stopOnEntry": false
+}
