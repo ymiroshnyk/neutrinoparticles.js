@@ -241,13 +241,13 @@ describe('Emitter', function()
             emitter.initiate();
 
             {
-                const position = [1, 1, 1];
+                const position = [1, 2, 3];
                 const rotation = math.axisangle2quat_([0, 1, 0], 45);
                 emitter.update(0, position, rotation);
                 utils.checkPosRot(emitter, position, rotation);
             }
             {
-                const position = [2, 2, 2];
+                const position = [2, 4, 6];
                 const rotation = math.axisangle2quat_([0, 1, 0], 90);
                 emitter.update(1, position, rotation);
                 utils.checkPosRot(emitter, position, rotation);
@@ -260,8 +260,8 @@ describe('Emitter', function()
 
             assert.equal(emitter.paused, paused);
 
-            emitter.update(2, [2, 2, 2]);
-            assert(math.equalv3eps_(emitter.velocity, [1, 1, 1], 0.0001));
+            emitter.update(2, [2, 4, 6]);
+            assert(math.equalv3eps_(emitter.velocity, [1, 2, 3], 0.0001));
             
             emitter.update(0, [1, 1, 1]);
             assert(math.equalv3_(emitter.velocity, [0, 0, 0]));
@@ -273,6 +273,83 @@ describe('Emitter', function()
 
         it ('Not paused should calculate velocity correctly', function() {
             testCalculateVelocity(false);
+        })
+
+        function testUpdateTime(paused) {
+            const emitter = new Neutrino.Emitter({}, emitterModel, {});
+            emitter.initiate({ paused: paused });
+
+            assert.equal(emitter.paused, paused);
+
+            emitter.update(2);
+            assert.equal(emitter.time, 2);
+            emitter.update(0);
+            assert.equal(emitter.time, 2);
+        }
+
+        it ('Paused should update time correctly', function() {
+            testUpdateTime(true);
+        })
+
+        it ('Not-paused should update time correctly', function() {
+            testUpdateTime(false);
+        })
+
+        it ('Should not call generator when paused', function() {
+            const emitter = new Neutrino.Emitter({}, emitterModel, {});
+            emitter.initiate({ paused: true });
+            emitter.update(1);
+            emitter.generators.forEach((generator) => {
+                assert(generator.update.notCalled);
+            })            
+        } )
+
+        it ('Should not call generator when generatorsPaused', function() {
+            const emitter = new Neutrino.Emitter({}, emitterModel, {});
+            emitter.initiate({ generatorsPaused: true });
+            emitter.update(1);
+            emitter.generators.forEach((generator) => {
+                assert(generator.update.notCalled);
+            })            
+        } )
+
+        it('Should pass correct stateInterpolator and time to generator', function() {
+            const emitter = new Neutrino.Emitter({}, emitterModel, {});
+            emitter.initiate();
+
+            {
+                emitter.update(2, [2, 4, 6], [1, 2, 3, 4]);
+                const updateArgs = emitter.generators[0].update.lastCall.args;
+                const interp = updateArgs[1];
+
+                assert.equal(updateArgs[0], 2);
+                assert(math.equalv3_(interp.stateFrom.position, [0, 0, 0]));
+                assert(math.equalv3_(interp.stateFrom.rotation, [0, 0, 0, 1]));
+                assert(math.equalv3_(interp.stateFrom.velocity, [0, 0, 0]));
+                assert.equal(interp.stateFrom.time, 0);
+
+                assert(math.equalv3_(interp.stateTo.position, [2, 4, 6]));
+                assert(math.equalv3_(interp.stateTo.rotation, [1, 2, 3, 4]));
+                assert(math.equalv3eps_(interp.stateTo.velocity, [1, 2, 3], 0.0001));
+                assert.equal(interp.stateTo.time, 2);
+            }
+
+            {
+                emitter.update(2, [4, 8, 12], [2, 4, 6, 8]);
+                const updateArgs = emitter.generators[0].update.lastCall.args;
+                const interp = updateArgs[1];
+
+                assert.equal(updateArgs[0], 2);
+                assert(math.equalv3_(interp.stateFrom.position, [2, 4, 6]));
+                assert(math.equalv3_(interp.stateFrom.rotation, [1, 2, 3, 4]));
+                assert(math.equalv3eps_(interp.stateFrom.velocity, [1, 2, 3], 0.0001));
+                assert.equal(interp.stateFrom.time, 2);
+
+                assert(math.equalv3_(interp.stateTo.position, [4, 8, 12]));
+                assert(math.equalv3_(interp.stateTo.rotation, [2, 4, 6, 8]));
+                assert(math.equalv3eps_(interp.stateTo.velocity, [1, 2, 3], 0.0001));
+                assert.equal(interp.stateTo.time, 4);
+            }
         })
     });
 })

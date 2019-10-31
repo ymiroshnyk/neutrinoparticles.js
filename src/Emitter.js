@@ -38,7 +38,7 @@ export class Emitter {
 		this._interpState = new EmitterInterpState();
 		this._interpStatePrev = new EmitterInterpState();
 		this._interpStateNext = new EmitterInterpState();
-		this._stateIntepolator = new EmitterStateInterpolator();
+		this._stateInterpolator = new EmitterStateInterpolator();
 
 		/*
 		if (this._model.createInterpState) {
@@ -175,7 +175,7 @@ export class Emitter {
 
 		// Copy next rotation
 		math.copyq(next.rotation, rotation || prev.rotation);
-		
+
 		// Set next time
 		next.time = prev.time + dt;
 
@@ -186,7 +186,7 @@ export class Emitter {
 
 		let particlesShot = 0;
 
-		this._stateIntepolator.begin(prev, next, this._interpState);
+		this._stateInterpolator.begin(prev, next, this._interpState);
 
 		if (this._active && !this._generatorsPaused) {
 			this._generators.forEach((generator) => {
@@ -194,7 +194,7 @@ export class Emitter {
 			})
 		}
 
-		this._stateIntepolator.end();
+		this._stateInterpolator.end();
 
 		for (let partIndex = particlesShot; partIndex < this._activeParticles.length;) {
 			const particle = this._activeParticles[partIndex];
