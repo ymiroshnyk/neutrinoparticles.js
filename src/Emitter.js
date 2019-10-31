@@ -6,7 +6,7 @@ import { EmitterStateInterpolator } from './EmitterStateInterpolator';
 import * as math from './Math'
 
 export class Emitter {
-	constructor(particlesPool, model, frameInterp) {
+	constructor(particlesPool, model) {
 
 		if (!particlesPool)
 			throw Error("Particles pool is invalid.");
@@ -14,12 +14,8 @@ export class Emitter {
 		if (!model)
 			throw Error("Emitter model is invalid.");
 
-		if (!frameInterp)
-			throw Error("Frame interpolator is invalid.");
-
 		this._particlesPool = particlesPool;
 		this._model = model;
-		this._frameInterp = frameInterp;
 		this._effectTimeOnStart = 0;
 
 		this._activeParticles = [];
@@ -146,6 +142,10 @@ export class Emitter {
 		return this._generatorsPaused;
 	}
 
+	get particlesCount() {
+		return this._activeParticles.length;
+	}
+
 	update(dt, position, rotation) {
 		// Swap prev & current
 		{ 
@@ -199,26 +199,28 @@ export class Emitter {
 		for (let partIndex = particlesShot; partIndex < this._activeParticles.length;) {
 			const particle = this._activeParticles[partIndex];
 
-			if (!particle.waitingForDelete) {
-				particle.update(dt);
+			if (!particle._waitingForDelete) {
+				this._model.updateParticle(particle, dt);
 
 				let terminate = false;
 				for (let termIndex = 0; termIndex < this._terminators.length; ++termIndex) {
-					if (this._terminators[termIndex].checkParticle(this._activeParticles[partIndex])) {
+					if (this._terminators[termIndex].checkParticle(particle)) {
 						terminate = true;
 						break;
 					}
 				}
 
 				if (terminate) {
-					particle.onTerminated();
+					this._model.onParticleTerminated(particle);
 
 					if (this._killParticleIfReady(partIndex))
 						continue;
+
+					particle._waitingForDelete = true;
 				}
 			}
 			else {
-				particle.updateAttachedEmitters(dt);
+				// ! update particle's attached emitters here
 
 				if (this._killParticleIfReady(partIndex))
 					continue;
@@ -282,9 +284,11 @@ export class Emitter {
 	}
 
 	_killParticleIfReady(index) {
-		var particle = this._activeParticles[index];
-		var ready = true;
+		const particle = this._activeParticles[index];
+		let ready = true;
 
+		// ! check if attached emitters are finished here
+		/*
 		for (var emitterIndex = 0; emitterIndex < particle.attachedEmitters.length; ++emitterIndex) {
 			var emitter = particle.attachedEmitter(emitterIndex);
 
@@ -293,6 +297,7 @@ export class Emitter {
 				break;
 			}
 		}
+		*/
 
 		if (ready) {
 			this._activeParticles.splice(index, 1);
