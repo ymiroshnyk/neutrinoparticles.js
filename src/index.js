@@ -2,7 +2,8 @@
 
 import * as math from './Math'
 
-export * from './FrameInterpolator'
+export * from './EmitterInterpState'
+export * from './EmitterStateInterpolator'
 export * from './Particle'
 export * from './Generator'
 export * from './GeneratorPeriodic'

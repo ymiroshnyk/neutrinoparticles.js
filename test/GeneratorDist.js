@@ -1,181 +1,189 @@
 'use strict';
 
 import * as Neutrino from '../dist/neutrinoparticles.umd.js'
-import * as assert from 'assert'
+import assert from 'assert'
+import sinon from 'sinon'
+import * as utils from'./TestUtils'
+
+const math = Neutrino.math;
+
+let stateInterp, generatorModel, emitter;
 
 describe('GeneratorDist', function()
 {
     beforeEach(function() {
-
-        class MockGeneratorModel {
-            constructor(initProps) {
-                this.initProps = initProps;
-                this.initCount = 0;
-                this.updateCount = 0;
-            }
-
-            init(generator) {
-                ++this.initCount;
+        stateInterp = {
+            set: sinon.fake()
+        }
+        
+        generatorModel = {
+            initProps: null,
+            init: sinon.fake(function(generator) 
+            {
                 if (this.initProps)
                     Object.assign(generator, this.initProps);
-            }
-
-            update() {
-                ++this.updateCount;
-            }
+            }),
+            update: sinon.fake()
         }
-        this.MockGeneratorModel = MockGeneratorModel;
-
-        class MockEmitter {
-            constructor() {
-                this.shootParticleCount = 0;
-                this.disactivateCount = 0;
-            }
-
-            shootParticle() {
-                ++this.shootParticleCount;
-            }
-
-            disactivate() {
-                ++this.disactivateCount;
-            }
+        
+        emitter = {
+            shootParticle: sinon.fake(),
+            disactivate: sinon.fake()
         }
-        this.MockEmitter = MockEmitter;
-
-        class MockFrameInterpolator {
-            constructor(disp) {
-                this.positionDisplaceLength = disp;
-                this.emitterTime = 0;
-                this.setCount = 0;
-                this.setValues = undefined;
-                this.setValuesEps = 0.0001;
-            }
-
-            set(interp) {
-                ++this.setCount;
-
-                if (this.setValues)
-                {
-                    assert.equal(this.setValues.length > 0, true);
-                    assert.equal(Math.abs(this.setValues[0] - interp) < this.setValuesEps, true);
-                    this.setValues.shift();
-                }
-            }
-        }
-        this.MockFrameInterpolator = MockFrameInterpolator;
     });
+
+    afterEach(function() {
+        sinon.reset();
+    })
 
     describe('constructor()', function()
     {
         it('should call initGenerator exactly once', function() {
-            let emitter = new this.MockEmitter();
-            let generatorModel = new this.MockGeneratorModel();
-            let generator = new Neutrino.GeneratorDist(emitter, generatorModel);
-            assert.equal(generatorModel.initCount, 1);
+            const generator = new Neutrino.GeneratorDist(emitter, generatorModel);
+            assert.equal(generatorModel.init.callCount, 1);
         });
     });
+
+    describe('initiate()', function() {
+        it('should call super.initiate()', function() {
+            const generator = new Neutrino.GeneratorDist(emitter, generatorModel);
+            const initiateStub = sinon.stub(Neutrino.Generator.prototype, 'initiate');
+            generator.initiate();
+            assert(initiateStub.calledOnce);
+        })
+    })
 
     describe('update()', function()
     {
         it('zero disp, zero segment', function() {
-            let emitter = new this.MockEmitter();
-            let generatorModel = new this.MockGeneratorModel();
-            let generator = new Neutrino.GeneratorDist(emitter, generatorModel);
-            let frameInterp = new this.MockFrameInterpolator(0); 
-            generator.update(0, frameInterp);
+            const generator = new Neutrino.GeneratorDist(emitter, generatorModel);
+            generator.initiate();
+            generator.update(0, stateInterp);
             assert.equal(generator.segment, 0);
-            assert.equal(generatorModel.updateCount, 1);
-            assert.equal(emitter.shootParticleCount, 0);
-            assert.equal(emitter.disactivateCount, 0);
+            assert.equal(generatorModel.update.callCount, 1);
+            assert.equal(emitter.shootParticle.callCount, 0);
         });
 
         it('non-zero disp, zero segment', function() {
-            let emitter = new this.MockEmitter();
-            let generatorModel = new this.MockGeneratorModel();
-            let generator = new Neutrino.GeneratorDist(emitter, generatorModel);
-            let frameInterp = new this.MockFrameInterpolator(10); 
-            generator.update(0, frameInterp);
+            const generator = new Neutrino.GeneratorDist(emitter, generatorModel);
+            generator.initiate();
+
+            stateInterp.stateFrom = { position: [0, 0, 0] };
+            stateInterp.stateTo = { position: [10, 0, 0] };
+            stateInterp.positionChanging = true;
+
+            generator.update(0, stateInterp);
             assert.equal(generator.segment, 0);
-            assert.equal(generatorModel.updateCount, 1);
-            assert.equal(emitter.shootParticleCount, 0);
-            assert.equal(emitter.disactivateCount, 0);
+            assert.equal(generatorModel.update.callCount, 1);
+            assert.equal(emitter.shootParticle.callCount, 0);
+            assert.equal(emitter.disactivate.callCount, 0);
         });
 
         it('zero disp, non-zero segment', function() {
-            let emitter = new this.MockEmitter();
-            let generatorModel = new this.MockGeneratorModel({
+            generatorModel.initProps = {
                 segment: 1
-            });
-            let generator = new Neutrino.GeneratorDist(emitter, generatorModel);
-            let frameInterp = new this.MockFrameInterpolator(0);
-            generator.update(0, frameInterp);
-            assert.equal(generatorModel.updateCount, 1);
-            assert.equal(emitter.shootParticleCount, 1);
-            assert.equal(emitter.disactivateCount, 0);
+            };
+            const generator = new Neutrino.GeneratorDist(emitter, generatorModel);
+            generator.initiate();
+
+            stateInterp.positionChanging = false;
+
+            generator.update(0, stateInterp);
+            assert.equal(generatorModel.update.callCount, 1);
+            assert.equal(emitter.shootParticle.callCount, 1);
+            assert.equal(emitter.disactivate.callCount, 0);
         });
 
         it('non-zero disp, non-zero segment', function() {
-            let emitter = new this.MockEmitter();
-            let generatorModel = new this.MockGeneratorModel({
+            generatorModel.initProps = {
                 segment: 1
-            });
-            let generator = new Neutrino.GeneratorDist(emitter, generatorModel);
-            let frameInterp = new this.MockFrameInterpolator(10); 
-            frameInterp.setValues = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
-            generator.update(0, frameInterp);
-            assert.equal(generatorModel.updateCount, 1);
-            assert.equal(emitter.shootParticleCount, 11);
-            assert.equal(emitter.disactivateCount, 0);
+            };
+            const generator = new Neutrino.GeneratorDist(emitter, generatorModel);
+            generator.initiate();
+
+            stateInterp.stateFrom = { position: [0, 0, 0] };
+            stateInterp.stateTo = { position: [10, 0, 0] };
+            stateInterp.positionChanging = true;
+
+            generator.update(0, stateInterp);
+            assert.equal(generatorModel.update.callCount, 1);
+            assert.equal(emitter.shootParticle.callCount, 11);
+            assert.equal(emitter.disactivate.callCount, 0);
+
+            utils.checkFakeArguments(stateInterp.set, 
+                [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+                (a, b) => { utils.checkFloatEps(a, b, 0.0001); });
         });
 
         it('startPhase == 0', function() {
-            let emitter = new this.MockEmitter();
-            let generatorModel = new this.MockGeneratorModel({
+            generatorModel.initProps = {
                 segment: 1,
                 startPhase: 0
-            });
-            let generator = new Neutrino.GeneratorDist(emitter, generatorModel);
-            let frameInterp = new this.MockFrameInterpolator(10); 
-            frameInterp.setValues = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
-            generator.update(0, frameInterp);
-            assert.equal(generatorModel.updateCount, 1);
-            assert.equal(emitter.shootParticleCount, 10);
-            assert.equal(emitter.disactivateCount, 0);
+            };
+            const generator = new Neutrino.GeneratorDist(emitter, generatorModel);
+            generator.initiate();
+            
+            stateInterp.stateFrom = { position: [0, 0, 0] };
+            stateInterp.stateTo = { position: [10, 0, 0] };
+            stateInterp.positionChanging = true;
+
+            generator.update(0, stateInterp);
+            assert.equal(generatorModel.update.callCount, 1);
+            assert.equal(emitter.shootParticle.callCount, 10);
+            assert.equal(emitter.disactivate.callCount, 0);
+
+            utils.checkFakeArguments(stateInterp.set, 
+                [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+                (a, b) => { utils.checkFloatEps(a, b, 0.0001); });
         });
 
         it('startPhase == 0.3', function() {
-            let emitter = new this.MockEmitter();
-            let generatorModel = new this.MockGeneratorModel({
+            generatorModel.initProps = {
                 segment: 1,
                 startPhase: 0.3
-            });
-            let generator = new Neutrino.GeneratorDist(emitter, generatorModel);
-            let frameInterp = new this.MockFrameInterpolator(10); 
-            frameInterp.setValues = [0.07, 0.17, 0.27, 0.37, 0.47, 0.57, 0.67, 0.77, 0.87, 0.97];
-            generator.update(0, frameInterp);
-            assert.equal(generatorModel.updateCount, 1);
-            assert.equal(emitter.shootParticleCount, 10);
-            assert.equal(emitter.disactivateCount, 0);
+            };
+            const generator = new Neutrino.GeneratorDist(emitter, generatorModel);
+            generator.initiate();
+            
+            stateInterp.stateFrom = { position: [0, 0, 0] };
+            stateInterp.stateTo = { position: [10, 0, 0] };
+            stateInterp.positionChanging = true;
+            
+            
+            generator.update(0, stateInterp);
+            assert.equal(generatorModel.update.callCount, 1);
+            assert.equal(emitter.shootParticle.callCount, 10);
+            assert.equal(emitter.disactivate.callCount, 0);
+
+            utils.checkFakeArguments(stateInterp.set, 
+                [0.07, 0.17, 0.27, 0.37, 0.47, 0.57, 0.67, 0.77, 0.87, 0.97],
+                (a, b) => { utils.checkFloatEps(a, b, 0.0001); });
         });
 
         function testMultipleFrames(numFrames) {
-            let emitter = new this.MockEmitter();
-            let generatorModel = new this.MockGeneratorModel({
+            generatorModel.initProps = {
                 segment: 1
-            });
-            let generator = new Neutrino.GeneratorDist(emitter, generatorModel);
-            let frameInterp = new this.MockFrameInterpolator(2); 
+            };
+            const generator = new Neutrino.GeneratorDist(emitter, generatorModel);
+            generator.initiate();
 
-            frameInterp.setValues = [0];
+            stateInterp.stateFrom = { position: [0, 0, 0] };
+            stateInterp.stateTo = { position: [2, 0, 0] };
+            stateInterp.positionChanging = true;
+
             for (let i = 0; i < numFrames; ++i)
-                frameInterp.setValues = frameInterp.setValues.concat([0.5, 1.0]);
+                generator.update(0, stateInterp);
 
+            assert.equal(generatorModel.update.callCount, numFrames);
+            assert.equal(emitter.shootParticle.callCount, 1 + numFrames * 2);
+            assert.equal(emitter.disactivate.callCount, 0);
+
+            let setValues = [0];
             for (let i = 0; i < numFrames; ++i)
-                generator.update(0, frameInterp);
+                setValues = setValues.concat([0.5, 1.0]);
 
-            assert.equal(generatorModel.updateCount, numFrames);
-            assert.equal(emitter.shootParticleCount, 1 + numFrames * 2);
-            assert.equal(emitter.disactivateCount, 0);
+            utils.checkFakeArguments(stateInterp.set, setValues,
+                (a, b) => { utils.checkFloatEps(a, b, 0.0001); });
         }
 
         it('2 frames', function() {

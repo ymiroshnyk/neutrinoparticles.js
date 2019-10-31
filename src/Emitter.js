@@ -1,139 +1,210 @@
 'use strict';
 
+import { EmitterInterpState } from './EmitterInterpState'
+import { EmitterStateInterpolator } from './EmitterStateInterpolator';
+
 import * as math from './Math'
-import { FrameInterpolator } from './FrameInterpolator';
 
 export class Emitter {
-	constructor(effect, particlesPool, model) {
-		var thisEmitter = this;
-		this.effect = effect;
-		this.particlesPool = particlesPool;
-		this.model = model;
+	constructor(particlesPool, model, frameInterp) {
 
-		this.position = [];
-		this.prevPosition = [];
-		this.rotation = [];
-		this.prevRotation = [];
+		if (!particlesPool)
+			throw Error("Particles pool is invalid.");
 
-		this.activeParticles = [];
-		this.inactiveParticles = [];
+		if (!model)
+			throw Error("Emitter model is invalid.");
 
-		this.generators = [];
-		this.terminators = [];
-		//this.attachedEmitterImpls = [];
-		this.velocity = [];
+		if (!frameInterp)
+			throw Error("Frame interpolator is invalid.");
 
-		this.generatorsPaused = false;
+		this._particlesPool = particlesPool;
+		this._model = model;
+		this._frameInterp = frameInterp;
+		this._effectTimeOnStart = 0;
 
-		this.frameInterp = new FrameInterpolator(this);
+		this._activeParticles = [];
 
-		this.model.initEmitter(this);
+		this._generators = [];
+		this._terminators = [];
 
-		/*for (var partIndex = 0; partIndex < this.maxParticles; ++partIndex) {
-			var particle = new Particle();
+		//this._prevPositionTime = 0.0;
+		this._active = false;
+		this._paused = false;
+		this._generatorsPaused = false;
 
-			for (var emitterIndex = 0; emitterIndex < this.attachedEmitterImpls.length; ++emitterIndex) {
-				var attachedEmitterImpl = this.attachedEmitterImpls[emitterIndex];
-				particle.attachEmitter(attachedEmitterImpl.impl, attachedEmitterImpl.props);
-			}
+		if (this._model.initEmitter)
+			this._model.initEmitter(this);
 
-			this.inactiveParticles.push(particle);
-		}*/
+		this._interpState = new EmitterInterpState();
+		this._interpStatePrev = new EmitterInterpState();
+		this._interpStateNext = new EmitterInterpState();
+		this._stateIntepolator = new EmitterStateInterpolator();
+
+		/*
+		if (this._model.createInterpState) {
+			this._interpState.user = this._model.createInterpState();
+			this._interpStatePrev.user = this._model.createInterpState();
+			this._interpStateNext.user = this._model.createInterpState();
+		}
+		*/
 	}
 
 	addGeneratorModel(GeneratorClass, generatorModel) {
-		this.generators.push(new GeneratorClass(this, generatorModel));
+		this._generators.push(new GeneratorClass(this, generatorModel));
 	}
 
 	addTerminatorModel(TerminatorClass, terminatorModel) {
-		this.terminators.push(new TerminatorClass(this, terminatorModel));
+		this._terminators.push(new TerminatorClass(this, terminatorModel));
 	}
 
-	initiate(position, rotation, options) {
-		this._release();
+	get generators() {
+		return this._generators;
+	}
 
-		math.copyv3(this.position, position ? position : [0, 0, 0]);
-		math.copyv3(this.prevPosition, this.position);
-		math.copyq(this.rotation, rotation ? rotation : [0, 0, 0, 1]);
-		math.copyq(this.prevRotation, this.rotation);
+	get terminators() {
+		return this._terminators;
+	}
 
-		this.time = 0.0;
-		this.prevPositionTime = 0.0;
-		this.active = true;
-		this.paused = false;
-		this.generatorsPaused = false;
-		math.setv3(this.velocity, 0, 0, 0);
+	initiate(options) {
+		const { position, rotation, paused, generatorsPaused, effectTime } = Object.assign({
+			position: [0, 0, 0],
+			rotation: [0, 0, 0, 1],
+			paused: false,
+			generatorsPaused: false,
+			effectTime: 0
+		}, options)
 
-		if (options) {
-			Object.assign(this, options);
-		}
+		math.copyv3(this._interpState.position, position);
+		math.copyq(this._interpState.rotation, rotation);
+		math.setv3(this._interpState.velocity, 0, 0, 0);
+		this._interpState.time = 0.0;
+		
+		this._effectTimeOnStart = effectTime;
+		this._active = true;
+		this._paused = paused;
+		this._generatorsPaused = generatorsPaused;
 
-		this.generators.forEach(function(generator) {
+		this._generators.forEach(function(generator) {
 			generator.initiate();
 		});
 
-		this.terminators.forEach(function(terminator) {
+		this._terminators.forEach(function(terminator) {
 			terminator.initiate();
 		});
 
-		this.update(0);
+		if (!paused)
+			this.update(0);
 	}
 	
-	update(dt, position, rotation) {
-
-		this.prevPositionTime = this.time;
-
-		if (position) {
-			math.copyv3(this.prevPosition, this.position);
-			if (dt > 0.0001) {
-				math.subv3(this.velocity, position, this.prevPosition);
-				math.divv3scalar(this.velocity, this.velocity, dt);
-			}
-			else {
-				math.setv3(this.velocity, 0, 0, 0);
-			}
-		}
-		else {
-			math.setv3(this.velocity, 0, 0, 0);
-		}
-
-		if (rotation)
+	release()
+	{
+		while (this._activeParticles.length > 0) 
 		{
-			math.copyq(this.prevRotation, this.rotation);
+			const particle = this._activeParticles.pop();
+
+			particle.attachedEmitters.forEach((emitter) => {
+				emitter._release();
+			})
+
+			this._particlesPool.releaseParticle(particle);
+		}
+	}
+
+	get interpState() {
+		return this._interpState;
+	}
+
+	get position() {
+		return this._interpState.position;
+	}
+
+	get rotation() {
+		return this._interpState.rotation;
+	}
+
+	get velocity() {
+		return this._interpState.velocity;
+	}
+
+	get time() {
+		return this._interpState.time;
+	}
+
+	get effectTime() {
+		return this._effectTimeOnStart + this.time;
+	}
+
+	get paused() {
+		return this._paused;
+	}
+
+	get active() {
+		return this._active;
+	}
+
+	get generatorsPaused() {
+		return this._generatorsPaused;
+	}
+
+	update(dt, position, rotation) {
+		// Swap prev & current
+		{ 
+			const prev = this._interpStatePrev; 
+			this._interpStatePrev = this._interpState; 
+			this._interpState = prev; 
 		}
 
-		if (this.paused) return;
+		const prev = this._interpStatePrev;
+		const next = this._paused ? this._interpState : this._interpStateNext;
 
-		var particlesShot;
+		// Calculate next position/velocity
+		if (position) {
+			math.copyv3(next.position, position);
 
-		if (this.active && !this.generatorsPaused) {
-			let frameInterp = this.frameInterp;
-			frameInterp.begin(dt, position, rotation);
-			this.generators.forEach(function(generator) {
-				particlesShot += generator.update(dt, frameInterp);
-			})
-			frameInterp.end();
+			if (dt < 0.00001) {
+				math.setv3(next.velocity, 0, 0, 0);
+			} else {
+				math.subv3(next.velocity, position, prev.position);
+				math.divv3scalar(next.velocity, next.velocity, dt);
+			}
 		}
 		else {
-			if (position)
-				math.copyv3(this.position, position);
-
-			if (rotation)
-				math.copyq(this.rotation, rotation);
-
-			particlesShot = 0;
-			this.time += dt;
+			math.copyv3(next.position, prev.position);
+			math.setv3(next.velocity, 0, 0, 0);
 		}
 
-		for (var partIndex = particlesShot; partIndex < this.activeParticles.length;) {
-			var particle = this.activeParticles[partIndex];
+		// Copy next rotation
+		math.copyq(next.rotation, rotation || prev.rotation);
+		
+		// Set next time
+		next.time = prev.time + dt;
+
+		if (this._paused)
+			return;
+		
+		// Prev and next states are ready for simulation
+
+		let particlesShot = 0;
+
+		this._stateIntepolator.begin(prev, next, this._interpState);
+
+		if (this._active && !this._generatorsPaused) {
+			this._generators.forEach((generator) => {
+				particlesShot += generator.update(dt, this._stateInterpolator);
+			})
+		}
+
+		this._stateIntepolator.end();
+
+		for (let partIndex = particlesShot; partIndex < this._activeParticles.length;) {
+			const particle = this._activeParticles[partIndex];
 
 			if (!particle.waitingForDelete) {
 				particle.update(dt);
 
 				let terminate = false;
-				for (let termIndex = 0; termIndex < this.terminators.length; ++termIndex) {
-					if (this.terminators[termIndex].checkParticle(this.activeParticles[partIndex])) {
+				for (let termIndex = 0; termIndex < this._terminators.length; ++termIndex) {
+					if (this._terminators[termIndex].checkParticle(this._activeParticles[partIndex])) {
 						terminate = true;
 						break;
 					}
@@ -158,26 +229,26 @@ export class Emitter {
 	};
 
 	shootParticle(firstInBurst, simulateTime) {
-		let particle = this.particlesPool.aquireParticle();
+		const particle = this._particlesPool.aquireParticle();
 
 		if (!particle)
 			return null;
 
-		this.activeParticles.unshift(particle);
+		this._activeParticles.unshift(particle);
 
 		if (firstInBurst) {
-			this.model.initParticle(this, particle);
+			this._model.initParticle(particle, this);
 		} else {
-			this.model.burstInitParticle(this, particle);
+			this._model.burstInitParticle(particle, this);
 		}
 
-		this.model.updateParticle(this, particle, simulateTime);
+		this._model.updateParticle(particle, simulateTime, this);
 
 		return particle;
 	}
 
 	disactivate() {
-		this.active = false;
+		this._active = false;
 	}
 
 	//draw(context, camera) {
@@ -189,15 +260,15 @@ export class Emitter {
 	//}
 
 	resetPosition(position, rotation) {
-		this.prevPositionTime = this.time;
+		//this._prevPositionTime = this.time;
 
 		if (position) {
-			math.copyv3(this.prevPosition, this.position);
+			math.copyv3(this._prevPosition, this.position);
 			math.copyv3(this.position, position);
 		}
 
 		if (rotation) {
-			math.copyq(this.prevRotation, this.rotation);
+			math.copyq(this._prevRotation, this.rotation);
 			math.copyq(this.rotation, rotation);
 		}
 	}
@@ -207,11 +278,11 @@ export class Emitter {
 	//}
 
 	getNumParticles() {
-		return this.activeParticles.length;
+		return this._activeParticles.length;
 	}
 
 	_killParticleIfReady(index) {
-		var particle = this.activeParticles[index];
+		var particle = this._activeParticles[index];
 		var ready = true;
 
 		for (var emitterIndex = 0; emitterIndex < particle.attachedEmitters.length; ++emitterIndex) {
@@ -224,23 +295,12 @@ export class Emitter {
 		}
 
 		if (ready) {
-			this.activeParticles.splice(index, 1);
-			this.particlesPool.releaseParticle(particle);
+			this._activeParticles.splice(index, 1);
+			this._particlesPool.releaseParticle(particle);
 			return true;
 		}
 
 		return false;
 	}
 
-	_release() {
-		while (this.activeParticles.length > 0) {
-			let particle = this.activeParticles.pop();
-			for (let i = 0; i < particle.attachedEmitters.length; ++i) {
-				particle.attachedEmitter(i)._release();
-			}
-			this.particlesPool.releaseParticle(particle);
-		}
-	}
-
-	
 }

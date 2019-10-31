@@ -1,58 +1,60 @@
 'use strict';
 
 import * as Neutrino from '../dist/neutrinoparticles.umd.js'
-import * as assert from 'assert'
+import assert from 'assert'
 import * as utils from './TestUtils'
+import sinon from 'sinon'
 
 const math = Neutrino.math;
+/*
+class MockParticlesPool {
+    constructor(maxParticles) {
+        this.maxParticles = maxParticles;
+        this.numParticles = 0;
+        this.aquireParticleCount = 0;
+        this.releaseParticleCount = 0;
+    }
+
+    aquireParticle() {
+        if (this.numParticles >= this.maxParticles)
+            return null;
+
+        ++this.aquireParticleCount;
+        ++this.numParticles;
+    }
+
+    releaseParticle(particle) {
+        assert.equal(this.numParticles > 0, true);
+        --this.numParticles;
+        ++this.releaseParticleCount;
+    }
+}
+*/
+
+class GeneratorClass {
+    constructor() {
+        this.initiate = sinon.fake();
+        this.update = sinon.fake.returns(0);
+    }
+}
+
+class TerminatorClass {
+    constructor() {
+        this.initiate = sinon.fake();
+        this.check = sinon.fake();
+    }
+}
+
+const emitterModel = {
+    initEmitter: sinon.fake(function(emitter) {
+        emitter.addGeneratorModel(GeneratorClass, {});
+        emitter.addTerminatorModel(TerminatorClass, {});
+    })
+}
 
 describe('Emitter', function()
 {
     beforeEach(function() {
-        this.MockEffect = class MockEffect {
-            constructor() {
-                this.time = 0;
-            }
-        }
-
-        this.MockParticlesPool = class MockParticlesPool {
-            constructor(maxParticles) {
-                this.maxParticles = maxParticles;
-                this.numParticles = 0;
-                this.aquireParticleCount = 0;
-                this.releaseParticleCount = 0;
-            }
-
-            aquireParticle() {
-                if (this.numParticles >= this.maxParticles)
-                    return null;
-
-                ++this.aquireParticleCount;
-                ++this.numParticles;
-            }
-
-            releaseParticle(particle) {
-                assert.equal(this.numParticles > 0, true);
-                --this.numParticles;
-                ++this.releaseParticleCount;
-            }
-        }        
-
-        class MockGenerator {
-            constructor() {
-                this.initiateCount = 0;
-                this.updateCount = 0;
-            }
-
-            initiate() {
-                ++this.initiateCount;
-            }
-
-            update() {
-                ++this.updateCount;
-            }
-        }
-
         this.MockEmitterModel = class EmitterModel {
             constructor() {
                 this.initEmitterCount = 0;
@@ -67,110 +69,210 @@ describe('Emitter', function()
         
     });
 
+    afterEach(function() {
+        sinon.reset();
+    })
+
     describe('constructor()', function(){
-        it('should call initEmitter exactly once', function() {
-            let emitterModel = new this.MockEmitterModel();
-            let emitter = new Neutrino.Emitter(null, null, emitterModel);
-            assert.equal(emitterModel.initEmitterCount, 1);
+        it('valid constructor should call initEmitter exactly once', function() {
+            const emitter = new Neutrino.Emitter({}, emitterModel, {});
+            assert.equal(emitterModel.initEmitter.callCount, 1);
+        });
+
+        it('should thow on invalid partiles pool', function() {
+            try {
+                const emitter = new Neutrino.Emitter(null, emitterModel, {});
+                assert(false);
+            } catch(err) {}
+        });
+
+        it('should thow on invalid model', function() {
+            try {
+                const emitter = new Neutrino.Emitter({}, null, {});
+                assert(false);
+            } catch(err) {}
+        });
+
+        it('should thow on invalid frame interpolator', function() {
+            try {
+                const emitter = new Neutrino.Emitter({}, emitterModel, null);
+                assert(false);
+            } catch(err) {}
         });
     });
+
+    describe('addGeneratorModel()', function() {
+        it ('should add instance to generators', function() {
+            const emitter = new Neutrino.Emitter({}, {}, {});
+            const generatorModel = {};
+            const GeneratorClass = sinon.fake();
+
+            emitter.addGeneratorModel(GeneratorClass, generatorModel);
+            
+            assert(GeneratorClass.calledOnceWithExactly(emitter, generatorModel));
+            assert(emitter.generators.length == 1);
+            assert(emitter.generators[0] instanceof GeneratorClass);
+        })
+    })
+
+    describe('addTerminatorModel()', function() {
+        it ('should add instance to terminators', function() {
+            const emitter = new Neutrino.Emitter({}, {}, {});
+            const terminatorModel = {};
+            const TerminatorClass = sinon.fake();
+
+            emitter.addTerminatorModel(TerminatorClass, terminatorModel);
+
+            assert(TerminatorClass.calledOnceWithExactly(emitter, terminatorModel));
+            assert(emitter._terminators.length == 1);
+            assert(emitter._terminators[0] instanceof TerminatorClass);
+        })
+    })
 
     describe('initiate()', function() {
         it("should call generator's initiate()", function() {
-            let effect = new this.MockEffect();
-            let emitterModel = new this.MockEmitterModel();
-            let emitter = new Neutrino.Emitter(effect, null, emitterModel);
+            const emitter = new Neutrino.Emitter({}, emitterModel, {});
             emitter.initiate();
             emitter.generators.forEach(function(generator) {
-                assert.equal(generator.initiateCount, 1);
+                assert.equal(generator.initiate.callCount, 1);
             });
         });
 
-        it('position/rotation by default should be zero', function() {
-            let effect = new this.MockEffect();
-            let emitterModel = new this.MockEmitterModel();
-            let emitter = new Neutrino.Emitter(effect, null, emitterModel);
+        it("should call terminators's initiate()", function() {
+            const emitter = new Neutrino.Emitter({}, emitterModel, {});
             emitter.initiate();
-            utils.checkPosRot(emitter, [0, 0, 0], [0, 0, 0, 1]);
+            emitter.terminators.forEach(function(terminator) {
+                assert.equal(terminator.initiate.callCount, 1);
+            });
+        });
+
+        it('position/rotation/velocity by default should be zero', function() {
+            const emitter = new Neutrino.Emitter({}, {}, {});
+            emitter.initiate();
+
+            assert(math.equalv3_(emitter.position, [0, 0, 0]));
+            assert(math.equalq_(emitter.rotation, [0, 0, 0, 1]));
+            assert(math.equalv3_(emitter.velocity, [0, 0, 0]));
         });
 
         it('should setup position and rotation', function() {
-            let effect = new this.MockEffect();
-            let emitterModel = new this.MockEmitterModel();
-            let emitter = new Neutrino.Emitter(effect, null, emitterModel);
-            let position = [1, 2, 3];
-            let rotation = [1, 2, 3, 4];
-            emitter.initiate(position, rotation);
-            utils.checkPosRot(emitter, position, rotation);
+            const emitter = new Neutrino.Emitter({}, {}, {});
+            emitter.initiate({ 
+                position: [1, 2, 3],
+                rotation: [4, 5, 6, 7],
+            });
+            
+            assert(math.equalv3_(emitter.position, [1, 2, 3]));
+            assert(math.equalq_(emitter.rotation, [4, 5, 6, 7]));
+            assert(math.equalv3_(emitter.velocity, [0, 0, 0]));
         });
 
-        it ('public props should be inited', function() {
-            let effect = new this.MockEffect();
-            let emitterModel = new this.MockEmitterModel();
-            let emitter = new Neutrino.Emitter(effect, null, emitterModel);
+        it ('public props should be inited by default', function() {
+            const emitter = new Neutrino.Emitter({}, {}, {});
             emitter.initiate();
             assert.equal(emitter.paused, false);
             assert.equal(emitter.generatorsPaused, false);
-            assert.equal(math.equalv3_(emitter.velocity, [0, 0, 0]), true);
+            assert.equal(emitter.active, true)
+            assert.equal(emitter.effectTime, 0);
             assert.equal(emitter.time, 0);
         });
+
+        it ('public props should be overridden correctly', function() {
+            const emitter = new Neutrino.Emitter({}, {}, {});
+            emitter.initiate({
+                paused: true,
+                generatorsPaused: true,
+                effectTime: 1
+            });
+            assert.equal(emitter.paused, true);
+            assert.equal(emitter.generatorsPaused, true);
+            assert.equal(emitter.effectTime, 1);
+
+            assert.equal(emitter.active, true)
+            assert.equal(emitter.time, 0);
+        });
+
+        it('should call update(0) if not paused', function() {
+            const emitter = new Neutrino.Emitter({}, {}, {});
+            const updateSpy = sinon.spy(emitter, 'update');
+            emitter.initiate();
+            assert(updateSpy.calledOnceWithExactly(0));
+        })
+
+        it('should NOT call update() if paused', function() {
+            const emitter = new Neutrino.Emitter({}, {}, {});
+            const updateSpy = sinon.spy(emitter, 'update');
+            emitter.initiate({ paused: true });
+            assert(updateSpy.notCalled);
+        })
     });
 
     describe('update()', function() {
-        it ('dt=0, position=undefined, rotation=undefined', function() {
-            let effect = new this.MockEffect();
-            let emitterModel = new this.MockEmitterModel();
-            let emitter = new Neutrino.Emitter(effect, null, emitterModel);
+
+        beforeEach(function() {
+            this.ShootingGeneratorClass = function(emitter) {
+                this._emitter = emitter;
+                
+                this.initiate = sinon.fake();
+                this.update = sinon.fake((dt, interp) => {
+                    this._emitter.shootParticle(true, 1);
+                    return 1;
+                });
+            }
+            
+            this.shootingEmitterModel = {
+                initEmitter: sinon.fake(function(emitter) {
+                    emitter.addGeneratorModel(this.ShootingGeneratorClass, {});
+                })
+            }
+        });
+
+        it ('Non-shooting initiate+update should call generator.update() twice', function() {
+            const emitter = new Neutrino.Emitter({}, emitterModel, {});
             emitter.initiate();
             emitter.update(0);
             emitter.generators.forEach(function(generator) {
-                assert.equal(generator.updateCount, 2);
+                assert.equal(generator.update.callCount, 2);
             });
-            utils.checkPosRot(emitter, [0, 0, 0], [0, 0, 0, 1]);
         });
 
-        it ('dt=0, position=defined, rotation=defined', function() {
-            let effect = new this.MockEffect();
-            let emitterModel = new this.MockEmitterModel();
-            let emitter = new Neutrino.Emitter(effect, null, emitterModel);
+        it ('Non-shooting update with position+rotation has store them correctly ', function() {
+            const emitter = new Neutrino.Emitter({}, emitterModel, {});
             emitter.initiate();
 
-            let position = [1, 1, 1];
-            let rotation = math.axisangle2quat_([0, 1, 0], 45);
-            emitter.update(0, position, rotation);
-            emitter.generators.forEach(function(generator) {
-                assert.equal(generator.updateCount, 2);
-            });
-            utils.checkPosRot(emitter, position, rotation);
+            {
+                const position = [1, 1, 1];
+                const rotation = math.axisangle2quat_([0, 1, 0], 45);
+                emitter.update(0, position, rotation);
+                utils.checkPosRot(emitter, position, rotation);
+            }
+            {
+                const position = [2, 2, 2];
+                const rotation = math.axisangle2quat_([0, 1, 0], 90);
+                emitter.update(1, position, rotation);
+                utils.checkPosRot(emitter, position, rotation);
+            }
         });
 
-        it ('dt=1, position=undefined, rotation=undefined', function() {
-            let effect = new this.MockEffect();
-            let emitterModel = new this.MockEmitterModel();
-            let emitter = new Neutrino.Emitter(effect, null, emitterModel);
-            emitter.initiate();
-            emitter.update(1);
-            emitter.generators.forEach(function(generator) {
-                assert.equal(generator.updateCount, 2);
-            });
-            utils.checkPosRot(emitter, [0, 0, 0], [0, 0, 0, 1]);
-            assert.equal(math.equalv3_(emitter.velocity, [0, 0, 0]), true);
-        });
+        function testCalculateVelocity(paused) {
+            const emitter = new Neutrino.Emitter({}, emitterModel, {});
+            emitter.initiate({ paused: paused });
 
-        it ('dt=1, position=defined, rotation=defined', function() {
-            let effect = new this.MockEffect();
-            let emitterModel = new this.MockEmitterModel();
-            let emitter = new Neutrino.Emitter(effect, null, emitterModel);
-            emitter.initiate();
+            assert.equal(emitter.paused, paused);
 
-            let position = [1, 1, 1];
-            let rotation = math.axisangle2quat_([0, 1, 0], 45);
-            emitter.update(1, position, rotation);
-            emitter.generators.forEach(function(generator) {
-                assert.equal(generator.updateCount, 2);
-            });
-            utils.checkPosRot(emitter, position, rotation);
-            assert.equal(math.equalv3_(emitter.velocity, [1, 1, 1]), true);
-        });
+            emitter.update(2, [2, 2, 2]);
+            assert(math.equalv3eps_(emitter.velocity, [1, 1, 1], 0.0001));
+            
+            emitter.update(0, [1, 1, 1]);
+            assert(math.equalv3_(emitter.velocity, [0, 0, 0]));
+        }
+
+        it ('Paused should calculate velocity correctly', function() {
+            testCalculateVelocity(true);
+        })
+
+        it ('Not paused should calculate velocity correctly', function() {
+            testCalculateVelocity(false);
+        })
     });
 })

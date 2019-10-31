@@ -9,29 +9,37 @@ export class GeneratorPeriodic extends Generator {
 
         this.model = model;
         this.emitter = emitter;
-        this.initiate();
-    }
-
-    initiate() {
-        super.initiate();
 
         this.startPhase = 1;
         this.fixedTime = null;
         this.fixedShots = null;
         this.burstSize = 1;
         this.rate = 0;
-        //this.spentParticle;
-        //this.shotsMade
 
         if (this.model.init) {
             this.model.init(this);
         }
 
-        this.spentParticle = this.startPhase;
-        this.shotsMade = 0;
+        this._spentParticle = 0;
+        this._shotsMade = 0;
+
+        this._initiated = false;
     }
 
-    update(dt, frameInterp) {
+    initiate() {
+        super.initiate();
+        
+        this._spentParticle = this.startPhase;
+        this._shotsMade = 0;
+
+        this._initiated = true;
+    }
+
+    update(dt, stateInterp) {
+        if (!this._initiated) {
+            throw Error("initiate() must be called first!");
+        }
+
         if (this.model.update) {
             this.model.update(this, dt);
         }
@@ -41,34 +49,34 @@ export class GeneratorPeriodic extends Generator {
 
         let frameTimeLeft = dt;
         let particlesShot = 0;
-        let shotsToMake = this.spentParticle + dt * this.rate;
+        let shotsToMake = this._spentParticle + dt * this.rate;
 
         while (shotsToMake >= 1.0) {
-            let spentTime = (1.0 - this.spentParticle) / this.rate;
+            let spentTime = (1.0 - this._spentParticle) / this.rate;
             frameTimeLeft -= spentTime;
 
             if (dt > 0.0001)
-                frameInterp.set(1 - frameTimeLeft / dt);
+                stateInterp.set(1 - frameTimeLeft / dt);
             else
-                frameInterp.set(0);
+                stateInterp.set(0);
 
-            if (this.fixedTime != null && frameInterp.emitterTime > this.fixedTime) {
+            if (this.fixedTime != null && stateInterp.state.time > this.fixedTime) {
                 this.emitter.disactivate();
                 break;
             }
 
             particlesShot += this.burstParticles(frameTimeLeft);
 
-            this.spentParticle = 0.0;
+            this._spentParticle = 0.0;
             shotsToMake -= 1.0;
 
-            if (this.fixedShots != null && ++this.shotsMade >= this.fixedShots) {
+            if (this.fixedShots != null && ++this._shotsMade >= this.fixedShots) {
                 this.emitter.disactivate();
                 break;
             }
         }
 
-        this.spentParticle = shotsToMake;
+        this._spentParticle = shotsToMake;
 
         return particlesShot;
     }
