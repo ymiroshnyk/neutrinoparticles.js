@@ -1,7 +1,7 @@
 'use strict';
 
 import * as Neutrino from '../dist/neutrinoparticles.umd'
-import * as assert from 'assert';
+import assert from 'assert';
 import sinon from 'sinon';
 
 describe('Generator', function()
@@ -39,5 +39,25 @@ describe('Generator', function()
             this.generator.burstParticles(2);
             assert.equal(this.emitter.shootParticle.callCount, 10);
         });
+
+        it('Should return exact number of valid particles', function() {
+            let particlesLeft = 2;
+            const emitter = {
+                shootParticle: sinon.fake(() => {
+                    if (particlesLeft-- > 0)
+                        return {};
+                    else
+                        return null;
+                })
+            }
+
+            const generator = new Neutrino.Generator(emitter);
+            generator.burstCount = 3;
+            assert.equal(generator.burstParticles(1), 2);
+            assert.equal(emitter.shootParticle.callCount, 3);
+            assert(emitter.shootParticle.getCall(0).calledWithExactly(true, 1));
+            assert(emitter.shootParticle.getCall(1).calledWithExactly(false, 1));
+            assert(emitter.shootParticle.getCall(2).calledWithExactly(false, 1));
+        })
     });
 });

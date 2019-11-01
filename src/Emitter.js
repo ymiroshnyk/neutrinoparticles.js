@@ -21,10 +21,8 @@ export class Emitter {
 		this._activeParticles = [];
 
 		this._generators = [];
-		this._terminators = [];
 
 		//this._prevPositionTime = 0.0;
-		this._active = false;
 		this._paused = false;
 		this._generatorsPaused = false;
 
@@ -49,22 +47,15 @@ export class Emitter {
 		this._generators.push(new GeneratorClass(this, generatorModel));
 	}
 
-	addTerminatorModel(TerminatorClass, terminatorModel) {
-		this._terminators.push(new TerminatorClass(this, terminatorModel));
-	}
-
 	get generators() {
 		return this._generators;
 	}
 
-	get terminators() {
-		return this._terminators;
-	}
-
 	initiate(options) {
-		const { position, rotation, paused, generatorsPaused, effectTime } = Object.assign({
+		const { position, rotation, velocity, paused, generatorsPaused, effectTime } = Object.assign({
 			position: [0, 0, 0],
 			rotation: [0, 0, 0, 1],
+			velocity: [0, 0, 0],
 			paused: false,
 			generatorsPaused: false,
 			effectTime: 0
@@ -72,20 +63,15 @@ export class Emitter {
 
 		math.copyv3(this._interpState.position, position);
 		math.copyq(this._interpState.rotation, rotation);
-		math.setv3(this._interpState.velocity, 0, 0, 0);
+		math.copyv3(this._interpState.velocity, velocity);
 		this._interpState.time = 0.0;
 		
 		this._effectTimeOnStart = effectTime;
-		this._active = true;
 		this._paused = paused;
 		this._generatorsPaused = generatorsPaused;
 
 		this._generators.forEach(function(generator) {
 			generator.initiate();
-		});
-
-		this._terminators.forEach(function(terminator) {
-			terminator.initiate();
 		});
 
 		if (!paused)
@@ -98,9 +84,11 @@ export class Emitter {
 		{
 			const particle = this._activeParticles.pop();
 
-			particle.attachedEmitters.forEach((emitter) => {
-				emitter.release();
-			})
+			if (particle.attachedEmitters) {
+				particle.attachedEmitters.forEach((emitter) => {
+					emitter.release();
+				})
+			}
 
 			this._particlesPool.releaseParticle(particle);
 		}
@@ -134,12 +122,27 @@ export class Emitter {
 		return this._paused;
 	}
 
-	get active() {
-		return this._active;
+	pause() {
+		this._paused = true;
+	}
+
+	unpause() {
+		if (this._paused) {
+			this._paused = false;
+			this.update(0);
+		}
 	}
 
 	get generatorsPaused() {
 		return this._generatorsPaused;
+	}
+
+	pauseGenerators() {
+		this._generatorsPaused = true;
+	}
+
+	unpauseGenerators() {
+		this._generatorsPaused = false;
 	}
 
 	get particlesCount() {
@@ -170,7 +173,12 @@ export class Emitter {
 		}
 		else {
 			math.copyv3(next.position, prev.position);
-			math.setv3(next.velocity, 0, 0, 0);
+			
+			if (dt < 0.00001) {
+				math.copyv3(next.velocity, prev.velocity);
+			} else {
+				math.setv3(next.velocity, 0, 0, 0);
+			}
 		}
 
 		// Copy next rotation
@@ -188,7 +196,7 @@ export class Emitter {
 
 		this._stateInterpolator.begin(prev, next, this._interpState);
 
-		if (this._active && !this._generatorsPaused) {
+		if (!this._generatorsPaused) {
 			this._generators.forEach((generator) => {
 				particlesShot += generator.update(dt, this._stateInterpolator);
 			})
@@ -199,29 +207,7 @@ export class Emitter {
 		for (let partIndex = particlesShot; partIndex < this._activeParticles.length;) {
 			const particle = this._activeParticles[partIndex];
 
-			if (!particle._waitingForDelete) {
-				this._model.updateParticle(particle, dt);
-
-				let terminate = false;
-				for (let termIndex = 0; termIndex < this._terminators.length; ++termIndex) {
-					if (this._terminators[termIndex].checkParticle(particle)) {
-						terminate = true;
-						break;
-					}
-				}
-
-				if (terminate) {
-					this._model.onParticleTerminated(particle);
-
-					if (this._killParticleIfReady(partIndex))
-						continue;
-
-					particle._waitingForDelete = true;
-				}
-			}
-			else {
-				// ! update particle's attached emitters here
-
+			if (!this._updateParticle(particle, dt)) {
 				if (this._killParticleIfReady(partIndex))
 					continue;
 			}
@@ -236,21 +222,19 @@ export class Emitter {
 		if (!particle)
 			return null;
 
-		this._activeParticles.unshift(particle);
-
 		if (firstInBurst) {
 			this._model.initParticle(particle, this);
 		} else {
 			this._model.burstInitParticle(particle, this);
 		}
 
-		this._model.updateParticle(particle, simulateTime, this);
-
-		return particle;
-	}
-
-	disactivate() {
-		this._active = false;
+		if (this._updateAliveParticle(particle, simulateTime)) {
+			this._activeParticles.unshift(particle);
+			return particle;
+		} else {
+			this._particlesPool.releaseParticle(particle);
+			return null;
+		}
 	}
 
 	resetLocation(options) {
@@ -271,21 +255,55 @@ export class Emitter {
 		}
 	}
 
+	_updateParticle(particle, dt) {
+		if (particle._waitingForDelete) {
+			this._updateWaitingForDeleteParticle(particle, dt);
+			return false;
+		}
+
+		return this._updateAliveParticle(particle, dt);
+	}
+
+	_updateAliveParticle(particle, dt) {
+		const waitingForDelete = !this._model.updateParticle(particle, dt, this);
+
+		this._updateAttachedEmitters(particle, dt);
+
+		if (waitingForDelete) {
+			particle._waitingForDelete = true;
+			this._model.onParticleTerminated(particle);
+			return false;
+		}
+		return true;
+	}
+
+	_updateWaitingForDeleteParticle(particle, dt) {
+		this._updateAttachedEmitters(particle, dt);
+	}
+
+	_updateAttachedEmitters(particle, dt) {
+		if (particle.attachedEmitters) {
+			particle.attachedEmitters.forEach((emitter) => {
+				emitter.update(dt, particle.position, particle.rotation);
+			});
+		}
+	}
+
 	_killParticleIfReady(index) {
 		const particle = this._activeParticles[index];
+		
 		let ready = true;
 
-		// ! check if attached emitters are finished here
-		/*
-		for (var emitterIndex = 0; emitterIndex < particle.attachedEmitters.length; ++emitterIndex) {
-			var emitter = particle.attachedEmitter(emitterIndex);
+		if (particle.attachedEmitters) {
+			for (let emitterIndex = 0; emitterIndex < particle.attachedEmitters.length; ++emitterIndex) {
+				const emitter = particle.attachedEmitters[emitterIndex];
 
-			if (emitter.activated() || emitter.activeParticles.length > 0) {
-				ready = false;
-				break;
+				if (emitter.particlesCount > 0) {
+					ready = false;
+					break;
+				}
 			}
 		}
-		*/
 
 		if (ready) {
 			this._activeParticles.splice(index, 1);

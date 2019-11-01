@@ -39,12 +39,9 @@ export class Generator {
             else
                 this.burstPos = partIndex / (intBurstCount - 1);
 
-            const particle = this.emitter.shootParticle(partIndex == 0, frameTimeToSimulate);
-
-            if (!particle)
-                break;
-
-            ++particlesShot;
+            if (this.emitter.shootParticle(partIndex == 0, frameTimeToSimulate)) {
+                ++particlesShot;
+            }
         }
 
         return particlesShot;
