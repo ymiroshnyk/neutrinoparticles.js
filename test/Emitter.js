@@ -361,11 +361,43 @@ describe('Emitter', function()
             assert.equal(emitterModel.updateParticle.callCount, 3); 
             // terminator checked 1st particle
             assert(emitter.terminators[0].checkParticle.calledOnceWithExactly(particle1));
+            // emitterModel.onParticleTerminated() called for 1st particle
+            assert(emitterModel.onParticleTerminated.calledOnceWithExactly(particle1));
             // 1st particle was returned to the pool
             assert(particlesPool.releaseParticle.calledOnceWithExactly(particle1));
             // only one particle left in emitter
             assert.equal(emitter.particlesCount, 1);
         });
+
+        it('Should not update particle with _waitingForDelete and kill it right away', function() {
+            const particlesPool = {
+                aquireParticle: sinon.fake(() => { return { _waitingForDelete: true }}),
+                releaseParticle: sinon.fake()
+            }
+
+            const emitterModel = this.shootingEmitterModel;
+
+            const emitter = new Neutrino.Emitter(particlesPool, emitterModel);
+            emitter.initiate(); // 1st particle shot, updated
+            emitter.update(1); // 2nd particle shot, updated, 1st particle not updated and killed
+
+            assert.equal(particlesPool.aquireParticle.callCount, 2);
+            const particle1 = particlesPool.aquireParticle.getCall(0).returnValue;
+            const particle2 = particlesPool.aquireParticle.getCall(1).returnValue;
+
+            // particles updated 3 times
+            assert.equal(emitterModel.updateParticle.callCount, 2); 
+            // 1st particle updated in initiate()
+            assert(emitterModel.updateParticle.getCall(0).calledWithExactly(
+                particle1, 0, emitter));
+            // 2nd particle updated in update(1)
+            assert(emitterModel.updateParticle.getCall(1).calledWithExactly(
+                particle2, 1, emitter));
+            // 1st particle was returned to the pool
+            assert(particlesPool.releaseParticle.calledOnceWithExactly(particle1));
+            // only one particle left in emitter
+            assert.equal(emitter.particlesCount, 1);
+        })
     });
 
     describe('shootParticle()', function() {
@@ -397,6 +429,40 @@ describe('Emitter', function()
             assert(emitterModel.updateParticle.getCall(1).calledWithExactly(particle2, 2, emitter));
 
             assert.equal(emitter.particlesCount, 2);
+        })
+    })
+
+    describe('disactivate()', function() {
+        it('Should set up state correctly', function() {
+            const emitter = new Neutrino.Emitter(particlesPool, emitterModel);
+            emitter.initiate();
+            assert.equal(emitter.active, true);
+            emitter.disactivate();
+            assert.equal(emitter.active, false);
+        })
+    })
+
+    describe('resetLocation()', function() {
+        it('Should update position, rotation and velocity right away', function() {
+            const emitter = new Neutrino.Emitter(particlesPool, emitterModel);
+            emitter.initiate();
+            emitter.resetLocation({
+                position: [1, 2, 3],
+                rotation: [4, 5, 6, 7],
+                velocity: [8, 9, 10]
+            });
+            assert(math.equalv3_(emitter.position, [1, 2, 3]));
+            assert(math.equalq_(emitter.rotation, [4, 5, 6, 7]));
+            assert(math.equalv3_(emitter.velocity, [8, 9, 10]));
+        })
+
+        it('Should set zero velocity by defaul', function() {
+            const emitter = new Neutrino.Emitter(particlesPool, emitterModel);
+            emitter.initiate();
+            emitter.update(1, [1, 1, 1]);
+            assert(math.equalv3_(emitter.velocity, [1, 1, 1]));
+            emitter.resetLocation();
+            assert(math.equalv3_(emitter.velocity, [0, 0, 0]));
         })
     })
 })

@@ -99,7 +99,7 @@ export class Emitter {
 			const particle = this._activeParticles.pop();
 
 			particle.attachedEmitters.forEach((emitter) => {
-				emitter._release();
+				emitter.release();
 			})
 
 			this._particlesPool.releaseParticle(particle);
@@ -253,34 +253,22 @@ export class Emitter {
 		this._active = false;
 	}
 
-	//draw(context, camera) {
-	//	this.construct.draw(context, camera);
-	//}
-
-	//fillGeometryBuffers(cameraRight, cameraUp, cameraDir, renderBuffer) {
-	//	this.construct.fillGeometryBuffers(cameraRight, cameraUp, cameraDir, renderBuffer);
-	//}
-
-	resetPosition(position, rotation) {
-		//this._prevPositionTime = this.time;
+	resetLocation(options) {
+		const { position, rotation, velocity } = options || {};
 
 		if (position) {
-			math.copyv3(this._prevPosition, this.position);
-			math.copyv3(this.position, position);
+			math.copyv3(this._interpState.position, position);
 		}
 
 		if (rotation) {
-			math.copyq(this._prevRotation, this.rotation);
-			math.copyq(this.rotation, rotation);
+			math.copyq(this._interpState.rotation, rotation);
 		}
-	}
 
-	//attachEmitter(emitterImpl, emitterProps) {
-	//	this.attachedEmitterImpls.push({ impl: emitterImpl, props: emitterProps });
-	//}
-
-	getNumParticles() {
-		return this._activeParticles.length;
+		if (velocity) {
+			math.copyv3(this._interpState.velocity, velocity);
+		} else {
+			math.setv3(this._interpState.velocity, 0, 0, 0);
+		}
 	}
 
 	_killParticleIfReady(index) {
