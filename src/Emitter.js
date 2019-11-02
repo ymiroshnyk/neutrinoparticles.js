@@ -22,7 +22,6 @@ export class Emitter {
 
 		this._generators = [];
 
-		//this._prevPositionTime = 0.0;
 		this._paused = false;
 		this._generatorsPaused = false;
 
@@ -208,8 +207,11 @@ export class Emitter {
 			const particle = this._activeParticles[partIndex];
 
 			if (!this._updateParticle(particle, dt)) {
-				if (this._killParticleIfReady(partIndex))
+				if (this._isParticleReadyToKill(particle)) {
+					this._activeParticles.splice(partIndex, 1);
+					this._particlesPool.releaseParticle(particle);
 					continue;
+				}
 			}
 
 			++partIndex;
@@ -228,12 +230,14 @@ export class Emitter {
 			this._model.burstInitParticle(particle, this);
 		}
 
-		if (this._updateAliveParticle(particle, simulateTime)) {
-			this._activeParticles.unshift(particle);
-			return particle;
-		} else {
+		const shouldBeKilled = !this._updateAliveParticle(particle, simulateTime);
+
+		if (shouldBeKilled && this._isParticleReadyToKill(particle)) {
 			this._particlesPool.releaseParticle(particle);
 			return null;
+		} else {
+			this._activeParticles.unshift(particle);
+			return particle;
 		}
 	}
 
@@ -289,29 +293,17 @@ export class Emitter {
 		}
 	}
 
-	_killParticleIfReady(index) {
-		const particle = this._activeParticles[index];
-		
-		let ready = true;
-
+	_isParticleReadyToKill(particle) {
 		if (particle.attachedEmitters) {
 			for (let emitterIndex = 0; emitterIndex < particle.attachedEmitters.length; ++emitterIndex) {
 				const emitter = particle.attachedEmitters[emitterIndex];
 
 				if (emitter.particlesCount > 0) {
-					ready = false;
-					break;
+					return false;
 				}
 			}
 		}
 
-		if (ready) {
-			this._activeParticles.splice(index, 1);
-			this._particlesPool.releaseParticle(particle);
-			return true;
-		}
-
-		return false;
+		return true;
 	}
-
 }

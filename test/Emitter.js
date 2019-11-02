@@ -46,6 +46,10 @@ const emitterModel = new MockEmitterModel({
     generatorClass: GeneratorClass
 });
 
+const shootingEmitterModel = new MockEmitterModel({
+    generatorClass: ShootingGeneratorClass
+});
+
 const particlesPool = {
     aquireParticle: sinon.fake(() => {
         return {};
@@ -170,9 +174,6 @@ describe('Emitter', function()
     describe('update()', function() {
 
         beforeEach(function() {
-            this.shootingEmitterModel = new MockEmitterModel({
-                generatorClass: ShootingGeneratorClass
-            });
         });
 
         it ('Non-shooting initiate+update should call generator.update() twice', function() {
@@ -301,10 +302,11 @@ describe('Emitter', function()
         })
 
         it("Should skip update of just generated particles.", function() {
-            const emitter = new Neutrino.Emitter(particlesPool, this.shootingEmitterModel);
-            emitter.initiate(); // 1st particle shot and updated
-            emitter.update(0); // 2nd particle shot and updated, and 1st only updated
-            assert.equal(this.shootingEmitterModel.updateParticle.callCount, 3); 
+            const emitter = new Neutrino.Emitter(particlesPool, shootingEmitterModel);
+            emitter.initiate(); // 1st shot and updated
+            emitter.update(0);  // 2nd shot and updated, 
+                                // 1st updated
+            assert.equal(shootingEmitterModel.updateParticle.callCount, 3); 
         })
 
         it('Should kill particle right on the same update if necessary', function() {
@@ -316,8 +318,8 @@ describe('Emitter', function()
             });
 
             const emitter = new Neutrino.Emitter(particlesPool, emitterModel);
-            emitter.initiate(); // 1st particle shot, updated and killed
-            emitter.update(0); // 2nd particle shot, updated and killed
+            emitter.initiate(); // 1st shot, updated and killed
+            emitter.update(0); // 2nd shot, updated and killed
 
             assert.equal(particlesPool.aquireParticle.callCount, 2);
             const particle1 = particlesPool.aquireParticle.getCall(0).returnValue;
@@ -420,116 +422,110 @@ describe('Emitter', function()
     })
 
     describe('Attached emitters', function() {
-
-        class Generator {
-            constructor(emitter, model) {
-                const { particlesToShoot } = model;                
-
-                this._emitter = emitter;
-                this._particlesLeft = particlesToShoot;
-
-                this.initiate = sinon.fake();
-                this.update = sinon.fake((dt, stateInterp) => {
-                    if (this._particlesLeft > 0) {
-                        const particle = this._emitter.shootParticle(true, dt);
-
-                        if (--this._particlesLeft == 0)
-                            this._emitter.pauseGenerators();
-
-                        return particle ? 1 : 0;
-                    }
-                    return 0;
-                })
-            }
-        }
-
-        class ChildEmitterParticlesPool {
+        class AttachedParticlesPool {
             constructor() {
                 this.aquireParticle = sinon.fake(() => {
-                    return { frames: 0 }
-                });
-
-                this.releaseParticle = sinon.fake();
-            }
-        }
-
-        class ParentEmitterParticlesPool {
-            constructor(childEmitterPool, childEmitterModel) {
-                this._childEmitterPool = childEmitterPool;
-                this._childEmitterModel = childEmitterModel;
-    
-                this.aquireParticle = sinon.fake(() => {
                     return {
-                        frames: 0,
-                        attachedEmitters: [
-                            new Neutrino.Emitter(this._childEmitterPool, this._childEmitterModel)
-                        ]
+                        position: [1, 2, 3],
+                        rotation: [4, 5, 6, 7],
+                        attachedEmitters: [{
+                            particlesCount: 1,
+                            update: sinon.fake(),
+                            release: sinon.fake()
+                        }]
                     }
-                })
+                });
 
                 this.releaseParticle = sinon.fake();
             }
         }
 
-        class AttachEmitterModel {
-            constructor(params) {
-                const { 
-                    particlesToShoot, 
-                    lifeFrames,
-                    onTerminate } = params;
+        it('Should update attached emitters correctly', function() {
+            const particlesPool = new AttachedParticlesPool();
+            const emitter = new Neutrino.Emitter(particlesPool, shootingEmitterModel);
+            emitter.initiate(); // 1st shot and updated
+            emitter.update(1);  // 2nd shot and updated, 
+                                // 1st updated
 
-                this.initEmitter = sinon.fake((emitter) => {
-                    emitter.addGeneratorModel(Generator, {
-                        particlesToShoot: particlesToShoot
-                    });
-                });
+            assert.equal(particlesPool.aquireParticle.callCount, 2);
+            const particle1 = particlesPool.aquireParticle.getCall(0).returnValue;
+            const particle2 = particlesPool.aquireParticle.getCall(1).returnValue;
 
-                const initParticle = (particle, emitter) => {
-                    particle.frame = 0;
-                    particle.attachedEmitters.forEach((attachedEmitter) => {
-                        attachedEmitter.initiate({
-                            paused: onTerminate
-                        })
-                    })
-                }
+            assert(particle1.attachedEmitters[0].update.calledTwice);
+            assert(particle1.attachedEmitters[0].update.getCall(0).calledWithExactly(
+                0, [1, 2, 3], [4, 5, 6, 7]));
+            assert(particle1.attachedEmitters[0].update.getCall(1).calledWithExactly(
+                1, [1, 2, 3], [4, 5, 6, 7]));
+            assert(particle2.attachedEmitters[0].update.calledOnceWithExactly(
+                1, [1, 2, 3], [4, 5, 6, 7]));
+        })
+        
+        it ('Should not kill particle until attached emitters are not empty', function() {
+            const particlesPool = new AttachedParticlesPool();
+            const emitterModel = new MockEmitterModel({ 
+                generatorClass: ShootingGeneratorClass
+            });
 
-                this.initParticle = sinon.fake(initParticle);
-                this.burstInitParticle = sinon.fake(initParticle);
+            // this would kill particle right away
+            emitterModel.updateParticle = sinon.fake.returns(false);
 
-                this.updateParticle = sinon.fake((particle, dt, emitter) => {
-                    return ++particle.frame != lifeFrames;
-                });
+            const emitter = new Neutrino.Emitter(particlesPool, emitterModel);
+            // All particles are marked as dead on the first frame
+            emitter.initiate(); // 1st shot, updated, attached updated
+            emitter.update(1);  // 2nd shot, updated, attached updated,
+                                // 1st attached updated
 
-                this.onParticleTerminated = sinon.fake((particle, emitter) => {
-                    particle.attachedEmitters.forEach((attachedEmitter) => {
-                        if (onTerminate)
-                            attachedEmitter.unpause();
-                        else
-                            attachedEmitter.pauseGenerators();
-                    })
-                });
-            }            
-        }
+            const particle1 = particlesPool.aquireParticle.getCall(0).returnValue;
+            const particle2 = particlesPool.aquireParticle.getCall(1).returnValue;
 
-        /*it('Should correctly simulate normal attached emitter', function() {
-            const childParticlesPool = new ChildEmitterParticlesPool();
-            const childEmitterModel = new AttachEmitterModel({
-                particlesToShoot: 1000,
-                lifeFrames: 1,
-                onTerminate: false
-            })
-            const parentParticlesPool = new ParentEmitterParticlesPool(
-                childParticlesPool, childEmitterModel);
+            // attached on 1st particle marked as empty
+            particle1.attachedEmitters[0].particlesCount = 0;
 
-            const parentEmitterModel = new AttachEmitterModel({
-                particlesToShoot: 1,
-                lifeFrames: 2,
-                onTerminate: false
-            })
+            emitter.update(2); // 3rd shot, updated, attached updated,
+                               // 1st attached updated, killed,
+                               // 2nd attached updated
 
-            const emitter = new Neutrino.Emitter(parentParticlesPool, parentEmitterModel);
-            emitter.initiate(); // parent particle shot
-            emitter.update(1);
-        })*/
+            assert.equal(emitterModel.updateParticle.callCount, 3);
+            assert.equal(particle1.attachedEmitters[0].update.callCount, 3);
+            assert.equal(particle2.attachedEmitters[0].update.callCount, 2);
+            assert(particlesPool.releaseParticle.calledOnceWithExactly(particle1));
+        })
+
+        it ('Should call release for attached emitters', function() {
+            const particlesPool = new AttachedParticlesPool();
+            const emitter = new Neutrino.Emitter(particlesPool, shootingEmitterModel);
+            emitter.initiate(); // 1st shot and updated
+            emitter.update(1);  // 2nd shot and updated, 
+                                // 1st updated
+
+            emitter.release();
+
+            assert.equal(particlesPool.aquireParticle.callCount, 2);
+            const particle1 = particlesPool.aquireParticle.getCall(0).returnValue;
+            const particle2 = particlesPool.aquireParticle.getCall(1).returnValue;
+
+            assert.equal(particlesPool.releaseParticle.callCount, 2);
+            assert(particle1.attachedEmitters[0].release.calledOnce);
+            assert(particle2.attachedEmitters[0].release.calledOnce);
+        })
+    })
+
+    describe('release()', function() {
+        it('Should release all particles in emitter', function() {
+            const emitter = new Neutrino.Emitter(particlesPool, shootingEmitterModel);
+            emitter.initiate(); // 1st shot and updated,
+            emitter.update(1);  // 2nd shot and updated,
+                                // 1st shot and updated
+
+            emitter.release();
+
+            assert.equal(particlesPool.aquireParticle.callCount, 2);
+            const particle1 = particlesPool.aquireParticle.getCall(0).returnValue;
+            const particle2 = particlesPool.aquireParticle.getCall(1).returnValue;
+
+            assert.equal(particlesPool.releaseParticle.callCount, 2);
+            assert(particlesPool.releaseParticle.getCall(0).calledWithExactly(particle1));
+            assert(particlesPool.releaseParticle.getCall(1).calledWithExactly(particle2));
+        })
     })
 })
