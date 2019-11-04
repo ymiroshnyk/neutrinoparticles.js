@@ -2,40 +2,57 @@
   "name": "neutrinoparticles.js",
   "version": "1.0.4",
   "description": "Javascript runtimes for neutrinoparticles",
-  "main": "dist/neutrinoparticles.js",
-  "module": "dist/neutrinoparticles.js",
-  "browser": "dist/neutrinoparticles.js",
-  "scripts": {
-    "test-phaser": "./node_modules/.bin/electron . test=Phaser",
-    "test-pixi": "./node_modules/.bin/electron . test=PIXI"
-  },
+  "main": "dist/neutrinoparticles.umd.js",
+  "keywords": [
+    "neutrinoparticles",
+    "particles"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ymiroshnyk/neutrinoparticles.js.git"
   },
-  "author": "",
+  "author": "Yurii Miroshnyk",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/ymiroshnyk/neutrinoparticles.js/issues"
   },
   "homepage": "https://github.com/ymiroshnyk/neutrinoparticles.js#readme",
   "devDependencies": {
-    "run-sequence": "^2.2.1",
-    "babel": "^6.23.0",
-    "babel-core": "^6.26.3",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-es2015": "^6.0.0",
-    "babel-preset-es2016": "^6.16.0",
-    "colors": "^1.3.2",
-    "electron": "^1.8.8",
-    "glob": "^7.1.3",
-    "gulp": "^3.9.1",
-    "gulp-babel": "^7.0.1",
-    "gulp-concat": "^2.6.1",
-    "gulp-sourcemaps": "^2.6.4",
-    "gulp-watch": "^5.0.1",
-    "gulp-module-wrapper": "^0.3.8",
-    "gulp-rename": "^1.4.0",
-    "pixelmatch": "^4.0.2"
-  }
+    "@babel/cli": "^7.6.4",
+    "@babel/core": "^7.6.3",
+    "@babel/node": "^7.6.3",
+    "@babel/polyfill": "^7.6.0",
+    "@babel/preset-env": "^7.6.3",
+    "@babel/register": "^7.6.2",
+    "rimraf": "^3.0.0",
+    "rollup": "^1.23.1",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0"
+  },
+  "scripts": {
+    "clean": "./node_modules/.bin/rimraf ./dist",
+    "build": "rollup -c -m",
+    "cleanbuild": "npm run clean && npm run build",
+    "dev": "npm run build -- -w",
+    "pretest": "npm run build",
+    "test": "npm run just-test",
+    "just-test": "",
+    "predocs": "",
+    "docs": "",
+    "publish:patch": "npm whoami && npm run cleanbuild && VERSION=$(npm version patch) && grep -q $VERSION CHANGES.md && npm publish",
+    "publish:minor": "npm whoami && npm run cleanbuild && VERSION=$(npm version minor) && grep -q $VERSION CHANGES.md && npm publish",
+    "publish:major": "npm whoami && npm run cleanbuild && VERSION=$(npm version major) && grep -q $VERSION CHANGES.md && npm publish",
+    "postpublish": "git push && git push --tags"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ],
+    "retainLines": true
+  },
+  "files": [
+    "bin",
+    "dist"
+  ]
 }

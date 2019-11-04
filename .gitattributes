@@ -1,6 +1,0 @@
-package.json text eol=lf
-package-lock.json text eol=lf
-dist-PIXI/neutrinoparticles.pixi.js text eol=lf
-dist-PIXI/neutrinoparticles.pixi.js.map text eol=lf
-dist-PHASER/neutrinoparticles.phaser.js text eol=lf
-dist-PHASER/neutrinoparticles.phaser.js.map text eol=lf

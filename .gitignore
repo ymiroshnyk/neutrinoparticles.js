@@ -1,13 +1,3 @@
-/Web*.config
-
-# IntelliJ project files
-.idea
-*.iml
-out
-gen
-
-# Vendors
-node_modules/
-TODO.txt
-
+/dist
+/node_modules
 /.vscode
