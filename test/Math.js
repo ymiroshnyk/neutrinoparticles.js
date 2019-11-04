@@ -3,9 +3,8 @@
 import * as Neutrino from '../dist/neutrinoparticles.umd.js';
 import * as assert from 'assert';
 
-const math = Neutrino.math;
-
 describe('Math', function () {
+    const math = Neutrino.math;
 
     it('equalv3()', function () {
 

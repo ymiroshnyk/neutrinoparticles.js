@@ -5,35 +5,39 @@ import assert from 'assert'
 import sinon from 'sinon'
 import * as utils from'./TestUtils'
 
-const math = Neutrino.math;
-
-let stateInterp, generatorModel, emitter;
-
 describe('GeneratorDist', function()
 {
+    const sandbox = sinon.createSandbox();
+
+    const stateInterp = {
+        set: sandbox.fake()
+    }
+    
+    const generatorModel = {
+        initProps: null,
+        init: sandbox.fake(function(generator) 
+        {
+            if (this.initProps)
+                Object.assign(generator, this.initProps);
+        }),
+        update: sandbox.fake()
+    }
+    
+    const emitter = {
+        shootParticle: sandbox.fake(),
+        disactivate: sandbox.fake()
+    }
+
     beforeEach(function() {
-        stateInterp = {
-            set: sinon.fake()
-        }
         
-        generatorModel = {
-            initProps: null,
-            init: sinon.fake(function(generator) 
-            {
-                if (this.initProps)
-                    Object.assign(generator, this.initProps);
-            }),
-            update: sinon.fake()
-        }
-        
-        emitter = {
-            shootParticle: sinon.fake(),
-            disactivate: sinon.fake()
-        }
     });
 
     afterEach(function() {
-        sinon.reset();
+        sandbox.reset();
+    })
+
+    after(function() {
+        sandbox.restore();
     })
 
     describe('constructor()', function()
@@ -47,7 +51,7 @@ describe('GeneratorDist', function()
     describe('initiate()', function() {
         it('should call super.initiate()', function() {
             const generator = new Neutrino.GeneratorDist(emitter, generatorModel);
-            const initiateStub = sinon.stub(Neutrino.Generator.prototype, 'initiate');
+            const initiateStub = sandbox.stub(Neutrino.Generator.prototype, 'initiate');
             generator.initiate();
             assert(initiateStub.calledOnce);
         })
@@ -194,4 +198,4 @@ describe('GeneratorDist', function()
             testMultipleFrames.call(this, 10);
         });
     });
-});
+})

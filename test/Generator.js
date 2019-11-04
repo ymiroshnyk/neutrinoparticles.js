@@ -6,17 +6,19 @@ import sinon from 'sinon';
 
 describe('Generator', function()
 {
+    const sandbox = sinon.createSandbox();
+
     beforeEach(function() {
 
         this.emitter = {
-            shootParticle: sinon.fake.returns({})
+            shootParticle: sandbox.fake.returns({})
         };
         
         this.generator = new Neutrino.Generator(this.emitter);
     });
 
     afterEach(function() {
-        sinon.restore();
+        sandbox.restore();
     })
 
     describe('burstParticles()', function()
@@ -43,7 +45,7 @@ describe('Generator', function()
         it('Should return exact number of valid particles', function() {
             let particlesLeft = 2;
             const emitter = {
-                shootParticle: sinon.fake(() => {
+                shootParticle: sandbox.fake(() => {
                     if (particlesLeft-- > 0)
                         return {};
                     else

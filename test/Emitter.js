@@ -5,65 +5,67 @@ import assert from 'assert'
 import * as utils from './TestUtils'
 import sinon from 'sinon'
 
-const math = Neutrino.math;
-
-class GeneratorClass {
-    constructor() {
-        this.initiate = sinon.fake();
-        this.update = sinon.fake.returns(0);
-    }
-}
-
-class ShootingGeneratorClass {
-    constructor(emitter, model) {
-        this._emitter = emitter;
-        
-        this.initiate = sinon.fake();
-        this.update = sinon.fake((dt, interp) => {
-            if (this._emitter.shootParticle(true, dt))
-                return 1;
-            else
-                return 0;
-        });
-    }
-}
-
-class MockEmitterModel {
-    constructor(options) {
-        this.generatorClass = options.generatorClass;
- 
-        this.initEmitter = sinon.fake(function(emitter) {
-            emitter.addGeneratorModel(this.generatorClass, {});
-        });
-        this.initParticle = sinon.fake();
-        this.burstInitParticle = sinon.fake();
-        this.updateParticle = sinon.fake.returns(true);
-        this.onParticleTerminated = sinon.fake();
-    }
-}
-
-const emitterModel = new MockEmitterModel({ 
-    generatorClass: GeneratorClass
-});
-
-const shootingEmitterModel = new MockEmitterModel({
-    generatorClass: ShootingGeneratorClass
-});
-
-const particlesPool = {
-    aquireParticle: sinon.fake(() => {
-        return {};
-    }),
-    releaseParticle: sinon.fake()
-}
-
 describe('Emitter', function()
 {
+    const math = Neutrino.math;
+
+    const sandbox = sinon.createSandbox();
+
+    class GeneratorClass {
+        constructor() {
+            this.initiate = sandbox.fake();
+            this.update = sandbox.fake.returns(0);
+        }
+    }
+    
+    class ShootingGeneratorClass {
+        constructor(emitter, model) {
+            this._emitter = emitter;
+            
+            this.initiate = sandbox.fake();
+            this.update = sandbox.fake((dt, interp) => {
+                if (this._emitter.shootParticle(true, dt))
+                    return 1;
+                else
+                    return 0;
+            });
+        }
+    }
+    
+    class MockEmitterModel {
+        constructor(options) {
+            this.generatorClass = options.generatorClass;
+     
+            this.initEmitter = sandbox.fake(function(emitter) {
+                emitter.addGeneratorModel(this.generatorClass, {});
+            });
+            this.initParticle = sandbox.fake();
+            this.burstInitParticle = sandbox.fake();
+            this.updateParticle = sandbox.fake.returns(true);
+            this.onParticleTerminated = sandbox.fake();
+        }
+    }
+    
+    const emitterModel = new MockEmitterModel({ 
+        generatorClass: GeneratorClass
+    });
+    
+    const shootingEmitterModel = new MockEmitterModel({
+        generatorClass: ShootingGeneratorClass
+    });
+    
+    const particlesPool = {
+        aquireParticle: sandbox.fake(() => {
+            return {};
+        }),
+        releaseParticle: sandbox.fake()
+    }
+
     beforeEach(function() {
     });
 
     afterEach(function() {
-        sinon.reset();
+        sandbox.reset();
     })
 
     describe('constructor()', function(){
@@ -92,7 +94,7 @@ describe('Emitter', function()
         it ('should add instance to generators', function() {
             const emitter = new Neutrino.Emitter({}, {});
             const generatorModel = {};
-            const GeneratorClass = sinon.fake();
+            const GeneratorClass = sandbox.fake();
 
             emitter.addGeneratorModel(GeneratorClass, generatorModel);
             
@@ -158,14 +160,14 @@ describe('Emitter', function()
 
         it('should call update(0) if not paused', function() {
             const emitter = new Neutrino.Emitter({}, {});
-            const updateSpy = sinon.spy(emitter, 'update');
+            const updateSpy = sandbox.spy(emitter, 'update');
             emitter.initiate();
             assert(updateSpy.calledOnceWithExactly(0));
         })
 
         it('should NOT call update() if paused', function() {
             const emitter = new Neutrino.Emitter({}, {});
-            const updateSpy = sinon.spy(emitter, 'update');
+            const updateSpy = sandbox.spy(emitter, 'update');
             emitter.initiate({ paused: true });
             assert(updateSpy.notCalled);
         })
@@ -313,7 +315,7 @@ describe('Emitter', function()
             const emitterModel = new MockEmitterModel({
                 generatorClass: ShootingGeneratorClass
             });
-            emitterModel.updateParticle = sinon.fake(() => {
+            emitterModel.updateParticle = sandbox.fake(() => {
                 return false; // means particle finished it's life
             });
 
@@ -345,7 +347,7 @@ describe('Emitter', function()
     describe('shootParticle()', function() {
         it('Should return null if particles pool is full', function() {
             const fullParticlesPool = {
-                aquireParticle: sinon.fake(function() { return null; })
+                aquireParticle: sandbox.fake(function() { return null; })
             }
             const emitter = new Neutrino.Emitter(fullParticlesPool, emitterModel);
             emitter.initiate();
@@ -413,7 +415,7 @@ describe('Emitter', function()
                 velocity: [1, 2, 3],
                 paused: true
             });
-            const updateSpy = sinon.spy(emitter, 'update');
+            const updateSpy = sandbox.spy(emitter, 'update');
             emitter.unpause();
             assert(updateSpy.calledOnceWithExactly(0));
             assert(math.equalv3_(emitter.velocity, [1, 2, 3]));
@@ -424,19 +426,19 @@ describe('Emitter', function()
     describe('Attached emitters', function() {
         class AttachedParticlesPool {
             constructor() {
-                this.aquireParticle = sinon.fake(() => {
+                this.aquireParticle = sandbox.fake(() => {
                     return {
                         position: [1, 2, 3],
                         rotation: [4, 5, 6, 7],
                         attachedEmitters: [{
                             particlesCount: 1,
-                            update: sinon.fake(),
-                            release: sinon.fake()
+                            update: sandbox.fake(),
+                            release: sandbox.fake()
                         }]
                     }
                 });
 
-                this.releaseParticle = sinon.fake();
+                this.releaseParticle = sandbox.fake();
             }
         }
 
@@ -467,7 +469,7 @@ describe('Emitter', function()
             });
 
             // this would kill particle right away
-            emitterModel.updateParticle = sinon.fake.returns(false);
+            emitterModel.updateParticle = sandbox.fake.returns(false);
 
             const emitter = new Neutrino.Emitter(particlesPool, emitterModel);
             // All particles are marked as dead on the first frame

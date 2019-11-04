@@ -4,34 +4,40 @@ import * as Neutrino from '../dist/neutrinoparticles.umd.js'
 import assert from 'assert'
 import sinon from 'sinon'
 
-const math = Neutrino.math;
-
-const stateInterp = {
-    set: sinon.fake()
-}
-
-const generatorModel = {
-    initProps: null,
-    init: sinon.fake(function(generator) 
-    {
-        if (this.initProps)
-            Object.assign(generator, this.initProps);
-    }),
-    update: sinon.fake()
-}
-
-const emitter = {
-    shootParticle: sinon.fake(),
-    disactivate: sinon.fake()
-}
-
-describe('GeneratorPeriodic', function()
+describe('GeneratorPeriodic', function() 
 {
+    const math = Neutrino.math;
+
+    const sandbox = sinon.createSandbox();
+
+    const stateInterp = {
+        set: sandbox.fake()
+    }
+    
+    const generatorModel = {
+        initProps: null,
+        init: sandbox.fake(function(generator) 
+        {
+            if (this.initProps)
+                Object.assign(generator, this.initProps);
+        }),
+        update: sandbox.fake()
+    }
+    
+    const emitter = {
+        shootParticle: sandbox.fake(),
+        disactivate: sandbox.fake()
+    }
+
     beforeEach(function() {
     });
 
     afterEach(function() {
-        sinon.reset();
+        sandbox.reset();
+    })
+
+    after(function() {
+        sandbox.restore();
     })
 
     describe('constructor()', function()
@@ -45,7 +51,7 @@ describe('GeneratorPeriodic', function()
     describe('initiate()', function() {
         it('should call super.initiate()', function() {
             const generator = new Neutrino.GeneratorPeriodic(emitter, generatorModel);
-            const initiateStub = sinon.stub(Neutrino.Generator.prototype, 'initiate');
+            const initiateStub = sandbox.stub(Neutrino.Generator.prototype, 'initiate');
             generator.initiate();
             assert(initiateStub.calledOnce);
         })
@@ -136,7 +142,7 @@ describe('GeneratorPeriodic', function()
 
             const stateInterp = {
                 state: { time: 0 },
-                set: sinon.fake(function(interp) {
+                set: sandbox.fake(function(interp) {
                     this.state.time = math.lerp_(0, 1, interp);
                 })
             }
@@ -183,4 +189,4 @@ describe('GeneratorPeriodic', function()
             testNumFrames.call(this, 10);    
         });
     });
-});
+})

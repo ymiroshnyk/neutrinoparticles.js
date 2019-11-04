@@ -2,12 +2,11 @@
 
 import * as Neutrino from '../dist/neutrinoparticles.umd'
 import assert from 'assert';
-import * as utils from './TestUtils'
-
-const math = Neutrino.math;
 
 describe('EmitterStateInterpolator', function()
 {
+    const math = Neutrino.math;
+
     beforeEach(function() {
     });
 
