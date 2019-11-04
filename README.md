@@ -1,15 +1,15 @@
 # neutrinoparticles.js
 
-This library allows you to load and simulate particle effects exported from [NeutrinoParticles Editor](https://neutrinoparticles.com/).
+The library allows you to load and simulate particle effects exported from [NeutrinoParticles Editor](https://neutrinoparticles.com/).
 
-You can render effects using either Canvas or WebGL.
+This is basically a core library which can update particle effect and give you instructions on how to render this effect.
 
-The library is designed to be integrated in any engine/framework, and there are samples showing how to use it in clean HTML5 environment. 
+Samples have reference renderers for Canvas and WebGL. You can use them as is or base on them to write your own renderer for desired framework or engine.
 
-Currently available integrations:
-* [PIXI official plugin](dist-PIXI) ([http://www.pixijs.com/](http://www.pixijs.com/))
+## Renderer for PIXI.js
+[neutrinoparticles.pixi](https://gitlab.com/neutrinoparticles/neutrinoparticles.pixi.js) provides a fully functional plugin for [PIXI.js](https://www.pixijs.com/) v4 or v5.
 
-Below you can find information on how to use neutrinoparticles.js in clean environment, so all effects and textures will be loaded using standard features of HTML5.
+## Installation
 
 ## Introduction
 
@@ -70,10 +70,10 @@ onEffectLoaded = function() {
 	var texturesLeft = textureNames.length;
 
 	var textureDescs = [];
-	
+
 	for (var imageIndex = 0; imageIndex < textureNames.length; ++imageIndex) {
 		var image = new Image();
-		
+
 		image.onload = (function (imageIndex, image) {
 			return function () {
 				textureDescs[imageIndex] = new neutrino.ImageDesc(
@@ -83,13 +83,13 @@ onEffectLoaded = function() {
 					image.width, 	// width of sub-image to use
 					image.height 	// height of sub-image to use
 					);
-					
+
 				if (--texturesLeft == 0) {
 					onTexturesLoaded(textureDescs);
 				};
 			};
 		})(imageIndex, image);
-		
+
 		image.src = 'textures/' + textureNames[imageIndex];
 	}
 }
@@ -108,9 +108,9 @@ onTexturesLoaded = function(textureDescs) {
 		position, 											// position of the effect
 		neutrino.axisangle2quat_([0, 0, 1], rotationAngle)	// rotation from angle (pass null if identity rotation)
 		);
-		
+
 	// send image descriptions to the effect
-	effect.textureDescs = textureDescs; 
+	effect.textureDescs = textureDescs;
 
 	animate();
 }
@@ -119,7 +119,7 @@ onTexturesLoaded = function(textureDescs) {
 And when everything is loaded and created it is time for animation loop.
 ```javascript
 var lastFrameTime = null;
-	
+
 animate = function () {
 	// calcule time from previous frame
 	if (lastFrameTime == null) {
@@ -139,14 +139,14 @@ animate = function () {
 		position, 										// new position of the effect (pass null if position is not changed)
 		neutrino.axisangle2quat_([0, 0, 1], rotationAngle)	// new rotation of the effect (pass null if rotation is not changed)
 		);
-	
+
 	// clear background
 	context.fillStyle = "grey";
 	context.fillRect(0, 0, canvas.width, canvas.height);
-	
+
 	// draw the effect
 	effect.draw(context);
-		
+
 	requestAnimationFrame(animate);
 };
 
@@ -173,7 +173,7 @@ effect.draw(context, camera);
 
 You can write your own camera with desired functionality. All you need is to create class with transform(...) method with such signature:
 ```javascript
-transform(worldPosition, size) { 
+transform(worldPosition, size) {
 	// ...
 	pos[0] = transformedScreenX;
 	pos[1] = transformedScreenY;
@@ -214,7 +214,7 @@ var gl;
 		gl = canvas.getContext("webgl", { premultipliedAlpha: false, alpha: false });
 	} catch (e) {
 	}
-	
+
 	if (!gl) {
 		gl = canvas.getContext("experimental-webgl", { premultipliedAlpha: false, alpha: false });
 	}
@@ -222,7 +222,7 @@ var gl;
 	if (!gl) {
 		alert("Could not initialise WebGL, sorry :-(");
 	}
-	
+
 	gl.viewportWidth = canvas.width;
 	gl.viewportHeight = canvas.height;
 }
@@ -263,10 +263,10 @@ onEffectLoaded = function() {
 	var texturesLeft = textureNames.length;
 
 	var textureDescs = [];
-	
+
 	for (var imageIndex = 0; imageIndex < textureNames.length; ++imageIndex) {
 		var image = new Image();
-		
+
 		image.onload = (function (imageIndex, image) {
 			return function () {
 				textureDescs[imageIndex] = new neutrino.ImageDesc(
@@ -276,19 +276,19 @@ onEffectLoaded = function() {
 					image.width, 	// width of sub-image to use
 					image.height 	// height of sub-image to use
 					);
-					
+
 				if (--texturesLeft == 0) {
 					onTexturesLoaded(textureDescs);
 				};
 			};
 		})(imageIndex, image);
-		
+
 		image.src = 'textures/' + textureNames[imageIndex];
 	}
 }
 ```
 
-At this point everything was mostly the same as Canvas render has. 
+At this point everything was mostly the same as Canvas render has.
 
 The next step is to create WebGL wraps for effect model and effect instance.
 
@@ -352,7 +352,7 @@ animate = function () {
 loadEffect();
 ```
 
-That's it. Now you better investigate the source codes of WebGLNeutrino* classes. They are pretty lightweight and self-explanatory. 
+That's it. Now you better investigate the source codes of WebGLNeutrino* classes. They are pretty lightweight and self-explanatory.
 
 Before you start integration to your application, I would advice you to think about these:
 * How to use your texture manager to load textures, if you have one. You also might want to use texture atlases.
@@ -411,8 +411,8 @@ neutrino.initializeNoise(
 	"/neutrinoparticles.js/dist/",	// path to directory where "neutrinoparticles.noise.bin" is
 	function() {},					// noise successfully loaded and ready to use callback
 	function() {					// load fail callback
-		alert("Can't load noise file"); 
-	} 
+		alert("Can't load noise file");
+	}
 );
 ```
 The size of this file is 768Kb - consider this if your project has strict download requirements.
@@ -462,6 +462,3 @@ If you want to change property with given name for all stanalone emitters, you c
 ```javascript
 effect.setPropertyInAllEmitters("PropertyName", 10); //[10, 20] or [10, 20, 30] for vectors
 ```
-
-
-
